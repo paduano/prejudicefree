@@ -1,0 +1,143 @@
+
+# MVP 
+[√] read next.js documentation https://nextjs.org/docs/basic-features/typescript
+    - getStaticProps to fetch static data at build time
+    - getServerSideProps to fetch data at request time for SSR
+    - dynamic routes https://nextjs.org/docs/routing/dynamic-routes
+    - async functions always return promises, if not they will implicitly wrap it
+    - React suspense must be used with https://relay.dev/. Use graphql 
+
+
+[√] json load speed, < 1 sec to parse
+[ ] investigate if it is needed to gzip the json file
+
+[√] store options?
+    [√] learn about immer library
+        - used to make immutability easy
+    - more about typescript and redux https://redux-toolkit.js.org/usage/usage-with-typescript
+    - disable middleware for speed up store
+        thunk on prod, on dev is thunk, immutableStateInvariant, serializableStateInvariant. (https://redux-toolkit.js.org/api/getDefaultMiddleware)
+    - should I keep data manipulation outside the store? 
+        keep filters in the store (selected age, gender, etc...),  keep data in a custom class. Redux has only access to an hash.  Hash is constructed as sum of all filters. I can cache different values
+        - If I filter by nationality, they are really not a lot of records (a few K)
+    - selectors: read hooks and create selectors at https://react-redux.js.org/api/hooks
+[√] filtering
+    - R (predictably) removes from JSON undefined values
+    - need to give the option to the user to not specify a particular answer (e.g. is religious)
+[√] material UI
+    - made theming work with SSR https://github.com/mui-org/material-ui/blob/master/examples/nextjs/pages/_document.js
+    - *theme explorer* https://material-ui.com/customization/default-theme/?expand-path=%24.typography
+[√] better data representation
+    [√] example graph in d3
+        [√] experiment with dot moving 
+    - instancing better than Point geometry since I can use a custom mesh
+    - tried UnrealBloom. Effect composer removes the transparency of the background
+[ ] compute stats for different social demographics 
+
+- I can disable SSR in a module with https://codeconqueror.com/blog/next-js-disable-ssr/
+- !?! should I be building a mathematical model instead of counting results?
+
+# Iteration 1. Theatre
+[ ] Write script
+    https://docs.google.com/document/d/1DR-hT_THTm2ao4_scXbtxHb_lf-sggI2y7onfMExx4I/edit
+[√] experiment with 3d viz. Point geometry + morphing 
+    - morph example https://threejs.org/examples/webgl_morphtargets.html
+    [√] merge with svg perspective attribute 
+        - example http://www.emagix.net/academic/mscs-project/item/css3-webgl-3d-transforms-in-sync-webkit
+    [√] connect to real data: function that assign attributes given an observation
+    [ ] MVP of sequence showing age -> abortion -> religion
+        - for lighting, used a super hack. CUrrent material doesn't support lighting, and i'm not sure I found the right normal to pass from vertext to frag
+- use https://www.npmjs.com/package/svg-to-react-cli to convert svg to react functional components
+    $> svgtoreact chart1 chart1
+- can conditionally import modules with promise syntax
+[javascript]
+    import('../app/components/viz/assets').then(module => {
+      return module.LoadResources();
+    })
+[end]
+[√] filter what is inside and outside the circle.
+- Array.from({length: 20}, (x, i) => i to generate an array of numbers from 1 to 5
+
+[ ] coloring people by different values
+    [ ] validate different color gradient can be used to mix 2 or 3 different ranges
+    [ ] understand what value index can be mixed
+        - Religiosity/Secularity | Democratic/authoritarianism | Liberal Values/Traditional values 
+
+        - Secular Values:
+            - low Importance of God
+            - low respect for authority 
+                - religious authority 
+                - patrinomial authority 
+                    - "how proud are you of your nationality"
+                    - "make your parents proud"
+                    - "more respect of authortiy is needed "
+                - state authority 
+                    - "confidence in courts"
+                    - "confidence in police"
+                    - "confidence in the army"
+                - comformity to norms
+                    - "cheating transport fares"
+                    - "accepting fares"
+                    - "tax evasion"
+
+            - low sense of national pride
+            - independence and imagination for a child over faith and obedience 
+            - toleration of divorce
+        
+        - Emancipative values:
+            Established way
+            - Feeling of happiness 
+            - Trust in other people
+            - Signing petitions
+            - Acceptance of homosexuality 
+            - Priority on freedom and partecipation
+
+            Authonomy 
+                - "indipendence and imagination over obedience"
+            Choice
+                - acceptance of "divorce", "abortion", "homosexuality"
+            Equality
+                - gender equality "men are better political leaders", "when jobs are scarce... men over a woman", "boy should go to school"
+            Voice
+                - "protecion of freedom of speech"
+                - "giving more say in important government decisions"
+                - "more say on things are done at their job and communities"
+        
+        - Interesting to ask:
+            Choice: divorce, abortion, homosexuality
+
+[ ] add filters for 3 values: religiosity, homosexuality, death penalty...
+    need to be easy to add/remove them
+    [√] add data to the json dataset
+    [ ] -> color people according to their value. Experiment here. I can fake the actual mapping person -> values 
+            and only use the stats if helps me getting to the right visual
+        [√] add store entry for your values
+        [√] add values slider
+        - should I change the geometry of the visualization?
+        [√] enable/disable filters
+        [√] color by sorting first
+    [x] new store structure is needed 
+        - not now
+[ ] add support for 3 circles: world -> country -> sociodemographic
+[ ] people picking
+    - can't use raycaster since object positions are manipulated in vertex shader
+    - need to rely on GPU-based picking
+
+[ ] improve graphics
+    [ ] create a new mock
+    [ ] diversify people?
+    
+
+## backlog
+[ ] finish data cleaning
+[ ] add data from previous wave, to be loaded optionally?
+[ ] create a mini-infographic to experiment different way to show the tabular data?
+[ ] add index for country in json stored
+
+# Scripts
+- $> npm run dev
+
+# vscode
+- look at instruction for vim https://github.com/VSCodeVim/Vim
+    <leader: \> + w with camel case enabled
+- cmd + ald + down arrow to use multi cursor

@@ -1,0 +1,111 @@
+setUpScene = () => {
+
+    // effect composer
+    // const bloomPass = new UnrealBloomPass( new THREE.Vector2( this.props.width, this.props.height), 1.5, 0.4, 0.85 );
+    // const renderScene = new RenderPass(this.scene, this.camera);
+    // bloomPass.compositeMaterial.transparent = true
+    // this.composer = new EffectComposer(this.renderer);
+    // this.composer.addPass(renderScene);
+    // this.composer.addPass(bloomPass);
+
+    // camera
+    this.cameraPivot = new THREE.Object3D()
+    this.scene.add(this.cameraPivot);
+    this.cameraPivot.add(this.camera);
+    this.camera.lookAt( this.cameraPivot.position );
+
+    // light
+    // const light = new THREE.PointLight( 0xff0000, 1, 100 );
+    // light.position.set( 5, 0, 0 );
+    // this.scene.add( light );
+    
+    // grid
+    // const gridHelper = new THREE.GridHelper(5, 10, "#FFFFFF");
+    // this.scene.add( gridHelper );
+    // gridHelper.rotation.x = PI_2;
+
+    // dots
+    this.dotsGeometry = new THREE.BufferGeometry();
+    const colors: number[] = [];
+    const radius: number[] = [];
+    const dotsVerticesAttr: number[] = [];
+    const dotsVertices2Attr: number[] = [];
+    const dotsVertexOpacityAttr: number[] = [];
+    const dotsVertexOpacity2Attr: number[] = [];
+
+    for (let i = 0; i < POINT_COUNT; i++) {
+        const x = Math.random();
+        const y = Math.random();
+        const z = Math.random() / 2;
+
+        dotsVertices2Attr.push(0);
+        dotsVertices2Attr.push(0);
+        dotsVertices2Attr.push(0);
+
+        dotsVerticesAttr.push(0);
+        dotsVerticesAttr.push(0);
+        dotsVerticesAttr.push(0);
+
+        // default color
+        colors.push(1); colors.push(1); colors.push(1);
+        dotsVertexOpacityAttr.push(1);
+        dotsVertexOpacity2Attr.push(1);
+    }
+
+    // not sure why I need this
+    // this.dotsGeometry.setAttribute( 'position',  new THREE.Float32BufferAttribute( dotsVerticesAttr, 3 ) )
+    // this.dotsGeometry.setAttribute( 'position1', new THREE.Float32BufferAttribute( dotsVerticesAttr, 3 ) );
+    // this.dotsGeometry.setAttribute( 'position2', new THREE.Float32BufferAttribute( dotsVertices2Attr, 3 ) );
+    // this.dotsGeometry.setAttribute( 'vertexOpacity', new THREE.Float32BufferAttribute( dotsVertexOpacityAttr, 1 ) );
+    // this.dotsGeometry.setAttribute( 'vertexOpacity2', new THREE.Float32BufferAttribute( dotsVertexOpacity2Attr, 1 ) );
+    // this.dotsGeometry.setAttribute( 'color', new THREE.Float32BufferAttribute( colors, 3 ) );
+
+    // this.dotsMaterial = new THREE.ShaderMaterial( {
+    //     uniforms: {
+    //         time: { value: 1.0 },
+    //         resolution: { value: new THREE.Vector2() },
+    //         size: {value: 20}, 
+    //         scale: {value: 1}, 
+    //         morph: {value: 0},
+    //         opacity: {value: 0.8},
+    //         diffuse: {value: new THREE.Color(0xFFFFFF)},
+    //         vertexCount: {value: POINT_COUNT},
+    //     },
+    //     vertexShader: dotsVertexShader,
+    //     fragmentShader: dotsFragShader
+    // } );
+    // this.dotsMaterial.transparent = true;
+
+    // this.dotsNode = new THREE.Points(this.dotsGeometry, this.dotsMaterial);
+    // this.scene.add(this.dotsNode); //ZZZ
+
+    // INSTANCE -----
+    this.instancedMaterial = new THREE.ShaderMaterial( {
+        uniforms: {
+            morph: {value: 0},
+            opacity: {value: 1},
+            diffuse: {value: new THREE.Color(0xFFFFFF)},
+            instanceCount: {value: POINT_COUNT}, // only "visible" instance count
+        },
+        vertexShader: instanceVertexShader,
+        fragmentShader: instanceFragShader
+    } );
+    this.instancedMaterial.transparent = true; 
+    this.instancedGeometry = (threeAssets.man.children[0] as THREE.Mesh).geometry;
+    // this.instancedGeometry = new THREE.BoxGeometry( 0.02, 0.02, 0.1 );
+    this.instancedGeometry.setAttribute('position1', new THREE.InstancedBufferAttribute( Float32Array.from(dotsVerticesAttr), 3 )) 
+    this.instancedGeometry.setAttribute('position2', new THREE.InstancedBufferAttribute( Float32Array.from(dotsVertices2Attr), 3 ) );
+    this.instancedGeometry.setAttribute('vertexOpacity', new THREE.InstancedBufferAttribute( Float32Array.from(dotsVertexOpacityAttr), 1 ) );
+    this.instancedGeometry.setAttribute('vertexOpacity2', new THREE.InstancedBufferAttribute( Float32Array.from(dotsVertexOpacity2Attr), 1 ) );
+    this.instancedGeometry.setAttribute('color', new THREE.InstancedBufferAttribute( Float32Array.from(colors), 3 ) );
+    this.instancedMesh = new THREE.InstancedMesh( this.instancedGeometry, this.instancedMaterial, POINT_COUNT); 
+    this.scene.add(this.instancedMesh);
+
+    const dummy = new THREE.Object3D();
+    for (let i = 0; i < POINT_COUNT; i++) {
+        dummy.position.set(0, 0, 0);
+        dummy.updateMatrix();
+
+        this.instancedMesh.setMatrixAt( i, dummy.matrix );
+    }
+}

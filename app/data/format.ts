@@ -1,0 +1,1 @@
+export const formatPercent = (f: number) => (f * 100).toFixed(0)+"%";
