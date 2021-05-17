@@ -1,4 +1,4 @@
-import { educationLevels, educationRanges, getIndexFromRange } from "./data/legend";
+import { ageRanges, educationLevels, educationRanges, getIndexFromRange, incomeRanges } from "./data/legend";
 
 type Sex = 'M' | 'F';
 
@@ -179,7 +179,6 @@ export function filterAndStatObservationsWithVariations(observStore: AllEntriesS
         }
     });
 
-
     const {stats, filteredEntries} = filterAndStatsObservations(observations, query);
     const altQueries = generateAlternativeQueries(query);
     const altStatsAndQuery = altQueries.map(query => {return {
@@ -295,11 +294,11 @@ function matchObservation(o: Observation, query: ObservationQuery): boolean {
     }
 
     // religiosity
-    // if (query.is_religious != undefined) {
-    //     if (o.is_religious == undefined || query.is_religious != o.is_religious) {
-    //         return false;
-    //     } 
-    // }
+    if (query.is_religious != undefined) {
+        if (o.is_religious == undefined || query.is_religious != o.is_religious) {
+            return false;
+        } 
+    }
 
     // min birth year
     if (query.min_birth_year != undefined) {
@@ -375,4 +374,69 @@ export function valuesForObservation(observation: Observation, query: ValuesQuer
         return 0;
     }
     return z/nOfValues;
+}
+
+// grouping functions
+export type ObservationDemographics = 'age' | 'sex' | 'education' | 'education_parents' | 'income' | 'religiosity';
+
+export function groupsForDemographic(demo: ObservationDemographics): any[]{
+    switch (demo) {
+        case 'age':
+            return ageRanges;
+        case 'sex':
+            return ['M', 'F'];
+        case 'education':
+            return educationRanges;
+        case 'education_parents':
+            return educationRanges;
+        case 'income':
+            return incomeRanges;
+        case 'religiosity':
+            return [true, false];
+    }
+}
+
+export function makeQueryForDemographicGroup(demo: ObservationDemographics, groupIndex: number): ObservationQuery {
+    const groupValues = groupsForDemographic(demo);
+    if (groupIndex >= groupValues.length) {
+        throw `groupIndex ${groupIndex} outside bounds for ${demo}`;
+    }
+    const singleValue = (queryKey: keyof ObservationQuery): ObservationQuery => {
+        return {
+            [queryKey]: groupValues[groupIndex],
+        }
+    }
+    const rangeValue = (minQueryKey: keyof ObservationQuery, maxQueryKey: keyof ObservationQuery): ObservationQuery => {
+        return {
+            [minQueryKey]: groupValues[groupIndex][0],
+            [maxQueryKey]: groupValues[groupIndex][1],
+        }
+    }
+
+    switch (demo) {
+        case 'age':
+            return rangeValue('min_birth_year', 'max_birth_year');
+        case 'sex':
+            return singleValue('sex');
+        case 'education':
+            return rangeValue('min_education', 'max_education');
+        case 'education_parents':
+            return rangeValue('min_education_parents', 'max_education_parents');
+        case 'income':
+            return rangeValue('min_income_quantiles', 'max_income_quantiles');
+        case 'religiosity':
+            return singleValue('is_religious');
+    }
+}
+
+export function getDemographicGroupIndex(o: Observation, demo: ObservationDemographics) {
+    for (let i = 0; i < groupsForDemographic(demo).length; i++) {
+        const query = makeQueryForDemographicGroup(demo, i);
+        if (matchObservation(o, query)) {
+            return i;
+        }
+    }
+    console.warn(`wasn't able to find the demographic group for ob: ${o.id} and demo: ${demo}`);
+    return 0; // XXX: For now put all missing values in group 0. We should filter them beforehand
+    throw `wasn't able to find the demographic group for ob: ${o.id} and demo: ${demo}`;
 }

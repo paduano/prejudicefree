@@ -122,7 +122,7 @@ void main() {
 
 	// gl_FragColor = vec4( outgoingLight, diffuseColor.a );
 	// gl_FragColor = vec4( 1., 1., 1., 1. );
-	float l = 0.5 + clamp(dot(vNormal, vec3(1.,1.,1.)), 0., 1.);
+	float l = 0.7 + 0.3 * clamp(dot(vNormal, vec3(1.,1.,1.)), 0., 1.);
 	gl_FragColor = vec4( vec3(pointColor) * outgoingLight * l, pointOpacity );
 
 	/* tonemapping_fragment */ 

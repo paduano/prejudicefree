@@ -106,10 +106,10 @@
         - Interesting to ask:
             Choice: divorce, abortion, homosexuality
 
-[ ] add filters for 3 values: religiosity, homosexuality, death penalty...
+[√] add filters for 3 values: religiosity, homosexuality, death penalty...
     need to be easy to add/remove them
     [√] add data to the json dataset
-    [ ] -> color people according to their value. Experiment here. I can fake the actual mapping person -> values 
+    [x] -> color people according to their value. Experiment here. I can fake the actual mapping person -> values 
             and only use the stats if helps me getting to the right visual
         [√] add store entry for your values
         [√] add values slider
@@ -126,7 +126,61 @@
 [ ] improve graphics
     [ ] create a new mock
     [ ] diversify people?
+
+# Demo
+[ ] code audit and clean-up
+[ ] Chart
+    [ ] group region store format
+        how does the group layout communicate to the overlay layer about the groups defined?
+    [ ] group region - overlay mapping
+    [ ] overlay axe X
+    [ ] overlay axe Y
+    [ ] overlay barchart
+    [ ] improve util/rect layout
+    [ ] improve people model. 
+        Different model mix
+    [ ] improve 3d parallax effect
+    [ ] improve ease/movement effect of the little men
+
+[ ] UI
+    [ ] title component
+        [ ] country filter
+    [ ] subtitle component
+        [ ] update store structure to reflect demographic filters
+        [ ] X filter
+        [ ] Y filter
+    [ ] legend component
+        [ ] (opt) allow editing on the legend
+    [ ] value filter
+        [ ] value picker 
+    [ ] black overlay for when a filter is open
+
+[ ] Placing yourself
+    [ ] model set up
+    [ ] yellow marker 
+    [ ] drop areas
+    [ ] movement
+    [ ] people moving effect to give space
+
+[ ] Better stats 
+    [ ] stats for yourself
+
+[ ] People picking
+    [ ] GPU picking support
+    [ ] person highlight
+    [ ] popup about the person selected
     
+[ ] Story support
+    [ ] store support for story steps
+    [ ] chart support for enabling/disabling features
+    [ ] message box for current step
+    [ ] message box for info about yourself 
+    [ ] custom message box 
+
+[ ] BUGS
+
+[ ] MISC
+
 
 ## backlog
 [ ] finish data cleaning
@@ -141,3 +195,7 @@
 - look at instruction for vim https://github.com/VSCodeVim/Vim
     <leader: \> + w with camel case enabled
 - cmd + ald + down arrow to use multi cursor
+
+# coding
+- this bug was nasty: a = new Array(2).fill(null).map(() => new Array(2).fill([])); was producing a[0][1] === a[0][0] TRUE!
+ instead: a = new Array(2).fill(null).map(() => new Array(2).fill(null).map(() => new Array()))

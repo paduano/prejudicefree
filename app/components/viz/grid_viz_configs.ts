@@ -1,5 +1,5 @@
 import { debug, pie, PI_HALF, rand, randInCircle, randInGroup, dotsInRect } from "../../../utils/utils";
-import { Observation, ObservationQuery, valuesForObservation, ValuesQuery } from "../../observation";
+import { getDemographicGroupIndex, groupsForDemographic, Observation, ObservationDemographics, ObservationQuery, valuesForObservation, ValuesQuery } from "../../observation";
 
 export interface DotAttributes {
     position?: {
@@ -415,6 +415,180 @@ const DotsTestRectValues: DotsVizConfiguration<any> = {
     }
 }
 
+function getDemoFiltersFromFilterQuery(filterQuery: ObservationQuery) {
+    let demoX: ObservationDemographics | null = null;
+    let demoY: ObservationDemographics | null = null;
+
+    // crappy way to decide what demo to filter by
+    if (filterQuery.sex != null) {
+        if (!demoX) {
+            demoX = 'sex';
+        } else if (!demoY) {
+            demoY = 'sex';
+        }
+    }
+    if (filterQuery.min_education != null) {
+        if (!demoX) {
+            demoX = 'education';
+        } else if (!demoY) {
+            demoY = 'education';
+        }
+    }
+    if (filterQuery.min_education_parents != null) {
+        if (!demoX) {
+            demoX = 'education_parents';
+        } else if (!demoY) {
+            demoY = 'education_parents';
+        }
+    }
+    if (filterQuery.min_birth_year != null) {
+        if (!demoX) {
+            demoX = 'age';
+        } else if (!demoY) {
+            demoY = 'age';
+        }
+    }
+    if (filterQuery.min_income_quantiles != null) {
+        if (!demoX) {
+            demoX = 'income';
+        } else if (!demoY) {
+            demoY = 'income';
+        }
+    }
+    if (filterQuery.is_religious != null) {
+        if (!demoX) {
+            demoX = 'religiosity';
+        } else if (!demoY) {
+            demoY = 'religiosity';
+        }
+    }
+    return {demoX, demoY};
+}
+
+const DotsTestMultiGroup: DotsVizConfiguration<any> = {
+    prepare: (layoutParams: LayoutParams) => {
+        const { filteredObservations, allObservations, filterQuery } = layoutParams;
+        const idPosMap: { [id: number]: { x: number, y: number, groupX: number, groupY: number } } = {};
+        const betweenGroupPadding = 0.2;
+
+        // 1. group definition
+        // -------------------
+        const {demoX, demoY} = getDemoFiltersFromFilterQuery(filterQuery);
+        const nGroupX = !!demoX ? groupsForDemographic(demoX).length : 1;
+        const nGroupY = !!demoY ? groupsForDemographic(demoY).length : 1;
+        const groups: Observation[][][] = new Array(nGroupX)
+            .fill(null).map(() => new Array(nGroupY)
+            .fill(null).map(() => new Array())); // init multi-dimensional empty X Y array
+
+        // 2. group assignment
+        // -------------------
+        for (let i = 0; i < allObservations.length; i++) {
+            const o = allObservations[i];
+            const groupIndexX = !!demoX ? getDemographicGroupIndex(o, demoX) : 0;
+            const groupIndexY = !!demoY ? getDemographicGroupIndex(o, demoY) : 0;
+            groups[groupIndexX][groupIndexY].push(o);
+        }
+
+        // 3. group sorting
+        // -------------------
+        const sortByValues = (x: Observation, y: Observation) => {
+            let xd = 0;
+            let yd = 0;
+            const xValue = valuesForObservation(x, layoutParams.valuesQuery) + xd;
+            const yValue = valuesForObservation(y, layoutParams.valuesQuery) + yd;
+            return xValue - yValue;
+        }
+        for (let x = 0; x < nGroupX; x++) {
+            for (let y = 0; y < nGroupY; y++) {
+                groups[x][y].sort(sortByValues);
+            }
+        }
+
+        // 4. layout variables
+        // ------------------
+        const VIZ_WIDTH = 6;
+        const VIZ_HEIGHT = 4;
+        const GROUP_PADDING = 0.3;
+        const rectWidths: number[][] = new Array(nGroupX).fill(null).map(() => new Array(nGroupY).fill(0)); // init 2 dim with 0
+        const rectHeights: number[][] = new Array(nGroupX).fill(null).map(() => new Array(nGroupY).fill(0)); // init 2 dim with 0
+        const groupPosX: number[][] = new Array(nGroupX).fill(null).map(() => new Array(nGroupY).fill(0)); // init 2 dim with 0
+        const groupPosY: number[][] = new Array(nGroupX).fill(null).map(() => new Array(nGroupY).fill(0)); // init 2 dim with 0
+        let totRow: number[] = new Array(nGroupY).fill(0);
+        let totColumns: number[] = new Array(nGroupX).fill(0);;
+        let N = allObservations.length;
+        // get totals for row and columns
+        for (let x = 0; x < nGroupX; x++) {
+            for (let y = 0; y < nGroupY; y++) {
+                const l = groups[x][y].length;
+                totRow[y] += l;
+                totColumns[x] += l;
+            }
+        }
+        // compute widths and pos
+        let acc_x = 0;
+        for (let x = 0; x < nGroupX; x++) {
+            let acc_y = 0;
+            for (let y = 0; y < nGroupY; y++) {
+                const hr = totRow[y] / N;
+                const wr = totColumns[x] / N;
+                const width = wr * VIZ_WIDTH;
+                const height = hr * VIZ_HEIGHT;
+                rectWidths[x][y] = width;
+                rectHeights[x][y] = height;
+                groupPosX[x][y] = acc_x;
+                groupPosY[x][y] = acc_y;
+                acc_y += height + GROUP_PADDING;
+            }
+            acc_x += Math.max(...rectWidths[x]) + GROUP_PADDING;
+        }
+
+        // 5. layout computation
+        // ------------------
+        for (let x = 0; x < nGroupX; x++) {
+            for (let y = 0; y < nGroupY; y++) {
+                const group = groups[x][y];
+                const rectWidth = rectWidths[x][y];
+                const rectHeight = rectHeights[x][y];
+                const posX = groupPosX[x][y];
+                const posY = groupPosY[x][y];
+                for (let i = 0; i < group.length; i++) {
+                    const o = group[i];
+                    const pos = dotsInRect(rectWidth, rectHeight, i, group.length, true /* noise */, 'h');
+                    idPosMap[o.id] = {
+                        x: -VIZ_WIDTH / 2 + posX + pos.x,
+                        y: -VIZ_HEIGHT / 2 + posY + pos.y,
+                        groupX: x,
+                        groupY: y 
+                    };
+                }
+            }
+        }
+        return {
+            idPosMap,
+        };
+    },
+    dot: (i: number, ob: Observation, layoutParams: LayoutParams, state: any) => {
+        const { filteredObservations, allObservations } = layoutParams;
+        const { idPosMap } = state;
+        const valuesMatch = valuesForObservation(ob, layoutParams.valuesQuery);
+        // const color = mix(blueColor, redColor, valuesMatch)
+        const color = colorGradient(valuesMatch);
+        const pos = idPosMap[ob.id];
+        if (!pos) {
+            debugger
+        }
+        return {
+            position: {
+                x: pos.x,
+                y: pos.y,
+                z: 0,
+            },
+            color,
+            opacity: 1,
+        }
+    }
+}
+
 const mix = (c1, c2, x) => {
     return {
         r: c1.r * (1 - x) + c2.r * x,
@@ -424,6 +598,7 @@ const mix = (c1, c2, x) => {
 }
 
 export const DOT_CONFIGS = [
+    DotsTestMultiGroup,
     DotsTestRectValues,
     DotsTestCircleAndAbortion,
     DotsUniformConfig,

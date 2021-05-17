@@ -42,6 +42,7 @@ export class ThreeCanvas<T> extends React.Component<ThreeCanvasProps & T, ThreeC
     clock: THREE.Clock;
     gui: any;
     backgroundColor = '#000000';
+    // backgroundColor = '#FFFFFF';
     mouse: THREE.Vector2;
 
 

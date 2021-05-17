@@ -131,17 +131,24 @@ export function pie(rmin: number, rmax: number, N: number) {
     return positions;
 }
 
-export function dotsInRect(width: number, height: number, i: number, N: number, rand: boolean = true) {
+export function dotsInRect(width: number, height: number, i: number, N: number, rand = true, sort: 'w'|'h'='w') {
     const d = Math.sqrt((width * height) / N);
-    const nForHeight = height / d;
-    const xi = Math.floor(i / nForHeight);
-    const yi = i - (xi * nForHeight);
+    let xi: number, yi: number;
 
-    const xr = d * Math.random() / 2;
-    const yr = d * Math.random() / 2;
-
+    if (sort == 'w') {
+        const nForHeight = height / d;
+        xi = Math.floor(i / nForHeight);
+        yi = i - (xi * nForHeight);
+    } else {
+        const nForWidth = width / d;
+        yi = Math.floor(i / nForWidth);
+        xi = i - (yi * nForWidth);
+    }
+    const xr = d * (rand ? Math.random() / 2 : 0);
+    const yr = d * (rand ? Math.random() / 2 : 0);
     return {
         x: xi * d + xr,
         y: yi * d + yr,
     }
+
 } 

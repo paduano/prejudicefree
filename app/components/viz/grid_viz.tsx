@@ -23,8 +23,8 @@ import * as d3 from 'd3';
 
 const PI_2 = 1.57079632679489661923;
 const POINT_COUNT = 10000;
-// const TWEEN_TRANSITION_TIME = 3000;
-const TWEEN_TRANSITION_TIME = 100;
+const TWEEN_TRANSITION_TIME = 1000;
+// const TWEEN_TRANSITION_TIME = 100;
 
 interface GridVizProps extends ThreeCanvasProps {
     width: number;
