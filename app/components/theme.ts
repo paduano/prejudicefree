@@ -10,15 +10,7 @@ const theme = createMuiTheme({
         secondary: { main: blue[400] },
     },
     overrides: {
-        MuiRadio: {
-            // root: {
-            //     color: blue[400],
-            //     '&$checked': {
-            //         color: blue[600],
-            //     },
-            // },
-            // checked: {},
-        },
+      
         MuiSlider: {
             root: {
                 color: '#3880ff',
@@ -74,14 +66,35 @@ export default theme;
 
 
 export const invertedTheme = createMuiTheme({
-    // palette: {
-    //   background: {
-    //     default: "#000000"
-    //   }
-    // },
+  
     typography: {
         allVariants: {
-        color: "#FFFFFF"
+            color: "#FFFFFF",
+            fontFamily: [
+                    'Noticia Text',
+                ].join(','),
+
         },
+        h1: {
+            fontSize: '3rem',
+        },
+        h2: {
+            fontSize: '2rem',
+            fontStyle: 'italic',
+        },
+        h3: {
+            fontSize: '1rem',
+            fontWeight: 700,
+            fontFamily: [
+                'News Cycle'
+            ].join(','),
+        },
+        h4: {
+            fontSize: '1.2rem',
+            fontWeight: 400,
+            fontFamily: [
+                'Noticia Text',
+            ].join(','),
+        }
     },
 });

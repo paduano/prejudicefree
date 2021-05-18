@@ -24,6 +24,10 @@ export default function MyApp(props) {
           <title>Values MVP</title>
           <meta name="description" content="..." />
           <link rel="icon" href="/favicon.ico" />
+          <link rel="preconnect" href="https://fonts.gstatic.com" />
+
+          <link href="https://fonts.googleapis.com/css2?family=News+Cycle:wght@400;700&family=Noticia+Text:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet" />
+          <link href="https://fonts.googleapis.com/css2?family=News+Cycle:wght@400;700&display=swap" rel="stylesheet"/>
       </Head>
       <ThemeProvider theme={theme}>
         <Provider store={store}>

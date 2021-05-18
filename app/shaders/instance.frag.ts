@@ -36,6 +36,10 @@ in float pointOpacity;
 in vec3 pointColor;
 varying vec3 vNormal;
 
+// picking
+uniform float picking;
+varying vec3 vidcolor;
+
 // #ifndef FLAT_SHADED
 
 // 	varying vec3 vNormal;
@@ -123,7 +127,13 @@ void main() {
 	// gl_FragColor = vec4( outgoingLight, diffuseColor.a );
 	// gl_FragColor = vec4( 1., 1., 1., 1. );
 	float l = 0.7 + 0.3 * clamp(dot(vNormal, vec3(1.,1.,1.)), 0., 1.);
-	gl_FragColor = vec4( vec3(pointColor) * outgoingLight * l, pointOpacity );
+
+	if (picking > 0.) {
+		// color picking
+		gl_FragColor = vec4(vidcolor, 1.0);
+	} else {
+		gl_FragColor = vec4( vec3(pointColor) * outgoingLight * l, pointOpacity ); //YYY
+	}
 
 	/* tonemapping_fragment */ 
 	${tonemapping_fragment}

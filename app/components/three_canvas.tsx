@@ -1,7 +1,8 @@
 import * as THREE from 'three';
-import React from 'react';
+import React, { lazy } from 'react';
 import dynamic from "next/dynamic";
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer';
+import { debug, getMousePos } from '../../utils/utils';
 
 // import type {GUI} from 'dat.gui';
 
@@ -29,7 +30,7 @@ const importDatGui = async () => {
     return GUI
 };
 
-export class ThreeCanvas<T> extends React.Component<ThreeCanvasProps & T, ThreeCanvasState> {
+export class ThreeCanvas<T, S> extends React.Component<ThreeCanvasProps & T, ThreeCanvasState & S> {
     canvasRef: React.RefObject<HTMLCanvasElement> = React.createRef<HTMLCanvasElement>();
     annotationLayerRef: React.RefObject<HTMLDivElement> = React.createRef<HTMLDivElement>();
     annotationCanvasRef: React.RefObject<HTMLCanvasElement> = React.createRef<HTMLCanvasElement>();
@@ -45,12 +46,17 @@ export class ThreeCanvas<T> extends React.Component<ThreeCanvasProps & T, ThreeC
     // backgroundColor = '#FFFFFF';
     mouse: THREE.Vector2;
 
+    // picking
+    pickingScene: THREE.Scene;
+    pickingTexture: THREE.WebGLRenderTarget;
+    pickingCamera: THREE.Camera;
+
 
     constructor(props: ThreeCanvasProps) {
         super(props as any);
         this.state = {
             annotationLayerTransform: '',
-        }
+        } as any;
     }
 
     componentDidMount() {
@@ -83,6 +89,12 @@ export class ThreeCanvas<T> extends React.Component<ThreeCanvasProps & T, ThreeC
         this.renderer.setPixelRatio(window.devicePixelRatio);
         this.renderer.setSize(width, height);
         this.renderer.setClearColor(0x000000, 0); // the default
+
+        // picking
+        this.pickingScene = new THREE.Scene();
+        this.pickingTexture = new THREE.WebGLRenderTarget(width, height);
+        this.pickingTexture.texture.minFilter = THREE.LinearFilter
+
         this.setUpScene();
         this.annotate();
         this.drawBackground();
@@ -96,8 +108,8 @@ export class ThreeCanvas<T> extends React.Component<ThreeCanvasProps & T, ThreeC
             }
             importDatGui().then(module => {
                 // if (!this.gui) {
-
                 this.gui = new module.GUI();
+                this.gui.close();
                 this.setUpGui(module.GUI)
                 // }
             });
@@ -121,6 +133,19 @@ export class ThreeCanvas<T> extends React.Component<ThreeCanvasProps & T, ThreeC
         this.mouse.y = - (event.clientY / this.props.height) * 2 + 1;
     }
 
+    getAnnotationPos = (x: number, y: number) => {
+        const {width, height} = this.props;
+        return {
+            x: width / 2 + this.getSizeTransform(x),
+            y: height / 2 - + this.getSizeTransform(y),
+        }
+    }
+
+    getSizeTransform = (v: number) => {
+        const { width, height } = this.props;
+        return v * width / 10;
+    }
+
 
     annotate() {
         const { width, height } = this.props;
@@ -141,6 +166,9 @@ export class ThreeCanvas<T> extends React.Component<ThreeCanvasProps & T, ThreeC
 
     setUpCamera() {
         const { width, height } = this.props;
+        // same camera
+        this.pickingCamera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+        this.pickingCamera.matrixAutoUpdate = false;
         this.camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
         this.camera.position.z = 5;
     }
@@ -159,8 +187,10 @@ export class ThreeCanvas<T> extends React.Component<ThreeCanvasProps & T, ThreeC
         if (this.composer) {
             this.composer.render();
         } else {
+            this.renderer.setRenderTarget(null);
             this.renderer.render(this.scene, this.camera);
         }
+
 
         requestAnimationFrame(this.renderLoop);
     };
@@ -175,6 +205,27 @@ export class ThreeCanvas<T> extends React.Component<ThreeCanvasProps & T, ThreeC
 
     renderBackground(): JSX.Element | null {
         return null;
+    }
+
+    beforeRenderPicking() {
+    }
+
+    afterRenderPicking() {
+    }
+
+    renderAndPick(evt: MouseEvent) {
+        this.beforeRenderPicking();
+        const {x, y} = getMousePos(this.canvasRef.current, evt);
+
+        this.pickingCamera.matrixWorld.copy(this.camera.matrixWorld);
+        this.renderer.setRenderTarget(this.pickingTexture);
+        // this.renderer.render(this.pickingScene, this.pickingCamera);
+        this.renderer.render(this.scene, this.camera);
+        var pixelBuffer = new Uint8Array(4);
+        this.renderer.readRenderTargetPixels(this.pickingTexture, x, this.pickingTexture.height - y, 1, 1, pixelBuffer);
+        var id = (pixelBuffer[0] << 16) | (pixelBuffer[1] << 8) | (pixelBuffer[2]);
+        this.afterRenderPicking();
+        return id;
     }
 
 
@@ -203,6 +254,7 @@ export class ThreeCanvas<T> extends React.Component<ThreeCanvasProps & T, ThreeC
         const mainContainerStyle = {
             width,
             height,
+            position: 'relative' as any,
         }
 
         return (

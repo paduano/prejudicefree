@@ -1,0 +1,44 @@
+.container {
+    min-height: 100vh;
+    padding: 1rem 1rem;
+    height: 100vh;
+    background: #000000;
+}
+
+.main {
+    padding: 5rem 0;
+}
+
+.footer {
+    bottom: 0;
+    left: 0;
+    position: fixed;
+    height: 2rem;
+    padding: 0.2rem;
+    width: 100%;
+    background-color: black;
+}
+
+.lineSpacer {
+    height: 100%;
+    min-width: 20px;
+    width: 20px;
+    padding: 0 10px 0 10px;
+    border-left: 1px solid;
+}
+
+.selectOverlayContainer {
+    display: flex;
+    justify-content: center;
+    padding-top: 3rem;
+    /* align-items: center; */
+    position: absolute;
+    min-height: 100vh;
+    height: 100%;
+    /* height: 100vh; */
+    width: 100%;
+    top: 0;
+    height: 0;
+    background-color: rgba(0,0,0,0.9);
+    z-index: 11;
+}

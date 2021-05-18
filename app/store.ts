@@ -2,7 +2,7 @@ import { configureStore, createAsyncThunk, PayloadAction } from '@reduxjs/toolki
 import thunk from 'redux-thunk';
 
 import { createSlice } from '@reduxjs/toolkit'
-import { AllEntriesStore, AltObservationQuery, AltStatsAndQuery, filterAndStatObservationsWithVariations, filterAndStatsObservations, formatAllEntriesStore, getEmptyStats, Observation, ObservationQuery, StatsAccumulator, ValuesQuery } from './observation';
+import { AllEntriesStore, AltObservationQuery, AltStatsAndQuery, filterAndStatObservationsWithVariations, filterAndStatsObservations, formatAllEntriesStore, getEmptyStats, Observation, ObservationDemographics, ObservationQuery, StatsAccumulator, ValuesQuery } from './observation';
 
 
 // Define a type for the slice state
@@ -14,6 +14,17 @@ interface StoreState {
     filterStats: StatsAccumulator; 
     altStatsAndQueries: AltStatsAndQuery[];
     loadingState: 'idle' | 'pending' | 'complete' | 'error'
+    uiSelect: UISelect,
+    primaryFilterDemographic?: ObservationDemographics,
+    secondaryFilterDemographic?: ObservationDemographics,
+    selectedObservationId: number|null;
+}
+
+export type SelectTypes = 'country' | 'value' | 'demographic';
+
+export interface UISelect {
+        current ?: SelectTypes;
+        params: any;
 }
 
 interface RequestError {
@@ -39,10 +50,22 @@ const initialState: StoreState = {
     allEntries: {},
     filteredEntries: [],
     filterQuery: {},
-    valuesQuery: {},
+    valuesQuery: {
+        selectedValue: undefined,
+        value: 0,
+    },
     filterStats: getEmptyStats(),
     altStatsAndQueries: [],
+
     loadingState: 'idle',
+    uiSelect: {
+        current: undefined,
+        params: {},
+    },
+    // primaryFilterDemographic: undefined,
+    primaryFilterDemographic: 'age',
+    secondaryFilterDemographic: undefined,
+    selectedObservationId: null,
 }
 
 const applyObservationsQueryReducer = (state: StoreState, allEntries: AllEntriesStore, filterQuery: ObservationQuery) => {
@@ -61,8 +84,20 @@ export const rawDataSlice = createSlice({
             state.filterQuery = Object.assign({}, state.filterQuery, action.payload);
             applyObservationsQueryReducer(state, state.allEntries, state.filterQuery);
         },
-        updateValuesQuery: (state, action: PayloadAction<Partial<ValuesQuery>>) => {
+        updateValuesQuery: (state, action: PayloadAction<ValuesQuery>) => {
             state.valuesQuery = Object.assign({}, state.valuesQuery, action.payload);
+        },
+        uiSetSelect: (state, action: PayloadAction<Partial<UISelect>>) => {
+            state.uiSelect = Object.assign({}, state.uiSelect, {current: action.payload.current, params: action.payload.params ?? {}});
+        },
+        setPrimaryFilterDemographic: (state, action: PayloadAction<{demographic?: ObservationDemographics}>) => {
+            state.primaryFilterDemographic = action.payload.demographic;
+        },
+        setSecondaryFilterDemographic: (state, action: PayloadAction<{ demographic?: ObservationDemographics }>) => {
+            state.secondaryFilterDemographic = action.payload.demographic;
+        },
+        setSelectedObservationId: (state, action: PayloadAction<{ id?: number}>) => {
+            state.selectedObservationId = action.payload.id;
         },
     },
     extraReducers: (builder) => {
@@ -85,7 +120,7 @@ export const rawDataSlice = createSlice({
 });
 
 // actions
-export const {updateObservationsQuery, updateValuesQuery} = rawDataSlice.actions
+export const { updateObservationsQuery, updateValuesQuery, uiSetSelect, setPrimaryFilterDemographic, setSecondaryFilterDemographic, setSelectedObservationId} = rawDataSlice.actions
 
 // store set up
 export const store = configureStore({

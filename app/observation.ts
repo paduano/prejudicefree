@@ -17,6 +17,17 @@ export interface RawValues {
     justify_death_penalty?: number
 }
 
+export const ValuesMap = {
+    justify_homosexuality: 'homosexuality',
+    justify_prostitution: 'prostitution',
+    justify_abortion: 'abortion',
+    justify_divorce: 'divorce',
+    justify_euthanasia: 'euthanasia',
+    justify_suicide: 'suicide',
+    justify_casual_sex: 'casual sex',
+    justify_death_penalty:'death penalty' 
+}
+
 export interface Observation extends RawValues {
     id: number,
     country_code: string,
@@ -48,8 +59,9 @@ export interface ObservationQuery {
     is_religious?: boolean,
 }
 
-export interface ValuesQuery extends RawValues {
-    // is_religious?: boolean, // duplicated from observationQuery. Since it's more of a value
+export interface ValuesQuery {
+    selectedValue?: keyof typeof ValuesMap;
+    value?: number;
 }
 
 export interface AltObservationQuery extends ObservationQuery {
@@ -362,22 +374,15 @@ function matchObservation(o: Observation, query: ObservationQuery): boolean {
 
 // value matching, returns 0 - 1 
 export function valuesForObservation(observation: Observation, query: ValuesQuery): number {
-    let nOfValues = 0;
-    let z = 0;
-    Object.keys(query).forEach(value => {
-        if (observation[value] !== undefined && query[value] !== undefined) {
-            nOfValues++;
-            z += Math.abs(observation[value] - query[value]);
-        }
-    })
-    if (nOfValues == 0) {
-        return 0;
+    if (query.selectedValue != undefined && observation[query.selectedValue] !== undefined ) {
+        return observation[query.selectedValue];
     }
-    return z/nOfValues;
+    return 0;
 }
 
 // grouping functions
 export type ObservationDemographics = 'age' | 'sex' | 'education' | 'education_parents' | 'income' | 'religiosity';
+export const ObservationDemographicsList = ['age', 'sex', 'education', 'education_parents', 'income', 'religiosity'];
 
 export function groupsForDemographic(demo: ObservationDemographics): any[]{
     switch (demo) {
@@ -439,4 +444,61 @@ export function getDemographicGroupIndex(o: Observation, demo: ObservationDemogr
     console.warn(`wasn't able to find the demographic group for ob: ${o.id} and demo: ${demo}`);
     return 0; // XXX: For now put all missing values in group 0. We should filter them beforehand
     throw `wasn't able to find the demographic group for ob: ${o.id} and demo: ${demo}`;
+}
+
+export function getReadableDescriptionForGroup(demo: ObservationDemographics, index: number): string {
+    const group = groupsForDemographic(demo)[index];
+
+    switch (demo) {
+        case 'age':
+            const year = new Date().getFullYear();
+            return `${year - group[1]} - ${year - group[0]}`;
+        case 'sex':
+            if (group == 'M') {
+                return "male";
+            } else if (group == 'F') {
+                return "female";
+            }
+        case 'education':
+        case 'education_parents':
+            if (index == 0) {
+                return 'no high school'
+            } else if (index == 1) {
+                return 'high school'
+            } else {
+                return 'college'
+            }
+        case 'income':
+            if (index == 0) {
+                return 'lower'
+            } else if (index == 1) {
+                return 'medium'
+            } else {
+                return 'high'
+            }
+        case 'religiosity':
+            if (group == true) {
+                return 'religious';
+            } else {
+                return 'not religious';
+            }
+    }
+
+}
+
+export function getReadableDescriptionForDemographic(demo: ObservationDemographics): string {
+    switch (demo) {
+        case 'age':
+            return 'age';
+        case 'sex':
+            return 'gender';
+        case 'education':
+            return 'education';
+        case 'education_parents':
+            return 'education parents';
+        case 'income':
+            return 'income';
+        case 'religiosity':
+            return 'religiosity';
+    };
 }

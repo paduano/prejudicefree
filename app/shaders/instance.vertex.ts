@@ -35,6 +35,15 @@ attribute float vertexOpacity2;
 attribute vec3 color;
 uniform float instanceCount;
 uniform float morph;
+uniform float picking;
+
+// selection
+attribute float index; // can I use instance ID here
+uniform float selectedIndex;
+
+// picking
+attribute vec3 idcolor;
+varying vec3 vidcolor;
 
 out float pointOpacity;
 out vec3 pointColor;
@@ -98,11 +107,27 @@ void main() {
 	//
 	float index_variance = clamp(1. - (float(gl_InstanceID) / instanceCount), 0., 1.);
 	float transformed_morph = easeOutCubic(morph, index_variance);
-	transformed += mix(position1, position2, transformed_morph); 
+	vec3 translate_pos = mix(position1, position2, transformed_morph);
+	transformed += translate_pos; 
+
+	// scale if picking to make selection easier
 
 	pointColor = color;
 	pointOpacity = mix(vertexOpacity, vertexOpacity2, transformed_morph);;
 	vNormal = transformedNormal;
+
+	vidcolor = idcolor;
+
+	// selected item
+	// I can probably optimize this code and avoid an IF, but is it worth it?
+	float selectScale = 0.;
+	if (index == selectedIndex) {
+		pointColor = vec3(1.,0.,0.);
+		selectScale = 1.;
+	}
+	vec3 scaling = (transformed - translate_pos) * 0.5 * max(picking, selectScale);
+
+	transformed += scaling;
 	//
 
 	/* skinning_vertex */ 

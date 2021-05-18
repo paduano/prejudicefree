@@ -109,3 +109,206 @@ setUpScene = () => {
         this.instancedMesh.setMatrixAt( i, dummy.matrix );
     }
 }
+
+
+
+const DotsAbortionConfig: DotsVizConfiguration<{ groupsCount: number[] }> = {
+    prepare: (layoutParams: LayoutParams) => {
+        let groupsCount = [0, 0];
+        return { groupsCount }
+    },
+    dot: (i: number, ob: Observation, layoutParams: LayoutParams, state: { groupsCount: number[] }) => {
+        const { groupsCount } = state;
+        const groupIndex = (ob.against_abortion ? 1 : 0);
+        let x = ob.against_abortion ? -1 : 1;
+        let y = 0;
+        let z = 0;
+
+        const randCircle = randInGroup(groupsCount[groupIndex], 1000, 1);
+        x += randCircle.x;
+        y += randCircle.y;
+        z += rand(0, 0.4);
+
+        groupsCount[groupIndex]++;
+
+        return {
+            position: {
+                x,
+                y,
+                z
+            },
+            opacity: 1,
+        }
+    }
+}
+
+
+const DotsReligionAbortionConfig: DotsVizConfiguration<{ groupsCount: number[] }> = {
+    prepare: (layoutParams: LayoutParams) => {
+        let groupsCount = [0, 0, 0, 0];
+        return { groupsCount }
+    },
+    dot: (i: number, ob: Observation, layoutParams: LayoutParams, state: { groupsCount: number[] }) => {
+        const { groupsCount } = state;
+        const groupIndex = (ob.against_abortion ? 2 : 0) + (ob.is_religious ? 1 : 0);
+        let x = ob.against_abortion ? -1 : 1;
+        let y = ob.is_religious ? 1 : -1;
+        let z = 0;
+
+        const randCircle = randInGroup(groupsCount[groupIndex], 1000, 1);
+        x += randCircle.x;
+        y += randCircle.y;
+        z += rand(0, 0.4);
+        groupsCount[groupIndex]++;
+
+        return {
+            position: {
+                x,
+                y,
+                z
+            },
+            opacity: 1,
+        }
+    }
+}
+
+
+const DotsAgeConfig: DotsVizConfiguration<{ ageCount: any }> = {
+    prepare: (layoutParams: LayoutParams) => {
+        let ageCount = {}
+        return { ageCount }
+    },
+    dot: (i: number, ob: Observation, layoutParams: LayoutParams, state: { ageCount: any }) => {
+        const { ageCount } = state;
+        if (ob.birth_year) {
+            ageCount[ob.birth_year] = ageCount[ob.birth_year] || 0;
+            const count = ageCount[ob.birth_year];
+            let x = (ob.birth_year - 1970) / 10;
+            let y = count / 50;
+            let z = 0;
+            z += rand(0, 0.4);
+            ageCount[ob.birth_year]++;
+            const useGroup = ob.birth_year >= 1991;
+            const color = useGroup ? { r: 1, g: 0, b: 0 } : null;
+            return {
+                position: {
+                    x,
+                    y,
+                    z
+                },
+                opacity: 0.6,
+                color,
+                useGroup,
+            }
+        } else {
+            return {
+                opacity: 1
+            }
+        }
+    }
+}
+
+
+const DotsTestCircleAndAbortion: DotsVizConfiguration<any> = {
+    prepare: (layoutParams: LayoutParams) => {
+        const { filteredObservations, allObservations } = layoutParams;
+        const observationsSet = new Set<number>();
+        const idPosMapInside = {};
+        const idPosMapOutside = {};
+        let inside_against_abortion_total = 0;
+
+        for (let i = 0; i < filteredObservations.length; i++) {
+            const ob = filteredObservations[i];
+            observationsSet.add(ob.id);
+            if (ob.against_abortion) {
+                inside_against_abortion_total++;
+            }
+        }
+
+        // create map for id->position to respect the grouping
+        let currentInsideAgainstAbortionCount = 0;
+        let currentInsideProAbortionCount = 0;
+        for (let i = 0; i < filteredObservations.length; i++) {
+            const ob = filteredObservations[i];
+            if (ob.against_abortion) {
+                idPosMapInside[ob.id] = currentInsideAgainstAbortionCount;
+                currentInsideAgainstAbortionCount++
+            } else {
+                idPosMapInside[ob.id] = inside_against_abortion_total + currentInsideProAbortionCount;
+                currentInsideProAbortionCount++;
+            }
+        }
+
+        // same for all observations: count n of people per category, and assign id->index
+        let outside_against_abortion_total = 0;
+        for (let i = 0; i < allObservations.length; i++) {
+            const ob = allObservations[i];
+            if (!observationsSet.has(ob.id)) {
+                if (ob.against_abortion) {
+                    outside_against_abortion_total++;
+                }
+            }
+        }
+
+        // map
+        let currentOutsideAgainstAbortionCount = 0;
+        let currentOutsideProAbortionCount = 0;
+        for (let i = 0; i < allObservations.length; i++) {
+            const ob = allObservations[i];
+            if (!observationsSet.has(ob.id)) {
+                if (ob.against_abortion) {
+                    idPosMapOutside[ob.id] = currentOutsideAgainstAbortionCount;
+                    currentOutsideAgainstAbortionCount++
+                } else {
+                    idPosMapOutside[ob.id] = outside_against_abortion_total + currentOutsideProAbortionCount;
+                    currentOutsideProAbortionCount++;
+                }
+            }
+        }
+
+        const nOut = layoutParams.allObservations.length - layoutParams.filteredObservations.length;
+        const positionsOut = pie(layoutParams.r1 + 0.2, layoutParams.r2, nOut);
+        const nIn = layoutParams.filteredObservations.length;
+        const positionsIn = pie(0.2, layoutParams.r1 - 0.1, nIn);
+        return {
+            observationsSet,
+            n: filteredObservations.length,
+            positionsOut,
+            positionsIn,
+            idPosMapInside,
+            idPosMapOutside,
+        }
+    },
+    dot: (i: number, ob: Observation, layoutParams: LayoutParams, state: any) => {
+        const observationsSet: Set<number> = state.observationsSet;
+        if (observationsSet.has(ob.id)) {
+            //inside
+            const index = state.idPosMapInside[ob.id]
+            const positionsIn = state.positionsIn[index];
+            state.countIn++;
+            return {
+                position: {
+                    x: positionsIn.x,
+                    y: positionsIn.y,
+                    z: 0,
+                },
+                color: ob.against_abortion ? redColor : blueColor
+            }
+        } else {
+            //outside
+            const index = state.idPosMapOutside[ob.id]
+            const positionsOut = state.positionsOut[index];
+            state.countOut++;
+            return {
+                position: {
+                    x: positionsOut.x,
+                    y: positionsOut.y,
+                    z: 0,
+                },
+                // color: colors[i % colors.length],
+                opacity: 1,
+                color: ob.against_abortion ? redColor : blueColor
+            }
+        }
+    }
+}

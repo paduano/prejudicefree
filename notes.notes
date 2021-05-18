@@ -128,32 +128,46 @@
     [ ] diversify people?
 
 # Demo
-[ ] code audit and clean-up
+[ ] Set up
+    [√] code audit
+    [ ] use filter query only for the country, and actually use filter query in the visualization
+
 [ ] Chart
-    [ ] group region store format
+    [√] group region store format
         how does the group layout communicate to the overlay layer about the groups defined?
-    [ ] group region - overlay mapping
-    [ ] overlay axe X
-    [ ] overlay axe Y
-    [ ] overlay barchart
-    [ ] improve util/rect layout
-    [ ] improve people model. 
+    [√] group region - overlay mapping
+    [√] Axis overlay X
+        - memoize component to avoid useless renders, to fix the annotation layer that keeps rerendering
+        https://rossbulat.medium.com/how-to-memoize-in-react-3d20cbcd2b6e
+    [ ] Axis overlay Y
+        [ ] plus minus component
+        [ ] people movement
+        [ ] gray out borders
+    [ ] Overaly barchart
+        [ ] hover effect and number %
+    [ ] Improve util/rect layout
+        [ ] better density for individual rows. I don't need to keep all columns the same density
+    [ ] Improve people model. 
         Different model mix
     [ ] improve 3d parallax effect
     [ ] improve ease/movement effect of the little men
 
 [ ] UI
-    [ ] title component
-        [ ] country filter
-    [ ] subtitle component
-        [ ] update store structure to reflect demographic filters
-        [ ] X filter
-        [ ] Y filter
+    [√] title component
+        [√] font loading in _app.js
+        [√] country filter
+            [√] add flags
+    [√] subtitle component
+        [√] update store structure to reflect demographic filters
+        [√] X filter
+        [√] Y filter
     [ ] legend component
         [ ] (opt) allow editing on the legend
-    [ ] value filter
-        [ ] value picker 
-    [ ] black overlay for when a filter is open
+    [√] value filter
+        [√] design button
+        [√] value picker 
+        [√] flow
+    [√] black overlay for when a filter is open
 
 [ ] Placing yourself
     [ ] model set up
@@ -166,8 +180,9 @@
     [ ] stats for yourself
 
 [ ] People picking
-    [ ] GPU picking support
-    [ ] person highlight
+    [√] GPU picking support
+        - use same scene for picking and rendering. What are the drawbacks?
+    [√] person highlight
     [ ] popup about the person selected
     
 [ ] Story support
@@ -178,6 +193,10 @@
     [ ] custom message box 
 
 [ ] BUGS
+    [ ] missing flag for netherlan antilles, using flag from NL
+    [ ] handle remove filter option, is a bit confusing
+    [ ] How to reformat the subtitle if you don't select a X or a Y option?
+    [ ] fix education ranges. For italy for istance they are wrong
 
 [ ] MISC
 
@@ -187,6 +206,7 @@
 [ ] add data from previous wave, to be loaded optionally?
 [ ] create a mini-infographic to experiment different way to show the tabular data?
 [ ] add index for country in json stored
+[ ] memoize svg marker triangle for the selected person
 
 # Scripts
 - $> npm run dev

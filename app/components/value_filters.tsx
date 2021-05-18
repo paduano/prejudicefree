@@ -65,12 +65,14 @@ function ValueFilterGroup(props: { label: string, children?: JSX.Element[] | JSX
 
   const commitValueChange = (event, value: number) => {
     // setTemporaryValue(null);
-    dispatch(updateValuesQuery({[label]: value}));
+    console.error('updateValuesQuery broken with refactor')
+    // dispatch(updateValuesQuery({[label]: value}));
   };
   const handleCheckboxChange = (event, checked: boolean) => {
     // setTemporaryValue(null);
     if (!checked) {
-      dispatch(updateValuesQuery({ [label]: undefined}));
+      console.error('updateValuesQuery broken with refactor')
+      // dispatch(updateValuesQuery({ [label]: undefined}));
     } else {
       dispatch(updateValuesQuery({ [label]: temporaryValue}));
     }
