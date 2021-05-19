@@ -27,6 +27,12 @@ import envmap_vertex from 'three/src/renderers/shaders/ShaderChunk/envmap_vertex
 import fog_vertex from 'three/src/renderers/shaders/ShaderChunk/fog_vertex.glsl';
 
 const shader = /* glsl */`
+
+// how far away you push the people around you
+#define YOURSELF_DISTANCE 0.15 
+// affect people whithin this radius
+#define YOURSELF_R 0.2
+
 //
 attribute vec3 position1;
 attribute vec3 position2;
@@ -36,6 +42,7 @@ attribute vec3 color;
 uniform float instanceCount;
 uniform float morph;
 uniform float picking;
+uniform vec3 yourselfPosition;
 
 // selection
 attribute float index; // can I use instance ID here
@@ -45,9 +52,9 @@ uniform float selectedIndex;
 attribute vec3 idcolor;
 varying vec3 vidcolor;
 
-out float pointOpacity;
-out vec3 pointColor;
-out vec3 vNormal;
+varying float pointOpacity;
+varying vec3 pointColor;
+varying vec3 vNormal;
 //
 
 /* common */ 
@@ -104,13 +111,19 @@ void main() {
 	/* morphtarget_vertex */ 
 	${morphtarget_vertex}
 
-	//
-	float index_variance = clamp(1. - (float(gl_InstanceID) / instanceCount), 0., 1.);
+	// TRANSLATE
+	// -----------
+	// float index_variance = clamp(1. - (float(gl_InstanceID) / instanceCount), 0., 1.);
+	float index_variance = clamp(1. - (float(index) / instanceCount), 0., 1.);
 	float transformed_morph = easeOutCubic(morph, index_variance);
 	vec3 translate_pos = mix(position1, position2, transformed_morph);
-	transformed += translate_pos; 
 
-	// scale if picking to make selection easier
+	vec3 youDir = translate_pos - yourselfPosition;
+	vec3 yourselfDispacement = normalize(youDir) * YOURSELF_DISTANCE * (1. - smoothstep(length(youDir), 0., YOURSELF_R));
+	translate_pos += vec3(yourselfDispacement.xy, 0); 
+
+	// translate to instance position
+	transformed += translate_pos; 
 
 	pointColor = color;
 	pointOpacity = mix(vertexOpacity, vertexOpacity2, transformed_morph);;
@@ -118,16 +131,19 @@ void main() {
 
 	vidcolor = idcolor;
 
+	// SCALE
+	// ------------
 	// selected item
 	// I can probably optimize this code and avoid an IF, but is it worth it?
 	float selectScale = 0.;
 	if (index == selectedIndex) {
-		pointColor = vec3(1.,0.,0.);
-		selectScale = 1.;
+		pointColor = vec3(1.,1.,0.1);
+		selectScale = 0.5;
 	}
-	vec3 scaling = (transformed - translate_pos) * 0.5 * max(picking, selectScale);
-
+	// scale if picking to make selection easier
+	vec3 scaling = (transformed - translate_pos) * 2. * max(picking, selectScale);
 	transformed += scaling;
+
 	//
 
 	/* skinning_vertex */ 

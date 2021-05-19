@@ -95,6 +95,23 @@ export const invertedTheme = createMuiTheme({
             fontFamily: [
                 'Noticia Text',
             ].join(','),
-        }
+        },
+
+        // legend
+        h5: {
+            fontSize: '1rem',
+            fontWeight: 400,
+            fontFamily: [
+                'News Cycle'
+            ].join(','),
+        },
+
+        h6: {
+            fontSize: '0.8rem',
+            fontWeight: 400,
+            fontFamily: [
+                'Noticia Text',
+            ].join(','),
+        },
     },
 });

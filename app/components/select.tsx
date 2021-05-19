@@ -24,7 +24,7 @@ export function Select(props: SelectProps) {
         <div className={styles.container} onClick={props.onClick} >
             <div className={styles.innerContainer} style={{ height: props.height }}>
                 {props.label}
-                <Chevron className={styles.innerContainerChevron} width='auto' height='60%' />
+                <Chevron className={styles.innerContainerChevron} width='100%' height='60%' />
             </div>
         </div>
     );

@@ -32,8 +32,8 @@ import dithering_fragment from 'three/src/renderers/shaders/ShaderChunk/ditherin
 const shader = /* glsl */`
 uniform vec3 diffuse;
 uniform float opacity;
-in float pointOpacity;
-in vec3 pointColor;
+varying float pointOpacity;
+varying vec3 pointColor;
 varying vec3 vNormal;
 
 // picking

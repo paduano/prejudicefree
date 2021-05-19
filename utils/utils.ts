@@ -150,5 +150,8 @@ export function dotsInRect(width: number, height: number, i: number, N: number, 
         x: xi * d + xr,
         y: yi * d + yr,
     }
-
 } 
+
+export function normalize_1_10_to_0_1(v: number) {
+    return (v - 1)/9;
+}

@@ -1,3 +1,4 @@
+import { normalize_1_10_to_0_1 } from "../utils/utils";
 import { ageRanges, educationLevels, educationRanges, getIndexFromRange, incomeRanges } from "./data/legend";
 
 type Sex = 'M' | 'F';
@@ -96,6 +97,14 @@ export interface StatsAccumulator {
     against_immigrants: {[id: string]: number}, 
 }
 
+export interface GroupStats {
+    totalObservations: number;
+    nLikeYou: number;
+    average: number;
+    nBelow: 0,
+    nAbove: 0,
+}
+
 export const getEmptyStats = (): StatsAccumulator => {
     return {
         country_code: {},
@@ -130,6 +139,74 @@ const FACTOR_KEYS = [
     'country_code',
     'political_orientation', 
 ];
+
+export function getGroupStats(
+    observations: Observation[], 
+    groupX: number, 
+    groupY: number, 
+    demoX: ObservationDemographics|null, 
+    demoY: ObservationDemographics|null, 
+    valuesQuery: ValuesQuery
+) {
+    const stats: GroupStats = {
+        totalObservations: 0,
+        nLikeYou: 0,
+        nBelow: 0,
+        nAbove: 0,
+        average: 0,
+    }
+
+    const userNumericValue = normalize_1_10_to_0_1(valuesQuery.value);
+
+    let totForAverage = 0;
+    for(let i = 0; i < observations.length; i++) {
+        const o = observations[i];
+        if (demoX) {
+            const queryX = makeQueryForDemographicGroup(demoX, groupX);
+            if (!matchObservation(o, queryX)) {
+                continue;
+            }
+        }
+        if (demoY) {
+            const queryY = makeQueryForDemographicGroup(demoY, groupY);
+            if (!matchObservation(o, queryY)) {
+                continue;
+            }
+        }
+        stats.totalObservations++;
+        const v = valuesForObservation(o, valuesQuery);
+        totForAverage += v;
+        if (Math.abs(v - userNumericValue) < 0.01) {
+            stats.nLikeYou++;
+        }
+
+        // fix numeric problem by importing whole numbers in json
+        if (v > userNumericValue) {
+            stats.nAbove++;
+        }
+        if (v < userNumericValue) {
+            stats.nBelow++;
+        }
+    }
+
+    stats.average = totForAverage / stats.totalObservations;
+    return stats;
+}
+
+export function filterByCountryAndAvailableDemographics(allEntries: AllEntriesStore, country: string, demos: ObservationDemographics[]) {
+    return allEntries[country].filter(o => {
+        for (let i = 0; i < demos.length; i++) {
+            if (demos[i] == null) {
+                return true;
+            }
+            const att = getObservationAttributeForDemographic(demos[i]);
+            if (o[att] == undefined) {
+                return false;
+            }
+        }
+        return true; 
+    });
+}
 
 export function filterAndStatsObservations(observations: Observation[], query: ObservationQuery ) {
     const filteredEntries: Observation[] = [];
@@ -432,6 +509,24 @@ export function makeQueryForDemographicGroup(demo: ObservationDemographics, grou
         case 'religiosity':
             return singleValue('is_religious');
     }
+}
+
+function getObservationAttributeForDemographic(demo: ObservationDemographics): (keyof Observation) {
+    switch (demo) {
+        case 'age':
+            return 'birth_year';
+        case 'sex':
+            return 'sex';
+        case 'education':
+            return 'education';
+        case 'education_parents':
+            return 'education_parents';
+        case 'income':
+            return 'income_quantiles';
+        case 'religiosity':
+            return 'is_religious';
+    }
+
 }
 
 export function getDemographicGroupIndex(o: Observation, demo: ObservationDemographics) {

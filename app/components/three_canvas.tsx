@@ -3,6 +3,7 @@ import React, { lazy } from 'react';
 import dynamic from "next/dynamic";
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer';
 import { debug, getMousePos } from '../../utils/utils';
+import { Box } from '@material-ui/core';
 
 // import type {GUI} from 'dat.gui';
 
@@ -146,6 +147,20 @@ export class ThreeCanvas<T, S> extends React.Component<ThreeCanvasProps & T, Thr
         return v * width / 10;
     }
 
+    // getPosFromAnnotationPos = (x: number, y: number) => {
+    //     const { width, height } = this.props;
+    //     return {
+    //         x: this.getSizeTransformInv(x - (width / 2)),
+    //         y: this.getSizeTransformInv(y - (height / 2)),
+    //     }
+    // }
+
+
+    // getSizeTransformInv = (v: number) => {
+    //     const { width, height } = this.props;
+    //     return v / width * 10;
+    // }
+
 
     annotate() {
         const { width, height } = this.props;
@@ -257,6 +272,15 @@ export class ThreeCanvas<T, S> extends React.Component<ThreeCanvasProps & T, Thr
             position: 'relative' as any,
         }
 
+        const shadowStyle = (pos: 'top' | 'bottom') => {return {
+            background: `linear-gradient(${pos == 'top' ? '0deg' : '180deg'}, rgba(2,0,36,1) 0%, rgba(0,0,0,0) 0%, rgba(0,0,0,0.9850315126050421) 100%)`,
+            pointerEvents: 'none',
+        } as any};
+
+        const shadowHeight = 100;
+        const shadowTop = <Box position='absolute' height={shadowHeight} width='100%' top='0' left='0' style={shadowStyle('top')} />;
+        const shadowBottom = <Box position='absolute' height={shadowHeight} width='100%' bottom='0' left='0' style={shadowStyle('bottom')} />;
+
         return (
             <div style={mainContainerStyle}>
                 {/* background */}
@@ -279,6 +303,10 @@ export class ThreeCanvas<T, S> extends React.Component<ThreeCanvasProps & T, Thr
                         {this.renderAnnotation()}
                     </div>
                 </div>
+
+
+                { shadowTop }
+                { shadowBottom }
 
             </div>
         )

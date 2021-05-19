@@ -127,10 +127,11 @@
     [ ] create a new mock
     [ ] diversify people?
 
+# ------------------------------
 # Demo
-[ ] Set up
+[√] Set up
     [√] code audit
-    [ ] use filter query only for the country, and actually use filter query in the visualization
+    [√] use filter query only for the country, and actually use filter query in the visualization
 
 [ ] Chart
     [√] group region store format
@@ -139,18 +140,21 @@
     [√] Axis overlay X
         - memoize component to avoid useless renders, to fix the annotation layer that keeps rerendering
         https://rossbulat.medium.com/how-to-memoize-in-react-3d20cbcd2b6e
-    [ ] Axis overlay Y
-        [ ] plus minus component
-        [ ] people movement
-        [ ] gray out borders
-    [ ] Overaly barchart
-        [ ] hover effect and number %
-    [ ] Improve util/rect layout
-        [ ] better density for individual rows. I don't need to keep all columns the same density
+    [√] Axis overlay Y
+        [√] plus minus component
+        [√] people movement
+            [√] hide axis while moving
+        [√] gray out borders
+            - use https://cssgradient.io/ to generate gradients
     [ ] Improve people model. 
         Different model mix
+    ---
+    [ ] Improve util/rect layout
+        [ ] better density for individual rows. I don't need to keep all columns the same density
     [ ] improve 3d parallax effect
     [ ] improve ease/movement effect of the little men
+    [x] Overaly barchart
+        [x] hover effect and number %
 
 [ ] UI
     [√] title component
@@ -161,7 +165,7 @@
         [√] update store structure to reflect demographic filters
         [√] X filter
         [√] Y filter
-    [ ] legend component
+    [√] legend component
         [ ] (opt) allow editing on the legend
     [√] value filter
         [√] design button
@@ -170,20 +174,21 @@
     [√] black overlay for when a filter is open
 
 [ ] Placing yourself
-    [ ] model set up
+    [√] model set up
+    [√] drop areas
+    [√] movement
+    [√] people moving effect to give space
     [ ] yellow marker 
-    [ ] drop areas
-    [ ] movement
-    [ ] people moving effect to give space
 
-[ ] Better stats 
-    [ ] stats for yourself
+[√] Better stats 
+    [√] stats for yourself
 
 [ ] People picking
     [√] GPU picking support
         - use same scene for picking and rendering. What are the drawbacks?
     [√] person highlight
-    [ ] popup about the person selected
+    [√] popup about the person selected
+    [ ] experiment disabling z-buffering and rendering a model with a countorur on top
     
 [ ] Story support
     [ ] store support for story steps
@@ -197,16 +202,21 @@
     [ ] handle remove filter option, is a bit confusing
     [ ] How to reformat the subtitle if you don't select a X or a Y option?
     [ ] fix education ranges. For italy for istance they are wrong
+    [ ] I can select no primary demographic and a secondary demographic -> break
+    [ ] fix jump when loading
 
 [ ] MISC
+    [ ] experiment dark blue as background
 
 
 ## backlog
-[ ] finish data cleaning
+[√] finish data cleaning
 [ ] add data from previous wave, to be loaded optionally?
 [ ] create a mini-infographic to experiment different way to show the tabular data?
-[ ] add index for country in json stored
 [ ] memoize svg marker triangle for the selected person
+---
+[ ] add index for country in json stored
+
 
 # Scripts
 - $> npm run dev
@@ -219,3 +229,5 @@
 # coding
 - this bug was nasty: a = new Array(2).fill(null).map(() => new Array(2).fill([])); was producing a[0][1] === a[0][0] TRUE!
  instead: a = new Array(2).fill(null).map(() => new Array(2).fill(null).map(() => new Array()))
+
+- managed to connect iphone to localhost https://mtm.dev/iphone-localhost-mac

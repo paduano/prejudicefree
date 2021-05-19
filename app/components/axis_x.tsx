@@ -1,21 +1,11 @@
-import React, { Fragment, useMemo } from 'react';
-import { makeStyles } from '@material-ui/core/styles';
+import React, { useEffect } from 'react';
 import Typography from '@material-ui/core/Typography';
-import Slider from '@material-ui/core/Slider';
-import { ThemeProvider } from '@material-ui/styles';
-import theme from './theme';
-import { FormControl, FormLabel, RadioGroup, FormControlLabel, Radio, Box, InputLabel, MenuItem, Switch, Checkbox } from '@material-ui/core';
-import { countryCodeToName } from '../data/countries';
-import { ageRanges, educationLevels, educationRanges, getIndexFromRange, incomeRanges } from '../data/legend';
+import { Box } from '@material-ui/core';
 import { useAppDispatch, useAppSelector } from '../hooks';
-import { RootState, updateObservationsQuery, updateValuesQuery } from '../store';
-import { shallowEqual, useSelector } from 'react-redux';
-import { createSelector } from '@reduxjs/toolkit';
-import { AllEntriesStore, getReadableDescriptionForDemographic, getReadableDescriptionForGroup, groupsForDemographic, Observation } from '../observation';
-import { getFlagFromCountryCode, selectAvailableCountries } from './ui_utils';
-import { CountrySelect, DemographicSelect, Select, ValuesSelect } from './select';
-import styles from '../../styles/titles.module.css'
+import { getReadableDescriptionForDemographic, getReadableDescriptionForGroup, groupsForDemographic } from '../observation';
 import { GroupLayoutInfo } from './viz/grid_viz_configs';
+import styles from '../../styles/axis.module.css'
+import classNames from 'classnames/bind';
 
 interface Props {
     groupLayoutInfo: GroupLayoutInfo;
@@ -29,23 +19,18 @@ export const AxisX = React.memo((props: Props) => {
     const demo = useAppSelector(state => {
         return state.rawData.primaryFilterDemographic;
     });
+    const animationInProgress = useAppSelector(state => {
+        return state.rawData.animationInProgress;
+    });
 
-    if (!demo) {
-        return <div></div>
-    }
-    
     const demoGroups = groupsForDemographic(demo);
 
     console.count('render');
 
-    const styles = {
-        left: 0,
-        top: 0,
-        pointerEvents: 'none',
-        color: 'white'
-    } as any;
-
-    const currentRow = 0; // use store value
+   
+    const currentRow = useAppSelector(state => {
+        return state.rawData.currentRow
+    });
 
     const getSegmentPos = (groupIndex: number) => {
         const x3d = groupLayoutInfo.groupPosX[groupIndex][currentRow];
@@ -53,7 +38,7 @@ export const AxisX = React.memo((props: Props) => {
     }
     const getSegmentWidth = (groupIndex: number) => getSizeTransform(groupLayoutInfo.rectWidths[groupIndex][currentRow]);
 
-    const xSegments = demoGroups.map((_label, groupIndex) => {
+    const xSegments = groupLayoutInfo.groupPosX.map((_label, groupIndex) => {
         const { x, y } = getSegmentPos(groupIndex);
         const width = getSegmentWidth(groupIndex);
         const segmentStyle = {
@@ -64,15 +49,15 @@ export const AxisX = React.memo((props: Props) => {
         const borderStyle = '1px solid #FFFFFF';
         const squareStyle =  {
             borderBottom: borderStyle,
-            borderLeft: borderStyle,
-            borderRight: borderStyle,
+            // borderLeft: borderStyle,
+            // borderRight: borderStyle,
             height: '20px',
         };
         return (
             <Box pt={2} position='absolute' display='flex' flexDirection='column' style={segmentStyle} key={`axis-x-segment-${groupIndex}`}>
                 <div style={squareStyle}></div>
                 <Box mt={1}>
-                    <Typography align='center' variant='h3'>
+                    <Typography align='center' variant='h5'>
                         {getReadableDescriptionForGroup(demo, groupIndex)}
                     </Typography>
                 </Box>
@@ -80,7 +65,7 @@ export const AxisX = React.memo((props: Props) => {
         )
     });
 
-    const lastGroupIndex = demoGroups.length - 1;
+    const lastGroupIndex = groupLayoutInfo.groupPosX.length - 1;
     const lastSegmentPos = getSegmentPos(lastGroupIndex);
     const width = getSegmentWidth(lastGroupIndex);
     const legendTitleStyle = {
@@ -95,8 +80,20 @@ export const AxisX = React.memo((props: Props) => {
         </Box>
     );
 
+    const clsAxis = classNames(styles.axis, {
+        [styles.axisHidden]: animationInProgress,
+        [styles.axisTransitionProperties]: !animationInProgress, // since the fade out makes the animation jump
+    });
+
+    const wrapperStyles = {
+        left: 0,
+        top: 0,
+        pointerEvents: 'none',
+        color: 'white'
+    } as any;
+
     return (
-        <Box position='absolute' display='flex' flexDirection='column' style={styles} >
+        <Box className={clsAxis} position='absolute' display='flex' flexDirection='column' style={wrapperStyles} >
             <Box position='relative'>
                 {xSegments}
                 {legendTitle}

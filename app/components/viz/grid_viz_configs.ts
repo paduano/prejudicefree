@@ -1,5 +1,6 @@
-import { debug, pie, PI_HALF, rand, randInCircle, randInGroup, dotsInRect } from "../../../utils/utils";
+import { debug, pie, PI_HALF, rand, randInCircle, randInGroup, dotsInRect, normalize_1_10_to_0_1 } from "../../../utils/utils";
 import { getDemographicGroupIndex, groupsForDemographic, Observation, ObservationDemographics, ObservationQuery, valuesForObservation, ValuesQuery } from "../../observation";
+import { colorGradientList, getColorIndex } from "../ui_utils";
 
 export interface DotAttributes {
     position?: {
@@ -18,12 +19,12 @@ export interface DotAttributes {
 
 
 export interface LayoutParams {
-    filteredObservations: Observation[],
-    allObservations: Observation[],
+    observations: Observation[],
     filterQuery: ObservationQuery;
     valuesQuery: ValuesQuery,
     primaryFilterDemographic: ObservationDemographics;
     secondaryFilterDemographic: ObservationDemographics;
+    currentRow: number;
 }
 
 export interface GroupLayoutInfo {
@@ -31,6 +32,9 @@ export interface GroupLayoutInfo {
     groupPosY: number[][],
     rectWidths: number[][],
     rectHeights: number[][],
+    observationsByColorIndex: number[][][], // array for each group
+    totalObservations: number[][],
+    yourselfPositions: { x: number, y: number}[][],
 }
 
 const blueColor = { r: 117 / 255, g: 189 / 255, b: 255 / 255 };
@@ -40,41 +44,12 @@ const colors = Array.from({ length: 255 }, (x, i) => {
     return { r: 117 / 255, g: 189 / 255, b: i / 255 }
 })
 
-const colorGradient = (v: number) => {
-    if (v < 0 || v > 1) {
-        throw `${v} not a valid color gradient value`
-    }
-    const cList = [
-        // inverted
-        // [117, 189, 255],
-        // // [158, 202, 225],
-        // [255, 255, 204],
-        // // [255, 237, 160],
-        // [254, 217, 118],
-        // // [254, 178, 76],
-        // // [253, 141, 60],
-        // [252, 78, 42],
-        // // [227, 26, 28],
-        // [177, 0, 38],
 
-        // from red to blue
-        [177, 0, 38],
-        // [227, 26, 28],
-        [252, 78, 42],
-        // [253, 141, 60],
-        // [254, 178, 76],
-        [254, 217, 118],
-        // [255, 237, 160],
-        [255, 255, 204],
-        // [158, 202, 225],
-        [117, 189, 255],
-
-    ]
-    const cListIndex = Math.round(v * (cList.length - 1));
+const colorGradient = (cListIndex: number) => {
     return {
-        r: cList[cListIndex][0] / 255,
-        g: cList[cListIndex][1] / 255,
-        b: cList[cListIndex][2] / 255,
+        r: colorGradientList[cListIndex][0] / 255,
+        g: colorGradientList[cListIndex][1] / 255,
+        b: colorGradientList[cListIndex][2] / 255,
     }
 }
 
@@ -152,11 +127,15 @@ function getDemoFiltersFromFilterQuery(filterQuery: ObservationQuery) {
     return {demoX, demoY};
 }
 
-const DotsTestMultiGroup: DotsVizConfiguration<{idPosMap: any, groupLayoutInfo: GroupLayoutInfo}> = {
+export interface VizPrepareState { 
+    idPosMap: any, 
+    groupLayoutInfo: GroupLayoutInfo, 
+}
+
+const DotsTestMultiGroup: DotsVizConfiguration<VizPrepareState> = {
     prepare: (layoutParams: LayoutParams) => {
-        const { filteredObservations, allObservations, filterQuery, primaryFilterDemographic, secondaryFilterDemographic } = layoutParams;
+        const { currentRow, observations, valuesQuery, primaryFilterDemographic, secondaryFilterDemographic } = layoutParams;
         const idPosMap: { [id: number]: { x: number, y: number, groupX: number, groupY: number } } = {};
-        const betweenGroupPadding = 0.2;
 
         // 1. group definition
         // -------------------
@@ -167,14 +146,25 @@ const DotsTestMultiGroup: DotsVizConfiguration<{idPosMap: any, groupLayoutInfo: 
         const groups: Observation[][][] = new Array(nGroupX)
             .fill(null).map(() => new Array(nGroupY)
             .fill(null).map(() => new Array())); // init multi-dimensional empty X Y array
+        const observationsByColorIndex: number[][][] = new Array(nGroupX)
+            .fill(null).map(() => new Array(nGroupY)
+            .fill(null).map(() => new Array(colorGradientList.length).fill(0))); // X Y array of cList count init at 0s
+        const totalObservations: number[][] = new Array(nGroupX)
+            .fill(null).map(() => new Array(nGroupY).fill(0)); // X Y array of 0s
+
+        const yourselfValue = normalize_1_10_to_0_1(valuesQuery.value);
+        const yourselfPositions: { x: number, y: number}[][] = new Array(nGroupX)
+            .fill(null).map(() => new Array(nGroupY)
+            .fill(null));
 
         // 2. group assignment
         // -------------------
-        for (let i = 0; i < allObservations.length; i++) {
-            const o = allObservations[i];
+        for (let i = 0; i < observations.length; i++) {
+            const o = observations[i];
             const groupIndexX = !!demoX ? getDemographicGroupIndex(o, demoX) : 0;
             const groupIndexY = !!demoY ? getDemographicGroupIndex(o, demoY) : 0;
             groups[groupIndexX][groupIndexY].push(o);
+            totalObservations[groupIndexX][groupIndexY]++;
         }
 
         // 3. group sorting
@@ -182,8 +172,8 @@ const DotsTestMultiGroup: DotsVizConfiguration<{idPosMap: any, groupLayoutInfo: 
         const sortByValues = (x: Observation, y: Observation) => {
             let xd = 0;
             let yd = 0;
-            const xValue = valuesForObservation(x, layoutParams.valuesQuery) + xd;
-            const yValue = valuesForObservation(y, layoutParams.valuesQuery) + yd;
+            const xValue = valuesForObservation(x, valuesQuery) + xd;
+            const yValue = valuesForObservation(y, valuesQuery) + yd;
             return xValue - yValue;
         }
         for (let x = 0; x < nGroupX; x++) {
@@ -195,15 +185,26 @@ const DotsTestMultiGroup: DotsVizConfiguration<{idPosMap: any, groupLayoutInfo: 
         // 4. layout variables
         // ------------------
         const VIZ_WIDTH = 6;
-        const VIZ_HEIGHT = 4;
-        const GROUP_PADDING = 0.3;
+        let VIZ_HEIGHT = 4;
+        if (nGroupY == 2) {
+            VIZ_HEIGHT = 5;
+        }
+        if (nGroupY == 3) {
+            VIZ_HEIGHT = 6;
+        }
+        if (nGroupY == 4) {
+            VIZ_HEIGHT = 8;
+        }
+        const GROUP_PADDING_X = 0.8;
+        const GROUP_PADDING_Y = 3;
+        // const SPACE_Y_FOR_OTHER_ROWS = 1.5; 
         const rectWidths: number[][] = new Array(nGroupX).fill(null).map(() => new Array(nGroupY).fill(0)); // init 2 dim with 0
         const rectHeights: number[][] = new Array(nGroupX).fill(null).map(() => new Array(nGroupY).fill(0)); // init 2 dim with 0
         const groupPosX: number[][] = new Array(nGroupX).fill(null).map(() => new Array(nGroupY).fill(0)); // init 2 dim with 0
         const groupPosY: number[][] = new Array(nGroupX).fill(null).map(() => new Array(nGroupY).fill(0)); // init 2 dim with 0
         let totRow: number[] = new Array(nGroupY).fill(0);
         let totColumns: number[] = new Array(nGroupX).fill(0);;
-        let N = allObservations.length;
+        let N = observations.length;
         // get totals for row and columns
         for (let x = 0; x < nGroupX; x++) {
             for (let y = 0; y < nGroupY; y++) {
@@ -220,18 +221,29 @@ const DotsTestMultiGroup: DotsVizConfiguration<{idPosMap: any, groupLayoutInfo: 
                 const hr = totRow[y] / N;
                 const wr = totColumns[x] / N;
                 const width = wr * VIZ_WIDTH;
-                const height = hr * VIZ_HEIGHT;
+                let height = hr * VIZ_HEIGHT;
+
                 rectWidths[x][y] = width;
                 rectHeights[x][y] = height;
-                groupPosX[x][y] = -VIZ_WIDTH / 2 + acc_x;
+                groupPosX[x][y] = -VIZ_WIDTH / 2 + acc_x - (GROUP_PADDING_X * nGroupX / 2);
                 groupPosY[x][y] = -VIZ_HEIGHT / 2 + acc_y;
-                acc_y += height + GROUP_PADDING;
+                acc_y += height + GROUP_PADDING_Y;
             }
-            acc_x += Math.max(...rectWidths[x]) + GROUP_PADDING;
+            acc_x += Math.max(...rectWidths[x]) + GROUP_PADDING_X;
+        }
+
+        // Center current Row in the screen
+        // ---------------------
+        const centeredY = groupPosY[0][currentRow] + rectHeights[0][currentRow] / 2;
+        for (let x = 0; x < nGroupX; x++) {
+            for (let y = 0; y < nGroupY; y++) {
+                groupPosY[x][y] -= centeredY;
+            }
         }
 
         // 5. layout computation
         // ------------------
+        let lastObservationValuesMatch = 0;
         const orientation = nGroupX == 1 ? 'w' : 'h';
         for (let x = 0; x < nGroupX; x++) {
             for (let y = 0; y < nGroupY; y++) {
@@ -243,15 +255,52 @@ const DotsTestMultiGroup: DotsVizConfiguration<{idPosMap: any, groupLayoutInfo: 
                 for (let i = 0; i < group.length; i++) {
                     const o = group[i];
                     const pos = dotsInRect(rectWidth, rectHeight, i, group.length, true /* noise */, orientation);
+
+                    // add group position
+                    pos.x += posX;
+                    pos.y += posY;
+
+
+                    // 5.1 place yourself
+                    // -------------------
+                    const valuesMatch = valuesForObservation(o, valuesQuery);
+                    const colorIndex = getColorIndex(valuesMatch);
+                    observationsByColorIndex[x][y][colorIndex]++;
+                    const valueInBetween = (yourselfValue >= lastObservationValuesMatch && yourselfValue <= valuesMatch);
+                    if (yourselfPositions[x][y] == null || valueInBetween) {
+                        yourselfPositions[x][y] = pos;
+                    }
+                    lastObservationValuesMatch = valuesMatch;
+
+                    // add displacement if not current row
+                    let displaceX = 0;
+                    let displaceY = 0;
+                    if (currentRow != y) {
+                        displaceY += rand(0, 0.4);
+                        displaceX += rand(0, 0.4);
+                    }
+
                     idPosMap[o.id] = {
-                        x: posX + pos.x,
-                        y: posY + pos.y,
+                        x: pos.x + displaceX,
+                        y: pos.y + displaceY,
                         groupX: x,
                         groupY: y 
                     };
                 }
             }
         }
+
+        // 6. copy and add a little displacement to your position
+        // ------------------
+        for (let x = 0; x < nGroupX; x++) {
+            for (let y = 0; y < nGroupY; y++) {
+                yourselfPositions[x][y] = Object.assign({}, yourselfPositions[x][y]);
+                yourselfPositions[x][y].y += 0.0001;
+            }
+        }
+
+        // 
+
         return {
             idPosMap,
             groupLayoutInfo: {
@@ -259,18 +308,22 @@ const DotsTestMultiGroup: DotsVizConfiguration<{idPosMap: any, groupLayoutInfo: 
                 groupPosY,
                 rectWidths,
                 rectHeights,
-            }
+                observationsByColorIndex,
+                totalObservations, 
+                yourselfPositions,
+            },
         };
     },
     dot: (i: number, ob: Observation, layoutParams: LayoutParams, state) => {
-        const { filteredObservations, allObservations } = layoutParams;
+        const { observations } = layoutParams;
         const { idPosMap } = state;
         const valuesMatch = valuesForObservation(ob, layoutParams.valuesQuery);
         // const color = mix(blueColor, redColor, valuesMatch)
-        const color = colorGradient(valuesMatch);
+        const colorIndex = getColorIndex(valuesMatch);
+        const color = colorGradient(colorIndex);
         const pos = idPosMap[ob.id];
         if (!pos) {
-            debugger
+            console.error('pos not defined')
         }
         return {
             position: {
