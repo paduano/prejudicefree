@@ -19,7 +19,7 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 
 
 const PI_2 = 1.57079632679489661923;
-const POINT_COUNT = 10000;
+const POINT_COUNT = 5000;
 const TWEEN_TRANSITION_TIME = 2000;
 const CAMERA_ROT = 15;
 // const TWEEN_TRANSITION_TIME = 100;
@@ -377,17 +377,20 @@ class GridVizView extends ThreeCanvas<GridVizProps, GridVizState> {
 
         // effect composer
         // const bloomPass = new UnrealBloomPass( new THREE.Vector2( this.props.width, this.props.height), 1.5, 0.4, 0.85 );
-        const renderScene = new RenderPass(this.scene, this.camera);
-        this.composer = new EffectComposer(this.renderer);
-        this.composer.addPass(renderScene);
-        const outlinePass = new OutlinePass(new THREE.Vector2(window.innerWidth, window.innerHeight), this.scene, this.camera);
-        outlinePass.edgeStrength = 3;
-        outlinePass.edgeGlow = 0;
-        outlinePass.edgeThickness = 1.;
+
+        // -- outline pass
+        // const renderScene = new RenderPass(this.scene, this.camera);
+        // this.composer = new EffectComposer(this.renderer);
+        // this.composer.addPass(renderScene);
+        // const outlinePass = new OutlinePass(new THREE.Vector2(window.innerWidth, window.innerHeight), this.scene, this.camera);
+        // outlinePass.edgeStrength = 3;
+        // outlinePass.edgeGlow = 0;
+        // outlinePass.edgeThickness = 1.;
+        // this.composer.addPass(outlinePass);
+        // --
 
         // outlinePass.visibleEdgeColor = visibleColor;
         // outlinePass.hiddenEdgeColor.set(0);
-        this.composer.addPass(outlinePass);
         // this.composer.addPass(bloomPass);
 
         // camera
@@ -490,7 +493,7 @@ class GridVizView extends ThreeCanvas<GridVizProps, GridVizState> {
 
         this.yourselfMesh.position.copy(this.yourselfPosition);
 
-        outlinePass.selectedObjects = [this.yourselfMesh];
+        // outlinePass.selectedObjects = [this.yourselfMesh]; // YYY
 
 
         // const pickingInstancedMesh = new THREE.InstancedMesh(this.instancedGeometry, this.instancedMaterial, POINT_COUNT);
