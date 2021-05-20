@@ -37,6 +37,10 @@ export function mousePos(evt: React.MouseEvent<HTMLElement>, parent: HTMLDivElem
     };
 }
 
+export const color = {
+    // background: '#040728', // blue
+    background: '#030622', // dark blue
+}
 
 export const colorGradientList = [
     // inverted
@@ -60,9 +64,14 @@ export const colorGradientList = [
 
 
     // 3 steps
+    // [234, 28, 28],
+    // [78, 73, 73, 1],
+    // [52, 72, 246],
+
+    // 3 steps for blue background
     [234, 28, 28],
-    [78, 73, 73, 1],
-    [52, 72, 246],
+    [131, 111, 111],
+    [89, 78, 255],
 ]
 
 export const colorGradientListCSS = (index: number) => {

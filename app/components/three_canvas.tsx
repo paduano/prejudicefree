@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer';
 import { debug, getMousePos } from '../../utils/utils';
 import { Box } from '@material-ui/core';
+import { color } from './ui_utils';
 
 // import type {GUI} from 'dat.gui';
 
@@ -18,6 +19,7 @@ import { Box } from '@material-ui/core';
 export interface ThreeCanvasProps {
     width: number;
     height: number;
+    backgroundColor: string;
 
 }
 
@@ -43,7 +45,7 @@ export class ThreeCanvas<T, S> extends React.Component<ThreeCanvasProps & T, Thr
     composer: EffectComposer;
     clock: THREE.Clock;
     gui: any;
-    backgroundColor = '#000000';
+    // backgroundColor = '#000000';
     // backgroundColor = '#FFFFFF';
     mouse: THREE.Vector2;
 
@@ -76,7 +78,6 @@ export class ThreeCanvas<T, S> extends React.Component<ThreeCanvasProps & T, Thr
         const { width, height } = this.props;
         this.clock = new THREE.Clock();
         this.scene = new THREE.Scene();
-        // this.scene.background = new THREE.Color(0x000000);
         this.mouse = new THREE.Vector2(1, 1);
 
         this.setUpCamera();
@@ -111,6 +112,7 @@ export class ThreeCanvas<T, S> extends React.Component<ThreeCanvasProps & T, Thr
                 // if (!this.gui) {
                 this.gui = new module.GUI();
                 this.gui.close();
+                this.gui.hide(); // YYY
                 this.setUpGui(module.GUI)
                 // }
             });
@@ -247,7 +249,7 @@ export class ThreeCanvas<T, S> extends React.Component<ThreeCanvasProps & T, Thr
     render = () => {
         const { width, height } = this.props;
         const { annotationLayerTransform } = this.state;
-        const annotationLayerStyle = {
+        const layerStyle = {
             width,
             height,
             position: 'absolute' as "absolute",
@@ -256,9 +258,13 @@ export class ThreeCanvas<T, S> extends React.Component<ThreeCanvasProps & T, Thr
         };
 
         const backgroundLayerStyle = {
-            ...annotationLayerStyle,
-            backgroundColor: this.backgroundColor,
+            ...layerStyle,
         };
+
+        const annotationLayerStyle = {
+            ...layerStyle,
+            zIndex: 8,
+        }
 
         const annotationLayerTransformStyle = {
             transform: annotationLayerTransform,
@@ -273,7 +279,7 @@ export class ThreeCanvas<T, S> extends React.Component<ThreeCanvasProps & T, Thr
         }
 
         const shadowStyle = (pos: 'top' | 'bottom') => {return {
-            background: `linear-gradient(${pos == 'top' ? '0deg' : '180deg'}, rgba(2,0,36,1) 0%, rgba(0,0,0,0) 0%, rgba(0,0,0,0.9850315126050421) 100%)`,
+            background: `linear-gradient(${pos == 'top' ? '0deg' : '180deg'}, rgba(2,0,36,1) 0%, rgba(0,0,0,0) 0%, ${color.background} 100%)`,
             pointerEvents: 'none',
         } as any};
 
@@ -291,7 +297,7 @@ export class ThreeCanvas<T, S> extends React.Component<ThreeCanvasProps & T, Thr
                     </div>
                 </div>
 
-                <div style={annotationLayerStyle} >
+                <div style={layerStyle} >
                     <canvas ref={this.canvasRef} width={width} height={height}>
                     </canvas>
                 </div>

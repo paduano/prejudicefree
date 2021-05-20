@@ -31,7 +31,6 @@
     position: relative;
     height: 10%;
     /* pointer-events: none; */
-    background-color: black;
     cursor: pointer;
 }
 

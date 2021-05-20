@@ -14,7 +14,7 @@ import dynamic from 'next/dynamic';
 import { GroupStats, Observation } from '../app/observation';
 import { ValueFilters } from '../app/components/value_filters';
 import { Title } from '../app/components/title';
-import { MAIN_CONTAINER_ID } from '../app/components/ui_utils';
+import { color, MAIN_CONTAINER_ID } from '../app/components/ui_utils';
 import { SelectOverlays } from '../app/components/select';
 import { Legend } from '../app/components/legend';
 import { SelectedObservation, YourselfInfo } from '../app/components/detail_panels';
@@ -72,7 +72,7 @@ export class MVP extends React.Component<MVPProps, MVPState> {
     if (this.props.selectOverlay.current) {
       const Overlay = SelectOverlays[this.props.selectOverlay.current] as any;
       return (
-        <div className={styles.selectOverlayContainer}>
+        <div className={styles.selectOverlayContainer} style={{background: color.background}}>
           <Overlay {...this.props.selectOverlay.params} />
         </div>
       );
@@ -95,7 +95,10 @@ export class MVP extends React.Component<MVPProps, MVPState> {
   render() {
     return (
       <ThemeProvider theme={invertedTheme}>
-        <div id={MAIN_CONTAINER_ID} className={styles.container}>
+        <div id={MAIN_CONTAINER_ID} className={styles.container} style={{background: color.background}}>
+
+          {/* modals, full screen selects */}
+          {this.renderSelectOverlay()}
           {this.loadingComplete() ? (
             <Box display='flex' flexDirection='column' justifyContent='center' height='100%'>
 
@@ -108,7 +111,7 @@ export class MVP extends React.Component<MVPProps, MVPState> {
                 <Box width='100px' />
 
                 {/* 3d */}
-                <GridViz width={800} height={600} /> 
+                <GridViz width={800} height={600} backgroundColor={color.background} /> 
 
                 {/* right column */}
                 <Box width='200px' display='flex' flexDirection='column' mt={4}>
@@ -125,9 +128,6 @@ export class MVP extends React.Component<MVPProps, MVPState> {
               {this.renderLegendWithLayout()}
             </Box>
           ) : "Loading"}
-
-          {/* modals, full screen selects */}
-          {this.renderSelectOverlay()}
         </div>
       </ThemeProvider>
     )
