@@ -237,7 +237,8 @@ const HeaderContents = {
                
                 {/* description */}
                 <Typography variant='h4'>
-                    Let's bring some order. The people are sorted according to their answer. Also you are placed close to people that thinks about the same.
+                    Let's bring some order. The people are sorted according to their answer. <br/>
+                    You are placed close to people that thinks similarly to you.
                 </Typography>
 
                 <NextHeaderPrompt>
@@ -265,7 +266,9 @@ const HeaderContents = {
                 </SimpleHeaderTitle>
 
                 <Typography variant='h4'>
-                    Now, let’s make things more interesting. Let’s pick one demographic information to break down the population by one of the socio-demographics availables
+                    Now, let’s make things more interesting. 
+                    I listed below a list of characteristics we can split the population by. Select one of them
+                    and let's see how people's opinion changes withing each group.
                 </Typography>
 
                 <Box display='flex' flexDirection='row' width='100%' mt={4}>
@@ -308,7 +311,7 @@ const HeaderContents = {
                     One more thing.
                 </SimpleHeaderTitle>
                 <Typography variant='h4'>
-                    Now, let’s make things a bit more complicated. Let’s pick one more demographic information to break down the population by one of the socio-demographics availables
+                    Let’s make things a bit more complicated. Pick one more characteristic to break down the population by.
                 </Typography>
 
                 <Box display='flex' flexDirection='row' width='100%' mt={4}>

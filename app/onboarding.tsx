@@ -85,8 +85,9 @@ export const ONBOARDING_STEPS_LIST: OnboardingStep[] = [
             {
                 type: 'DRAG_AND_DROP_YOURSELF',
                 text: `
-                    Drag the men representing yourself in a column, the "about you" section will update to reflect
-                    how your answer compares to people in the same demographic
+                    Remember, this is you! You can drag yourself in different groups on the chart, 
+                    and the "about you" section on the left will update to reflect
+                    how your answer compares to people in the same group.
                     `,
                 anchor: 'yourself', 
             }
@@ -105,7 +106,7 @@ export const ONBOARDING_STEPS_LIST: OnboardingStep[] = [
             {
                 type: 'CHANGE_SECONDARY_DEMOGRAPHIC',
                 text: `
-                    Click on the arrow to change ... bla bla bla 
+                    Click on the arrow to change category
                     `,
                 anchor: 'plusButton', 
             }
