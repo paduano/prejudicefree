@@ -103,13 +103,14 @@ export const AxisY = React.memo((props: Props) => {
 
     useEffect(() => {
         dispatchNewPlusButtonPosition();
-        setTimeout(dispatchNewPlusButtonPosition, 2000);
+        setTimeout(dispatchNewPlusButtonPosition, 2000); // hack, should I repeat this?
     }, [plusRef]);
 
     const clsPlus = classNames(styles.axisButton, {[styles.buttonDisabled]: !plusButtonEnabled});
     const clsMinus = classNames(styles.axisButton, { [styles.buttonDisabled]: !minusButtonEnabled});
+    const refTSHACK = { ref: plusRef} as any;
     const plusButton = (
-        <Box className={clsPlus} display='flex' justifyContent='center' onClick={increaseRow} style={buttonStyle(plusButtonEnabled, 'top')} ref={plusRef}>
+        <Box className={clsPlus} display='flex' justifyContent='center' onClick={increaseRow} style={buttonStyle(plusButtonEnabled, 'top')} {...refTSHACK}>
             <Plus />
         </Box>
     )
