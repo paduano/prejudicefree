@@ -11,7 +11,7 @@ import { useAppDispatch, useAppSelector } from '../hooks';
 import { nextOnboardingStep, RootState, setPrimaryFilterDemographic, setSecondaryFilterDemographic, updateObservationsQuery, updateValuesQuery } from '../store';
 import { shallowEqual, useSelector } from 'react-redux';
 import { createSelector } from '@reduxjs/toolkit';
-import { AllEntriesStore, Observation, ObservationDemographics, ValuesQuery } from '../observation';
+import { AllEntriesStore, Observation, ObservationDemographics, ValuesMap, ValuesQuery } from '../observation';
 import { color, colorGradientListCSS, FadeGradient, getColorIndex, getFlagFromCountryCode, selectAvailableCountries } from './ui_utils';
 import { CountrySelect, DemographicSelect, DemographicView, Select, ValuesSelect, ValuesView } from './select';
 import styles from '../../styles/titles.module.css'
@@ -86,10 +86,10 @@ const TitleSelector = (props: {primaryDemographic?: boolean, secondaryDemographi
             {props.primaryDemographic || props.secondaryDemographic ? (
                 <Box display='flex' alignItems='center'>
                     {/* primary */}
-                    <Typography variant='h2' >
+                    <Typography variant='h4' >
                         Broken down by{' '}
                     </Typography>
-                    <DemographicSelect variant='h2' axis='x' ml={1} />
+                    <DemographicSelect variant='h4' axis='x' ml={1} />
 
                     {/* secondary */}
                     {props.secondaryDemographic ? (
@@ -200,16 +200,20 @@ const HeaderContents = {
      * Viz random
      */
     [OnboardingStepTypes.VIZ_RANDOM]: () => {
+        const selectedValue = useAppSelector(state => {
+            return state.rawData.valuesQuery.selectedValue;
+        });
+        const vLabel = ValuesMap[selectedValue];
         return (
             <Fragment>
                 <TitleSelector />
 
                 {/* description */}
                 <Typography variant='h4'>
-                    People around you hold different opinions on abortion
-                    We colored them from <span style={{ color: colorGradientListCSS(2)}}>blue{' '}</span> 
-                    to <span style={{ color: colorGradientListCSS(0) }}>red{' '}</span> 
-                    according to their answer. <br></br>
+                    People around you hold different opinions on {vLabel}. <br/>
+                    We colored them <span style={{ color: colorGradientListCSS(2)}}>blue{' '}</span> if they answered that 
+                    tolerates {vLabel} more 7, <span style={{ color: colorGradientListCSS(0) }}>red{' '}</span> if less than 4, 
+                    <span style={{ color: colorGradientListCSS(1) }}>{' '}gray{' '}</span> otherwise. <br/>
                     Remember that the people you are seeing on the screen are real people that ansered the survey.
                     You can click on them with the mouse cursor and know a bit more about them. 
                 </Typography>
@@ -281,7 +285,8 @@ const HeaderContents = {
 
                 <NextHeaderPrompt>
                     <Typography variant='h4' display='inline' >
-                        When you’re ready to take it to the next level, click{' '}
+                        Feel free to play with the filters above.
+                        When you’re ready to take it to the next level, click next.
                     </Typography>
                 </NextHeaderPrompt>
             </Fragment>

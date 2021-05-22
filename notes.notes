@@ -229,6 +229,7 @@
 
 # Scripts
 - $> npm run dev
+- push:  git push -u origin mai
 
 # vscode
 - look at instruction for vim https://github.com/VSCodeVim/Vim

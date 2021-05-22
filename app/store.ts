@@ -200,6 +200,7 @@ export const rawDataSlice = createSlice({
             if (state.currentOnboardingStepIndex < ONBOARDING_STEPS_LIST.length - 1) {
                 state.currentOnboardingStepIndex += 1;
                 state.currentOnboardingMessageStepIndex = 0;
+                state.selectedObservationId = null;
             } else {
                 console.warn('no more onboarding steps available');
             }

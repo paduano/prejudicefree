@@ -244,7 +244,7 @@ function getDemoSelector(axis: Axis) {
     });
 }
 
-export function DemographicSelect(props: BoxProps & { axis: Axis, variant: 'h1' | 'h2' | 'h3', accent?: boolean }) {
+export function DemographicSelect(props: BoxProps & { axis: Axis, variant: 'h1' | 'h2' | 'h3' | 'h4', accent?: boolean }) {
     const { axis, variant, accent, ...rest} = props;
     const dispatch = useAppDispatch()
     const selectedDemographic = getDemoSelector(axis);
