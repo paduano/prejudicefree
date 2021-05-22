@@ -113,6 +113,13 @@ export function Header() {
     const innerContainerStyle = {
         backgroundColor: color.backgroundWithOpacity,
     }
+    // const backStyle = {
+    //     position: 'absolute',
+    //     top: 0,
+    //     left: 0,
+    //     width: 'calc(100% - 50px)',
+    //     height: '100%',
+    // } as any;
 
     const onboardingStep = useAppSelector(getCurrentStep);
 
@@ -131,12 +138,14 @@ export function Header() {
         >
             <Box
                 id='title-inner-container'
+                position='relative'
                 margin='auto'
                 style={innerContainerStyle}
                 minHeight={headerBaseHeight}
                 width={900}
             >
                 <HeaderContent />
+                {/* <div style={backStyle}></div> */}
             </Box>
             <FadeGradient destinationColor={color.backgroundWithOpacity} orientation='top' />
         </Box>
@@ -182,12 +191,12 @@ const HeaderContents = {
         return (
             <Fragment>
                 <SimpleHeaderTitle>
-                    Select a value.
+                    What do you want to know?
                 </SimpleHeaderTitle>
 
                 <Typography variant='h4'>
-                    In what value/right are you interested to compare yourself with?
-                    They are ranked by the most to the least divisive in your country (no they are not yet. But they will be!)
+                    I listed below a number of things that people find sometimes divisive or controversial. 
+                    In what are you interested to see what your country thinks about?
                 </Typography>
                 <Box display='flex' flexDirection='row' width='100%' mt={4}>
                     <ValuesView onSubmit={onValuesSubmit} />
@@ -212,7 +221,7 @@ const HeaderContents = {
                 <Typography variant='h4'>
                     People around you hold different opinions on {vLabel}. <br/>
                     We colored them <span style={{ color: colorGradientListCSS(2)}}>blue{' '}</span> if they answered that 
-                    tolerates {vLabel} more 7, <span style={{ color: colorGradientListCSS(0) }}>red{' '}</span> if less than 4, 
+                    tolerate {vLabel} more 7, <span style={{ color: colorGradientListCSS(0) }}>red{' '}</span> if less than 4, 
                     <span style={{ color: colorGradientListCSS(1) }}>{' '}gray{' '}</span> otherwise. <br/>
                     Remember that the people you are seeing on the screen are real people that ansered the survey.
                     You can click on them with the mouse cursor and know a bit more about them. 
@@ -238,7 +247,7 @@ const HeaderContents = {
                 {/* description */}
                 <Typography variant='h4'>
                     Let's bring some order. The people are sorted according to their answer. <br/>
-                    You are placed close to people that thinks similarly to you.
+                    You (the one new selected in yellow) are placed close to people that thinks similarly to you.
                 </Typography>
 
                 <NextHeaderPrompt>

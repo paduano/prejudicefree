@@ -97,11 +97,13 @@ export const SelectedObservation = React.memo((props: Props) => {
     });
 
     return (
-        <SidePanel hide={!selectedObservation} title='About the selected person'>
-            <Typography variant='h6'>
-                {selectedObservation ? describeObservation(selectedObservation) : null}
-            </Typography>
-        </SidePanel>
+        <Fragment>
+            <SidePanel hide={!selectedObservation} title='About the selected person'>
+                <Typography variant='h6'>
+                    {selectedObservation ? describeObservation(selectedObservation) : null}
+                </Typography>
+            </SidePanel>
+        </Fragment>
     );
 });
 

@@ -159,7 +159,7 @@ export function getCurrentOnboardingMessageSelector(state: RootState): null|Onbo
 export function isFeatureAvailableAtStep(onboardingStepType: OnboardingStepTypes, feature: Features) {
     switch (feature) {
         case 'yourself_info':
-            if (onboardingStepType < OnboardingStepTypes.VIZ_RANDOM) {
+            if (onboardingStepType < OnboardingStepTypes.VIZ_ONE_GROUP) {
                 return false;
             } else {
                 return true;
