@@ -1,15 +1,18 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import Typography from '@material-ui/core/Typography';
 import { Box } from '@material-ui/core';
 import { useAppDispatch, useAppSelector } from '../hooks';
-import { setCurrentRow } from '../store';
+import { nextOnboardingMessage, setCurrentRow, setOnboardingObjectPositions } from '../store';
 import { getReadableDescriptionForDemographic, getReadableDescriptionForGroup, groupsForDemographic } from '../observation';
 import { GroupLayoutInfo } from './viz/grid_viz_configs';
-import styles from '../../styles/axis.module.css'
+import styles from '../../styles/chart_annotation.module.css'
 import classNames from 'classnames/bind';
+import { throttle } from 'throttle-debounce';
 
 import { Plus } from './plus';
 import { Minus } from './minus';
+import { ChartAnnotationWrapper } from './chart_annotation_wrapper';
+import { getCurrentOnboardingMessageSelector } from '../onboarding';
 
 interface Props {
     groupLayoutInfo: GroupLayoutInfo;
@@ -26,9 +29,7 @@ export const AxisY = React.memo((props: Props) => {
     const currentRow = useAppSelector(state => {
         return state.rawData.currentRow
     });
-    const animationInProgress = useAppSelector(state => {
-        return state.rawData.animationInProgress;
-    });
+    const currentOnboardingMessage = useAppSelector(getCurrentOnboardingMessageSelector);
 
     const demoGroups = groupsForDemographic(demo);
     const getSegmentPos = () => {
@@ -81,14 +82,35 @@ export const AxisY = React.memo((props: Props) => {
         } as any;
     };
 
-    const increaseRow = plusButtonEnabled ? () => dispatch(setCurrentRow({ row: currentRow + 1 })) : () => {};
+    const increaseRow = () => {
+        if (currentOnboardingMessage && currentOnboardingMessage.anchor == 'plusButton') {
+            dispatch(nextOnboardingMessage());
+        }
+        if (plusButtonEnabled) {
+            dispatch(setCurrentRow({ row: currentRow + 1 }));
+        }
+    } 
     const decreaseRow = minusButtonEnabled ? () => dispatch(setCurrentRow({ row: currentRow - 1 })) : () => {};
+
+    // update onboarding position
+    const plusRef = useRef(null);
+    const dispatchNewPlusButtonPosition = throttle(1000, false /* no trailing */, (pos: THREE.Vector3) => {
+        if (plusRef.current) {
+            const rect = plusRef.current.getBoundingClientRect();
+            dispatch(setOnboardingObjectPositions({plusButton: {left: rect.left + 40, top: rect.top}}));
+        }
+    });
+
+    useEffect(() => {
+        dispatchNewPlusButtonPosition();
+        setTimeout(dispatchNewPlusButtonPosition, 2000);
+    }, [plusRef]);
 
     const clsPlus = classNames(styles.axisButton, {[styles.buttonDisabled]: !plusButtonEnabled});
     const clsMinus = classNames(styles.axisButton, { [styles.buttonDisabled]: !minusButtonEnabled});
     const plusButton = (
-        <Box className={clsPlus} display='flex' justifyContent='center' onClick={increaseRow} style={buttonStyle(plusButtonEnabled, 'top')}>
-            <Plus/>
+        <Box className={clsPlus} display='flex' justifyContent='center' onClick={increaseRow} style={buttonStyle(plusButtonEnabled, 'top')} ref={plusRef}>
+            <Plus />
         </Box>
     )
 
@@ -125,26 +147,12 @@ export const AxisY = React.memo((props: Props) => {
         </Box>
     );
 
-    // wrapper
-
-    const wrapperStyles = {
-        left: 0,
-        top: 0,
-        pointerEvents: 'visiblePainted', 
-        color: 'white'
-    } as any;
-
-    const clsAxis = classNames(styles.axis, {
-        [styles.axisHidden]: animationInProgress,
-        [styles.axisTransitionProperties]: !animationInProgress,
-    });
-
     return (
-        <Box className={clsAxis}  position='absolute' display='flex' flexDirection='column' style={wrapperStyles} >
+        <ChartAnnotationWrapper position='absolute' display='flex' flexDirection='column' >
             <Box position='relative'>
                 {ySegment}
             </Box>
-        </Box>
-    );
+        </ChartAnnotationWrapper>
+    )
 });
 

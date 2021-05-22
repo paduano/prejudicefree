@@ -7,8 +7,8 @@ import instanceFragShader from '../../shaders/instance.frag';
 import TWEEN, { Tween } from '@tweenjs/tween.js';
 import { Observation, ObservationDemographics, ObservationQuery, ValuesQuery } from '../../observation';
 import { connect } from 'react-redux';
-import { RootState, setAnimationInProgress, setCurrentColumn, setSelectedObservation } from '../../store';
-import { DotAttributes, DotsVizConfiguration, DOT_CONFIGS, GroupLayoutInfo, LayoutParams, VizPrepareState } from './grid_viz_configs';
+import { nextOnboardingMessage, RootState, setAnimationInProgress, setCurrentColumn, setOnboardingObjectPositions, setSelectedObservation } from '../../store';
+import { DotAttributes, DotsVizConfiguration, GroupLayoutInfo, LayoutParams, VizPrepareState } from './grid_viz_configs';
 import { threeAssets } from './assets';
 import { AxisX } from '../axis_x';
 import { AxisY } from '../axis_y';
@@ -16,6 +16,13 @@ import { BarCharts } from '../bar_charts';
 import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass.js';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
+import { Box } from '@material-ui/core';
+import YouMarker from '../you_marker';
+import { ChartAnnotationWrapper } from '../chart_annotation_wrapper';
+import chartStyles from '../../../styles/chart_annotation.module.css'
+import { getCurrentOnboardingMessageSelector, getCurrentVizConfigSelector, isFeatureAvailableSelector, OnboardingMessage, OnboardingObjectPositions } from '../../onboarding';
+import { throttle } from 'throttle-debounce';
+import { color } from '../ui_utils';
 
 
 const PI_2 = 1.57079632679489661923;
@@ -39,10 +46,21 @@ interface GridVizProps extends ThreeCanvasProps {
     currentRow: number;
     currentColumn: number;
     setCurrentColumn: (c: number) => void;
+    animationInProgress: boolean;
+    featureColoredMenEnabled: boolean;
+    featureChartsEnabled: boolean;
+    vizConfig: DotsVizConfiguration<any>;
+    setOnboardingObjectPositions: (pos: OnboardingObjectPositions) => void,
+    disableCameraTrack: boolean,
+
+    nextOnboardingMessage: () => void;
+    currentOnboardingMessage: OnboardingMessage,
 }
 
 interface GridVizState extends ThreeCanvasState {
     groupLayoutInfo?: GroupLayoutInfo,
+    yourselfAnimationInProgress: boolean,
+    isDraggingYourself?: boolean;
 }
 
 class GridVizView extends ThreeCanvas<GridVizProps, GridVizState> {
@@ -52,7 +70,6 @@ class GridVizView extends ThreeCanvas<GridVizProps, GridVizState> {
     mouseEnterPos: { x: number, y: number } = { x: 0, y: 0 };
     mouseRelPos: { x: number, y: number } = { x: 0, y: 0 };
     currentVizStep = 0;
-    maxVizSteps = DOT_CONFIGS.length - 1;
     currentMorph: 0 | 1 = 0;
     morph = { value: 0 };
     morphTween: Tween<{ value: number }>;
@@ -78,14 +95,28 @@ class GridVizView extends ThreeCanvas<GridVizProps, GridVizState> {
     observationIdToIndexMap = new Map<number, number>();
 
     // yourself
-    yourselfMesh: THREE.Mesh<THREE.BufferGeometry, THREE.Material | THREE.Material[]>;
-    yourselfMaterial: THREE.MeshBasicMaterial;
+    yourselfMesh: THREE.Mesh;
+    yourselfMaterial: THREE.MeshToonMaterial;
     yourselfPosition: THREE.Vector3;
     yourselfPositionTween: Tween<THREE.Vector3>;
 
     constructor(props: GridVizProps) {
         super(props);
         this.morphTween = new TWEEN.Tween(this.morph);
+        this.yourselfPosition = new THREE.Vector3(0, 0, 0);
+    }
+
+
+
+    componentDidMount() {
+        super.componentDidMount();
+
+        this.annotationCanvasRef.current.onclick = this.onClick;
+        this.annotationCanvasRef.current.onmousedown = this.onMouseDown;
+        this.annotationCanvasRef.current.onmouseup = this.onMouseUp;
+        this.annotationCanvasRef.current.onmouseleave = this.onMouseLeave;
+        this.annotationCanvasRef.current.onmouseenter = this.onMouseEnter;
+        this.annotationCanvasRef.current.onmousemove = this.onMouseMove;
     }
 
 
@@ -96,14 +127,21 @@ class GridVizView extends ThreeCanvas<GridVizProps, GridVizState> {
             this.props.primaryFilterDemographic != prevProp.primaryFilterDemographic || 
             this.props.secondaryFilterDemographic != prevProp.secondaryFilterDemographic;
         const currentRowChanged = this.props.currentRow != prevProp.currentRow;
-        if (obsChanged || valuesChanged || demographicFilterChanged || currentRowChanged) {
-            this.nextStep(this.currentVizStep);
+        const vizConfigChanged = this.props.vizConfig != prevProp.vizConfig;
+        if (vizConfigChanged || obsChanged || valuesChanged || demographicFilterChanged || currentRowChanged) {
+            this.nextStep(this.props.vizConfig);
         }
 
         const selectedIdChanged = this.props.selectedObservationId != prevProp.selectedObservationId;
         if (selectedIdChanged) {
-            const index = this.observationIdToIndexMap.get(this.props.selectedObservationId);
-            this.instancedMaterial.uniforms.selectedIndex.value = index;
+            if (this.props.selectedObservationId != null) {
+                const index = this.observationIdToIndexMap.get(this.props.selectedObservationId);
+                this.instancedMaterial.uniforms.selectedIndex.value = index;
+                this.yourselfMaterial.color = new THREE.Color('#FFFFFF');
+            } else {
+                this.instancedMaterial.uniforms.selectedIndex.value = -1;
+                this.yourselfMaterial.color = new THREE.Color(color.accent);
+            }
         }
 
         const currentColumnChanged = this.props.currentColumn != prevProp.currentColumn;
@@ -168,6 +206,7 @@ class GridVizView extends ThreeCanvas<GridVizProps, GridVizState> {
             primaryFilterDemographic: this.props.primaryFilterDemographic,
             secondaryFilterDemographic: this.props.secondaryFilterDemographic,
             currentRow: this.props.currentRow,
+            useColors: this.props.featureColoredMenEnabled,
         }
         const configState: VizPrepareState = config.prepare(layoutParams);
         const {groupLayoutInfo} = configState;
@@ -226,13 +265,6 @@ class GridVizView extends ThreeCanvas<GridVizProps, GridVizState> {
     }
 
 
-    componentDidMount() {
-        super.componentDidMount();
-
-        this.annotationCanvasRef.current.onclick = this.onClick;
-    }
-
-
     setUpGui(GUI: any) {
         this.gui.add(this.guiParams, 'perspective', 1, 1000, 1);
         this.gui.add(this.guiParams, 'morph', 0, 1, 0.01).onChange(v => {
@@ -240,19 +272,24 @@ class GridVizView extends ThreeCanvas<GridVizProps, GridVizState> {
             this.morphTween.stop();
         })
         this.gui.add(this.guiParams, 'maxPeople', 0, 9999, 1).onChange(v => {
-            this.nextStep(this.currentVizStep);
+            this.nextStep(this.props.vizConfig);
         })
     }
 
+    YOURSELF_POS_FIX = {x: -9, y: -3};
     renderBackground() {
+        const {x, y} = this.getAnnotationPos(this.yourselfPosition.x, this.yourselfPosition.y);
         return (
-            <span />
-            // <Circles idCircle1={this.idCircle1} idCircle2={this.idCircle2} r1={10} r2={100} />
-        );
+            <ChartAnnotationWrapper hidden={this.state.yourselfAnimationInProgress || this.state.isDraggingYourself}>
+                <Box id='you-marker' position='absolute' left={x + this.YOURSELF_POS_FIX.x} top={y + this.YOURSELF_POS_FIX.y} className={chartStyles.yourselfMarker}>
+                    <YouMarker />
+                </Box >
+            </ChartAnnotationWrapper>
+        )
     }
 
     renderAnnotation() {
-        const { selectedObservationId, primaryFilterDemographic, secondaryFilterDemographic} = this.props;
+        const { selectedObservationId, primaryFilterDemographic, secondaryFilterDemographic, featureChartsEnabled} = this.props;
         const {groupLayoutInfo} = this.state;
         const attributes = this.getCurrentAttributes(true);
         let selectionCircle: JSX.Element = null
@@ -278,17 +315,17 @@ class GridVizView extends ThreeCanvas<GridVizProps, GridVizState> {
                 <svg width={this.props.width} height={this.props.height} style={svgStyle}>
                     {selectionCircle}
                 </svg>
-                {groupLayoutInfo && primaryFilterDemographic ?
+                {featureChartsEnabled && groupLayoutInfo && primaryFilterDemographic ?
                     <AxisX  groupLayoutInfo={groupLayoutInfo} 
                             getSizeTransform={this.getSizeTransform}
                             getAnnotationPos={this.getAnnotationPos} /> : null
                 }
-                {groupLayoutInfo && secondaryFilterDemographic ?
+                {featureChartsEnabled && groupLayoutInfo && secondaryFilterDemographic ?
                     <AxisY groupLayoutInfo={groupLayoutInfo}
                         getSizeTransform={this.getSizeTransform}
                         getAnnotationPos={this.getAnnotationPos} /> : null
                 }
-                {groupLayoutInfo ?
+                {featureChartsEnabled && groupLayoutInfo ?
                     <BarCharts groupLayoutInfo={groupLayoutInfo}
                         getSizeTransform={this.getSizeTransform}
                         getAnnotationPos={this.getAnnotationPos} /> : null
@@ -315,6 +352,11 @@ class GridVizView extends ThreeCanvas<GridVizProps, GridVizState> {
             this.morphTween = new TWEEN.Tween(this.morph);
             const dv = Math.abs(this.morph.value - value);
             this.morphTween.to({ value }, dv * TWEEN_TRANSITION_TIME)
+
+            this.props.setAnimationInProgress(true);
+            this.morphTween.onComplete(() => {
+                this.props.setAnimationInProgress(false);
+            })
             // .easing(TWEEN.Easing.Quadratic.Out) // I do this in the shader
             this.morphTween.start();
         }
@@ -322,55 +364,90 @@ class GridVizView extends ThreeCanvas<GridVizProps, GridVizState> {
     }
 
 
-    onClick = (evt: any) => {
-        const { observations, setCurrentColumn } = this.props;
-        const pickId = this.renderAndPick(evt) - 1; // I increment all Ids by one to detect 0 as nothing selected
-        let selectedObservation;
-        if (observations && observations[pickId]) {
-            selectedObservation = observations[pickId];
-        }
+    onClick = (evt: MouseEvent) => {
+        // this.pickAPerson(mousePos)
+        // this.moveYourselfToGroupPos(mousePos);
+    }
 
-        if (selectedObservation) {
-            debug({selected_id: selectedObservation.id});
-            this.props.setSelectedObservation(selectedObservation);
-        } else {
-            this.props.setSelectedObservation(null);
-        }
 
-        // move to clicked demo group
-        if (this.state.groupLayoutInfo) {
-            let { x, y } = getMousePos(this.canvasRef.current, evt);
-            const selectedGroupIndices = this.getGroupFromAnnotationPos(x, y);
-            if (selectedGroupIndices) {
-                const { groupIndexX, groupIndexY } = selectedGroupIndices;
-                setCurrentColumn(groupIndexX);
+    onMouseDown = (evt: MouseEvent) => {
+        console.log('onMouseDown')
+        const mousePos = getMousePos(this.canvasRef.current, evt);
+        if (this.testPickYourself(mousePos)) {
+            this.startDraggingYourself(mousePos)
+
+            // dismiss onboarding message
+            if (this.props.currentOnboardingMessage && this.props.currentOnboardingMessage.type == 'DRAG_AND_DROP_YOURSELF') {
+                this.props.nextOnboardingMessage();
             }
+        }
+    }
 
+    onMouseUp = (evt: MouseEvent) => {
+        console.log('onMouseUp')
+        const mousePos = getMousePos(this.canvasRef.current, evt);
+
+        if (this.state.isDraggingYourself) {
+            const mousePos = getMousePos(this.canvasRef.current, evt);
+            this.dropYourselfToPos(mousePos);
+        } else {
+            // people picking
+            if (!this.state.isDraggingYourself) {
+                this.pickAPerson(mousePos)
+            }
+        }
+    }
+
+    mouseEnterCounter = 0;
+    onMouseEnter = (evt: MouseEvent) => {
+        this.mouseEnterCounter++;
+        console.log('onMouseEnter ' + this.mouseEnterCounter)
+    }
+
+    onMouseLeave = (evt: MouseEvent) => {
+        this.mouseEnterCounter--;
+        if (this.mouseEnterCounter == 0) {
+            console.log('onMouseLeave')
+            const mousePos = getMousePos(this.canvasRef.current, evt);
+
+            if (this.state.isDraggingYourself) {
+                this.endDraggingYourself(mousePos);
+            }
         }
     }
 
 
-    onMouseEnter = (evt: MouseEvent) => {
-        // this.mouseEnterPos = getMousePos(this.canvasRef.current, evt);
-        // debug({mouseEnterPosition: this.mouseEnterPos})
+    annotationRotX = 0;
+    annotationRotY = 0;
+    onMouseMove = (evt: MouseEvent) => {
+        
+        let { x, y } = this.getRelMouseCoords(evt);
+        this.mouseRelPos = { x, y };
+        const annotationRotX = -x / CAMERA_ROT;
+        const annotationRotY = y / CAMERA_ROT;
+        // this.setState({
+        //     annotationLayerTransform: `perspective(${this.guiParams.perspective}px) rotateY(${annotationRotX}rad) rotateX(${annotationRotY}rad)`,
+        //     annotationRotX,
+        //     annotationRotY,
+        // })
+        this.annotationRotX = annotationRotX;
+        this.annotationRotY = annotationRotY;
+
+        if (this.state.isDraggingYourself) {
+            const mousePos = getMousePos(this.canvasRef.current, evt);
+            this.dragYourselfToPos(mousePos);
+        }
     }
 
 
-    onMouseMove = (evt: MouseEvent) => {
-        super.onMouseMove(evt);
-        
+    getRelMouseCoords(evt: MouseEvent) {
         let { x, y } = getMousePos(this.canvasRef.current, evt);
         // x -= this.mouseEnterPos.x / 2;
         // y -= this.mouseEnterPos.y / 2;
 
         const relX = ((x / this.props.width) - 0.5) * 2;
         const relY = ((y / this.props.height) - 0.5) * 2;
-        this.mouseRelPos = { x: relX, y: relY };
-        const annotationRotX = -relX / CAMERA_ROT;
-        const annotationRotY = relY / CAMERA_ROT;
-        this.setState({
-            annotationLayerTransform: `perspective(${this.guiParams.perspective}px) rotateY(${annotationRotX}rad) rotateX(${annotationRotY}rad)`,
-        })
+        return {x: relX, y: relY};
     }
 
     setUpScene = () => {
@@ -400,9 +477,9 @@ class GridVizView extends ThreeCanvas<GridVizProps, GridVizState> {
         this.camera.lookAt(this.cameraPivot.position);
 
         // light
-        // const light = new THREE.PointLight( 0xff0000, 1, 100 );
-        // light.position.set( 5, 0, 0 );
-        // this.scene.add( light );
+        const light = new THREE.PointLight( 0xffffff, 1, 100 );
+        light.position.set( 1, 1, 5 );
+        this.scene.add( light );
 
         // grid
         // const gridHelper = new THREE.GridHelper(10, 10, "#FFFFFF");
@@ -434,11 +511,11 @@ class GridVizView extends ThreeCanvas<GridVizProps, GridVizState> {
             dotsVertexOpacity2Attr.push(1);
 
             // instance id 
-            var color = new THREE.Color();
-            color.setHex(i + 1);
-            idColors.push(color.r);
-            idColors.push(color.g);
-            idColors.push(color.b);
+            var c = new THREE.Color();
+            c.setHex(i + 1);
+            idColors.push(c.r);
+            idColors.push(c.g);
+            idColors.push(c.b);
 
             indices.push(i);
         }
@@ -457,7 +534,7 @@ class GridVizView extends ThreeCanvas<GridVizProps, GridVizState> {
             vertexShader: instanceVertexShader,
             fragmentShader: instanceFragShader
         });
-        this.instancedMaterial.transparent = true;
+        this.instancedMaterial.transparent = false;
         this.instancedGeometry = (threeAssets.man.children[0] as THREE.Mesh).geometry.clone(); // clone to not break HMR
         this.instancedGeometry.scale(0.04, 0.04, 0.04);
         this.instancedGeometry.rotateX(PI_2);
@@ -483,8 +560,7 @@ class GridVizView extends ThreeCanvas<GridVizProps, GridVizState> {
 
         // yourself
         const yourselfGeometry = (threeAssets.man.children[0] as THREE.Mesh).geometry.clone(); // clone to not break HM;
-        this.yourselfPosition = new THREE.Vector3(0, 0, 0);
-        this.yourselfMaterial = new THREE.MeshBasicMaterial({ color: 0xffFf00 });
+        this.yourselfMaterial = new THREE.MeshToonMaterial({ color: new THREE.Color(color.accent) });
         this.yourselfMesh = new THREE.Mesh(yourselfGeometry, this.yourselfMaterial)
         this.yourselfMesh.scale.set(0.1, 0.1, 0.1);
         this.yourselfMesh.rotateX(PI_2 - 0.4);
@@ -515,38 +591,32 @@ class GridVizView extends ThreeCanvas<GridVizProps, GridVizState> {
 
 
     sceneReady() {
-        this.nextStep(this.currentVizStep);
+        this.nextStep(this.props.vizConfig);
     }
 
 
-    nextStep(step?: number) {
-        if (step !== undefined) {
-            this.currentVizStep = step;
-        } else {
-            this.currentVizStep++;
-            if (this.currentVizStep > this.maxVizSteps) {
-                this.currentVizStep = 0;
-            }
-        }
-        const config = DOT_CONFIGS[this.currentVizStep];
-        this.props.setAnimationInProgress(true);
-        setTimeout(() => {
-            this.props.setAnimationInProgress(false);
-        }, TWEEN_TRANSITION_TIME);
+    nextStep(config: DotsVizConfiguration<any>) {
         this.setObservationData(config);
         this.triggerNextMorphTransition();
     }
 
     setYourselfPosition(pos: THREE.Vector3) {
+        this.setState({yourselfAnimationInProgress: true});
         this.yourselfPositionTween = new TWEEN.Tween(this.yourselfPosition)
             .to({ x: pos.x, y: pos.y, z: pos.z, }, TWEEN_TRANSITION_TIME)
             .easing(TWEEN.Easing.Quadratic.InOut)
+            .onComplete(() => {
+                this.setState({yourselfAnimationInProgress: false});
+            })
             .start();
             // .onUpdate(function (d) { })
             // .onComplete(function () {});
+
+        this.dispatchNewYourselfPosition(pos);
     }
 
     tick = (dt: number, time: number) => {
+        const {disableCameraTrack} = this.props;
         this.morphTween.update();
         this.yourselfPositionTween.update();
 
@@ -555,16 +625,116 @@ class GridVizView extends ThreeCanvas<GridVizProps, GridVizState> {
         this.instancedMaterial.uniforms.yourselfPosition.value = this.yourselfPosition;
 
         // note the x,y inversion
-        this.cameraPivot.rotation.y = this.mouseRelPos.x / CAMERA_ROT;
-        this.cameraPivot.rotation.x = this.mouseRelPos.y / CAMERA_ROT;
+        const rotX = !disableCameraTrack ? this.mouseRelPos.x / CAMERA_ROT : 0;
+        const rotY = !disableCameraTrack ? this.mouseRelPos.y / CAMERA_ROT : 0;
 
+        // smooth move of the camera and transform layers
+        const maxDegree = dt/2; // speed
+        const currentRot = this.cameraPivot.rotation;
+        const drotX = rotX - currentRot.y; 
+        const drotY = rotY - currentRot.x; 
+        const destRotX = currentRot.y + Math.sign(drotX) * Math.min(Math.abs(drotX), maxDegree);
+        const destRotY = currentRot.x + Math.sign(drotY) * Math.min(Math.abs(drotY), maxDegree);
+
+        this.cameraPivot.rotation.y = destRotX;
+        this.cameraPivot.rotation.x = destRotY;
+
+        if (this.annotationLayerRef.current) {
+            const tr = `perspective(${this.guiParams.perspective}px) rotateY(${-destRotX}rad) rotateX(${+destRotY}rad)`;
+            (this.annotationLayerRef.current.children[0] as HTMLElement).style.transform = tr;
+            (this.backgroundLayerRef.current.children[0] as HTMLElement).style.transform = tr;
+        }
+        
         this.instancedMaterial.uniforms.morph.value = this.morph.value;
 
-        this.pick();
     }
 
-    pick = () => {
+
+    testPickYourself(mouseRelPos: { x: number, y: number }): boolean {
+        // raycaster test
+        const raycaster = new THREE.Raycaster();
+        raycaster.setFromCamera(mouseRelPos, this.camera);
+        // const intersects = raycaster.intersectObjects([this.yourselfMesh]);
+        const intersects = raycaster.intersectObjects(this.scene.children);
+
+        const yourselfAnnotationPos = this.getAnnotationPos(this.yourselfPosition.x, this.yourselfPosition.y);
+
+        return Math.abs(yourselfAnnotationPos.x - mouseRelPos.x) < 40 && 
+            Math.abs(yourselfAnnotationPos.y - mouseRelPos.y) < 40
+
+        return intersects.length > 0;
     }
+
+
+    startDraggingYourself(mousePos: {x: number, y: number}) {
+        this.setState({ isDraggingYourself: true });
+        console.log('drag yourself -- start')
+    }
+
+
+    dragYourselfToPos = (mousePos: { x: number, y: number }) => {
+        const pos = this.getPosFromAnnotationPos(mousePos.x, mousePos.y);
+        this.yourselfPosition.x = pos.x;
+        this.yourselfPosition.y = pos.y;
+    }
+
+
+    dropYourselfToPos(mousePos: { x: number, y: number }) {
+        this.setState({ isDraggingYourself: false });
+        const groupFound = this.moveYourselfToGroupPos(mousePos);
+        if (!groupFound) {
+            // bounce back to previous group
+            this.updateYourselfPositionInCurrentGroup(this.state.groupLayoutInfo);
+        }
+    }
+
+
+    endDraggingYourself(mousePos: { x: number, y: number }) {
+        this.setState({ isDraggingYourself: false });
+
+        // go back to current column
+        if (this.state.groupLayoutInfo) {
+            this.updateYourselfPositionInCurrentGroup(this.state.groupLayoutInfo);
+        }
+    }
+
+    
+    dispatchNewYourselfPosition = throttle(1000, false /* no trailing */, (pos: THREE.Vector3) => {
+        const rect = this.canvasRef.current.getBoundingClientRect();
+        const { x, y } = this.getAnnotationPos(pos.x, pos.y);
+        this.props.setOnboardingObjectPositions({
+            yourself: {
+                left: rect.left + x + this.YOURSELF_POS_FIX.x,
+                top: rect.top + y + this.YOURSELF_POS_FIX.y,
+            }
+        });
+    });
+
+
+    moveYourselfToGroupPos(mousePos: { x: number, y: number }): boolean {
+        const { setCurrentColumn } = this.props;
+        if (!this.state.groupLayoutInfo) {
+            console.warn('this.state.layoutGroupInfo undefined')
+            return false;
+        }
+
+        const selectedGroupIndices = this.getGroupFromAnnotationPos(mousePos.x, mousePos.y);
+        if (selectedGroupIndices) {
+            const { groupIndexX} = selectedGroupIndices;
+            if (groupIndexX != this.props.currentColumn) {
+                // group changed
+                setCurrentColumn(groupIndexX);
+                return true;
+            } else {
+                //group unchanged
+                this.updateYourselfPositionInCurrentGroup(this.state.groupLayoutInfo);
+                return true;
+            }
+        } 
+
+        return false;
+    }
+
 
     getGroupFromAnnotationPos(x: number, y: number): null| {groupIndexX: number, groupIndexY: number} {
         const {groupLayoutInfo} = this.state;
@@ -597,6 +767,23 @@ class GridVizView extends ThreeCanvas<GridVizProps, GridVizState> {
         } else return null
     }
 
+
+    pickAPerson(mousePos: { x: number, y: number }) {
+        const {observations} = this.props;
+        const pickId = this.renderAndPick(mousePos) - 1; // I increment all Ids by one to detect 0 as nothing selected
+        let selectedObservation;
+        if (observations && observations[pickId]) {
+            selectedObservation = observations[pickId];
+        }
+
+        if (selectedObservation) {
+            debug({ selected_id: selectedObservation.id });
+            this.props.setSelectedObservation(selectedObservation);
+        } else {
+            this.props.setSelectedObservation(null);
+        }
+    }
+
 }
 
 
@@ -612,6 +799,12 @@ function mapStateToProps(state: RootState, ownProps: GridVizProps) {
         selectedObservationId: state.rawData.selectedObservationId,
         currentRow: state.rawData.currentRow,
         currentColumn: state.rawData.currentColumn,
+        animationInProgress: state.rawData.animationInProgress,
+        featureColoredMenEnabled: isFeatureAvailableSelector('colored_men')(state),
+        featureChartsEnabled: isFeatureAvailableSelector('charts')(state),
+        vizConfig: getCurrentVizConfigSelector(state),
+        disableCameraTrack: !!getCurrentOnboardingMessageSelector(state),
+        currentOnboardingMessage: getCurrentOnboardingMessageSelector(state),
     }
 }
 
@@ -621,6 +814,8 @@ function mapDispatchToProps(dispatch) {
         setSelectedObservation: o => dispatch(setSelectedObservation({o})),
         setCurrentColumn: column => dispatch(setCurrentColumn({column})),
         setAnimationInProgress: value => dispatch(setAnimationInProgress({value})),
+        setOnboardingObjectPositions: positions => dispatch(setOnboardingObjectPositions(positions)),
+        nextOnboardingMessage: () => dispatch(nextOnboardingMessage()),
     }
 }
 

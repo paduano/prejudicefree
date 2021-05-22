@@ -4,12 +4,16 @@ import { Box } from '@material-ui/core';
 import { useAppDispatch, useAppSelector } from '../hooks';
 import { getReadableDescriptionForDemographic, getReadableDescriptionForGroup, groupsForDemographic, Observation, ValuesMap } from '../observation';
 import { GroupLayoutInfo } from './viz/grid_viz_configs';
-import axisStyles from '../../styles/axis.module.css'
+import axisStyles from '../../styles/chart_annotation.module.css'
 import classNames from 'classnames/bind';
 import { colorGradientList, colorGradientListCSS, getColorIndex } from './ui_utils';
 import { educationLevels } from '../data/legend';
 import { countryCodeToName } from '../data/countries';
 import { formatPercent } from '../data/format';
+import { ChartAnnotationWrapper } from './chart_annotation_wrapper';
+import YouMarker from './you_marker';
+import { isFeatureAvailableSelector } from '../onboarding';
+import { useAccentStyles } from './theme';
 
 interface Props {
 }
@@ -27,6 +31,26 @@ const formatScoreOneDecimal = (s: number) => {
     return `${vstring}/10`;
 }
 
+export const DetailPanel = () => {
+    const selectedObservation = useAppSelector(state => {
+        return state.rawData.selectedObservation
+    });
+    const currentGroupStats = useAppSelector(state => {
+        return state.rawData.currentGroupStats
+    });
+
+    const showYourselfPanel = currentGroupStats && !selectedObservation;
+
+    return (
+        <Fragment>
+            {selectedObservation ? <SelectedObservation /> : null}
+            {showYourselfPanel ? <YourselfInfo /> : null}
+        </Fragment>
+    )
+
+}
+
+// --- SELECTED PERSON 
 const describeObservation = (o: Observation) => {
 
     const renderJustify = (k: string) => {
@@ -71,28 +95,6 @@ export const SelectedObservation = React.memo((props: Props) => {
         return state.rawData.selectedObservation
         // return state.rawData.allEntries['840'][0]
     });
-
-
-    // refactor and reuse code below
-
-    const animationInProgress = useAppSelector(state => {
-        return state.rawData.animationInProgress;
-    });
-    
-    const clsWrapper = classNames(axisStyles.axis, {
-        [axisStyles.axisHidden]: animationInProgress || !selectedObservation,
-        [axisStyles.axisTransitionProperties]: !animationInProgress,
-    });
-
-    const wrapperStyles = {
-        width: '100%',
-        minHeight: '100px',
-    } as any;
-
-    const innerContainerStyle = {
-        borderLeft: '1px solid #FFFFFF',
-        height: '100%',
-    } as any;
 
     return (
         <SidePanel hide={!selectedObservation} title='About the selected person'>
@@ -171,30 +173,12 @@ export const YourselfInfo = React.memo((props: Props) => {
         // return state.rawData.allEntries['840'][0]
     });
 
+    const isVisible = useAppSelector(isFeatureAvailableSelector('yourself_info'));
 
-    // refactor and reuse code below
-
-    const animationInProgress = useAppSelector(state => {
-        return state.rawData.animationInProgress;
-    });
-
-    const clsWrapper = classNames(axisStyles.axis, {
-        [axisStyles.axisHidden]: animationInProgress || !selectedObservation,
-        [axisStyles.axisTransitionProperties]: !animationInProgress,
-    });
-
-    const wrapperStyles = {
-        width: '100%',
-        minHeight: '100px',
-    } as any;
-
-    const innerContainerStyle = {
-        borderLeft: '1px solid #FFFFFF',
-        height: '100%',
-    } as any;
+    const marker = <YouMarker />
 
     return (
-       <SidePanel title='About you' hide={false}>
+        <SidePanel title='About you' hide={!isVisible} marker={marker}>
             {describeYourself()}
         </SidePanel>
     );
@@ -202,17 +186,7 @@ export const YourselfInfo = React.memo((props: Props) => {
 
 // ----
 
-export const SidePanel = (props: {children: any, hide: boolean, title: string}) => {
-
-    const animationInProgress = useAppSelector(state => {
-        return state.rawData.animationInProgress;
-    });
-
-    const clsWrapper = classNames(axisStyles.axis, {
-        [axisStyles.axisHidden]: animationInProgress || props.hide,
-        [axisStyles.axisTransitionProperties]: !animationInProgress,
-    });
-
+export const SidePanel = (props: {children: any, hide: boolean, title: string, marker?: JSX.Element}) => {
     const wrapperStyles = {
         width: '100%',
         minHeight: '100px',
@@ -221,19 +195,32 @@ export const SidePanel = (props: {children: any, hide: boolean, title: string}) 
     const innerContainerStyle = {
         borderLeft: '1px solid #FFFFFF',
         height: '100%',
+        marginLeft: '9px', // for the marker alignment
     } as any;
 
+    const isOverlayVisible = !!useAppSelector(state => {
+        return state.rawData.uiSelect.current
+        // return state.rawData.allEntries['840'][0]
+    });
+
+    const typoCls = useAccentStyles().accentText;
+
+    const isFeatureSidePanelAvailable = useAppSelector(isFeatureAvailableSelector('side_panel'));
+
     return (
-        <Box className={clsWrapper} style={wrapperStyles} >
+        <ChartAnnotationWrapper style={wrapperStyles} hidden={props.hide || isFeatureSidePanelAvailable}>
+            <Box>
+                {props.marker}
+            </Box>
             <Box pl={1} display='flex' flexDirection='column' style={innerContainerStyle}>
                 <Box mb={1}>
-                    <Typography variant='h4'>
+                    <Typography variant='h4' className={typoCls}>
                         {props.title}
                     </Typography>
                 </Box>
                 {props.children}
             </Box>
-        </Box>
+        </ChartAnnotationWrapper>
     );
 };
 

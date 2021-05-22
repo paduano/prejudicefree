@@ -25,6 +25,7 @@ export interface LayoutParams {
     primaryFilterDemographic: ObservationDemographics;
     secondaryFilterDemographic: ObservationDemographics;
     currentRow: number;
+    useColors: boolean;
 }
 
 export interface GroupLayoutInfo {
@@ -53,6 +54,14 @@ const colorGradient = (cListIndex: number) => {
     }
 }
 
+const grayGradient = (i: number) => {
+    return {
+        r: i,
+        g: i,
+        b: i,
+    }
+}
+
 
 export type DotsVizConfiguration<T> = {
     prepare: (layoutParams: LayoutParams) => T;
@@ -60,18 +69,33 @@ export type DotsVizConfiguration<T> = {
 }
 
 export const DotsUniformConfig: DotsVizConfiguration<void> = {
-    prepare: (layoutParams: LayoutParams) => { },
+    prepare: (layoutParams: LayoutParams) => { return {
+        groupLayoutInfo: {
+            groupPosX: [[0]],
+            groupPosY: [[0]],
+            rectWidths: [[0]],
+            rectHeights: [[0]],
+            observationsByColorIndex: [[0]],
+            totalObservations: [[0]],
+            yourselfPositions: [[{x: 0, y: 0}]],
+        },
+    }},
     dot: (i: number, ob: Observation, layoutParams: LayoutParams, state: void) => {
-        let x = rand(-2, 2);
-        let y = rand(-2, 2);
-        let z = rand(-2, 2);
+        let x = rand(-6, 6);
+        let y = rand(-4, 4);
+        let z = rand(-4, 0);
+        const valuesMatch = valuesForObservation(ob, layoutParams.valuesQuery);
+        const colorIndex = getColorIndex(valuesMatch);
+        
+        const color = layoutParams.useColors ? colorGradient(colorIndex) : grayGradient(rand(0, 1));
         return {
             position: {
                 x,
                 y,
                 z
             },
-            opacity: 1
+            opacity: 1,
+            color,
         }
     }
 }
@@ -132,7 +156,7 @@ export interface VizPrepareState {
     groupLayoutInfo: GroupLayoutInfo, 
 }
 
-const DotsTestMultiGroup: DotsVizConfiguration<VizPrepareState> = {
+export const DotsTestMultiGroup: DotsVizConfiguration<VizPrepareState> = {
     prepare: (layoutParams: LayoutParams) => {
         const { currentRow, observations, valuesQuery, primaryFilterDemographic, secondaryFilterDemographic } = layoutParams;
         const idPosMap: { [id: number]: { x: number, y: number, groupX: number, groupY: number } } = {};
@@ -345,7 +369,7 @@ const mix = (c1, c2, x) => {
     }
 }
 
-export const DOT_CONFIGS = [
-    DotsTestMultiGroup,
-    DotsUniformConfig,
-]
+// export const DOT_CONFIGS = [
+//     DotsTestMultiGroup,
+//     DotsUniformConfig,
+// ]

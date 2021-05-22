@@ -1,23 +1,17 @@
-import Head from 'next/head'
-import Image from 'next/image'
 import styles from '../styles/demo.module.css'
 
-import { useSelector, useDispatch, Provider, connect } from 'react-redux';
-import { fetchAllVizData, store, AppDispatch, RootState, SelectTypes, UISelect } from '../app/store';
-import { Filters } from '../app/components/filters';
+import { connect } from 'react-redux';
+import { fetchAllVizData, RootState, UISelect } from '../app/store';
 import React from 'react';
-import { Results } from '../app/components/results';
-import { Box, createMuiTheme, CssBaseline, ThemeProvider, Typography } from '@material-ui/core';
+import { Box, ThemeProvider, Typography } from '@material-ui/core';
 import { invertedTheme } from '../app/components/theme';
-import { ThreeCanvas } from '../app/components/three_canvas';
 import dynamic from 'next/dynamic';
-import { GroupStats, Observation } from '../app/observation';
-import { ValueFilters } from '../app/components/value_filters';
-import { Title } from '../app/components/title';
+import { Header } from '../app/components/header';
 import { color, MAIN_CONTAINER_ID } from '../app/components/ui_utils';
 import { SelectOverlays } from '../app/components/select';
 import { Legend } from '../app/components/legend';
-import { SelectedObservation, YourselfInfo } from '../app/components/detail_panels';
+import { DetailPanel } from '../app/components/detail_panels';
+import { FocusOverlay, isFeatureAvailableSelector } from '../app/onboarding';
 
 const GridViz = dynamic(() => import('../app/components/viz/grid_viz').then((module) => module.GridViz as any), {
   ssr: false,
@@ -27,7 +21,7 @@ interface MVPProps {
   fetchAllVizData: (params) => {},
   loadingState: string;
   selectOverlay?: UISelect;
-  currentGroupStats?: GroupStats
+  featureLegendEnabled: boolean,
 }
 
 interface MVPState {
@@ -81,12 +75,16 @@ export class MVP extends React.Component<MVPProps, MVPState> {
     }
   }
 
+  renderFocusOverlay() {
+    return <FocusOverlay />
+  }
+
   renderLegendWithLayout() {
     return (
       <Box display='flex' width='100%' justifyContent='center'>
         <Box flex={4} />
         <Box flex={2} mt={4}>
-          <Legend />
+          {this.props.featureLegendEnabled ? <Legend /> : null}
         </Box>
       </Box>
     );
@@ -99,27 +97,26 @@ export class MVP extends React.Component<MVPProps, MVPState> {
 
           {/* modals, full screen selects */}
           {this.renderSelectOverlay()}
+          {this.renderFocusOverlay()}
           {this.loadingComplete() ? (
             <Box display='flex' flexDirection='column' justifyContent='center' height='100%'>
 
-              {/* titles */}
-              <Title />
+              {/* Header */}
+              <Header />
 
               {/* main viz space */}
               <Box display='flex' flexDirection='row' width='100%' justifyContent='center'  >
 
-                <Box width='100px' />
+                {/* left column */}
+                <Box flexGrow={1} flexBasis={'200px'} />
 
                 {/* 3d */}
                 <GridViz width={800} height={600} backgroundColor={color.background} /> 
 
                 {/* right column */}
-                <Box width='200px' display='flex' flexDirection='column' mt={4}>
-                  <Box mb={1}> 
-                    {this.props.currentGroupStats ? <YourselfInfo /> : null}
-                  </Box>
-                  <Box> 
-                    <SelectedObservation />
+                <Box display='flex' flexDirection='column' flexGrow={1} justifyContent='center' zIndex={1 /* force new stacking context */}>
+                  <Box pl={1} width='200px'>
+                    <DetailPanel />
                   </Box>
                 </Box>
               </Box>
@@ -138,7 +135,7 @@ function mapStateToProps(state: RootState, ownProps: MVPProps) {
   return {
     loadingState: state.rawData.loadingState,
     selectOverlay: state.rawData.uiSelect,
-    currentGroupStats: state.rawData.currentGroupStats,
+    featureLegendEnabled: isFeatureAvailableSelector('legend')(state),
   }
 }
 

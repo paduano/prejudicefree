@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer';
 import { debug, getMousePos } from '../../utils/utils';
 import { Box } from '@material-ui/core';
-import { color } from './ui_utils';
+import { color, FadeGradient } from './ui_utils';
 
 // import type {GUI} from 'dat.gui';
 
@@ -25,7 +25,6 @@ export interface ThreeCanvasProps {
 
 export interface ThreeCanvasState {
     annotationLayerTransform: string;
-
 }
 
 const importDatGui = async () => {
@@ -36,8 +35,10 @@ const importDatGui = async () => {
 export class ThreeCanvas<T, S> extends React.Component<ThreeCanvasProps & T, ThreeCanvasState & S> {
     canvasRef: React.RefObject<HTMLCanvasElement> = React.createRef<HTMLCanvasElement>();
     annotationLayerRef: React.RefObject<HTMLDivElement> = React.createRef<HTMLDivElement>();
+    untransformedAnnotationLayerRef: React.RefObject<HTMLDivElement> = React.createRef<HTMLDivElement>();
     annotationCanvasRef: React.RefObject<HTMLCanvasElement> = React.createRef<HTMLCanvasElement>();
     backgroundLayerRef: React.RefObject<HTMLDivElement> = React.createRef<HTMLDivElement>();
+    containerRef: React.RefObject<HTMLDivElement> = React.createRef<HTMLDivElement>();
     // backgroundCanvasRef: React.RefObject<HTMLCanvasElement> = React.createRef<HTMLCanvasElement>();
     scene: THREE.Scene;
     camera: THREE.Camera;
@@ -66,12 +67,7 @@ export class ThreeCanvas<T, S> extends React.Component<ThreeCanvasProps & T, Thr
         // init three.js
         this.initThreeScene();
         this.renderLoop();
-
         this.annotate();
-
-        this.annotationLayerRef.current.onmousemove = this.onMouseMove;
-        this.annotationLayerRef.current.onmouseenter = this.onMouseEnter;
-        // this.canvasRef.current.addEventListener('mousemove', this.onMouseMove);
     }
 
     initThreeScene() {
@@ -127,15 +123,6 @@ export class ThreeCanvas<T, S> extends React.Component<ThreeCanvasProps & T, Thr
 
     }
 
-    onMouseEnter = (evt: MouseEvent) => {
-    }
-
-    onMouseMove(event) {
-        event.preventDefault();
-        this.mouse.x = (event.clientX / this.props.width) * 2 - 1;
-        this.mouse.y = - (event.clientY / this.props.height) * 2 + 1;
-    }
-
     getAnnotationPos = (x: number, y: number) => {
         const {width, height} = this.props;
         return {
@@ -146,23 +133,32 @@ export class ThreeCanvas<T, S> extends React.Component<ThreeCanvasProps & T, Thr
 
     getSizeTransform = (v: number) => {
         const { width, height } = this.props;
-        return v * width / 10;
+        return v * width / 10.2;
     }
 
-    // getPosFromAnnotationPos = (x: number, y: number) => {
-    //     const { width, height } = this.props;
-    //     return {
-    //         x: this.getSizeTransformInv(x - (width / 2)),
-    //         y: this.getSizeTransformInv(y - (height / 2)),
-    //     }
-    // }
+    getPosFromAnnotationPos = (x: number, y: number) => {
+        const { width, height } = this.props;
+        return {
+            x: this.getSizeTransformInv(x - (width / 2)),
+            y: -this.getSizeTransformInv(y - (height / 2)),
+        }
+    }
 
+    getSizeTransformInv = (v: number) => {
+        const { width, height } = this.props;
+        return v / width * 10;
+    }
 
-    // getSizeTransformInv = (v: number) => {
-    //     const { width, height } = this.props;
-    //     return v / width * 10;
-    // }
-
+    tmpVec = new THREE.Vector3();
+    getUntransformedAnnotationPos = (v: THREE.Vector3, obj: THREE.Object3D) => {
+        // untested code
+        const {width, height} = this.props;
+        v.setFromMatrixPosition(obj.matrixWorld);
+        v.applyMatrix4(this.camera.matrixWorld.multiply(this.camera.projectionMatrix));
+        v.x = v.x * width/2 + width/2;
+        v.y = -v.y * height/2 + height/2;
+        return v;
+    }
 
     annotate() {
         const { width, height } = this.props;
@@ -220,6 +216,10 @@ export class ThreeCanvas<T, S> extends React.Component<ThreeCanvasProps & T, Thr
         return null;
     }
 
+    renderUntransformedAnnotation(): JSX.Element | null {
+        return null;
+    }
+
     renderBackground(): JSX.Element | null {
         return null;
     }
@@ -230,9 +230,9 @@ export class ThreeCanvas<T, S> extends React.Component<ThreeCanvasProps & T, Thr
     afterRenderPicking() {
     }
 
-    renderAndPick(evt: MouseEvent) {
+    renderAndPick(mousePos: {x: number, y: number}) {
         this.beforeRenderPicking();
-        const {x, y} = getMousePos(this.canvasRef.current, evt);
+        const { x, y } = mousePos;
 
         this.pickingCamera.matrixWorld.copy(this.camera.matrixWorld);
         this.renderer.setRenderTarget(this.pickingTexture);
@@ -267,7 +267,7 @@ export class ThreeCanvas<T, S> extends React.Component<ThreeCanvasProps & T, Thr
         }
 
         const annotationLayerTransformStyle = {
-            transform: annotationLayerTransform,
+            // transform: annotationLayerTransform,
             width: '100%',
             height: '100%',
         }
@@ -276,19 +276,11 @@ export class ThreeCanvas<T, S> extends React.Component<ThreeCanvasProps & T, Thr
             width,
             height,
             position: 'relative' as any,
-        }
-
-        const shadowStyle = (pos: 'top' | 'bottom') => {return {
-            background: `linear-gradient(${pos == 'top' ? '0deg' : '180deg'}, rgba(2,0,36,1) 0%, rgba(0,0,0,0) 0%, ${color.background} 100%)`,
-            pointerEvents: 'none',
-        } as any};
-
-        const shadowHeight = 100;
-        const shadowTop = <Box position='absolute' height={shadowHeight} width='100%' top='0' left='0' style={shadowStyle('top')} />;
-        const shadowBottom = <Box position='absolute' height={shadowHeight} width='100%' bottom='0' left='0' style={shadowStyle('bottom')} />;
+            pointerEvents: 'all', // to make mouse enter/leave work
+        } as any;
 
         return (
-            <div style={mainContainerStyle}>
+            <div style={mainContainerStyle} ref={this.containerRef}>
                 {/* background */}
                 <div style={backgroundLayerStyle} ref={this.backgroundLayerRef} >
                     <div style={annotationLayerTransformStyle}>
@@ -302,6 +294,14 @@ export class ThreeCanvas<T, S> extends React.Component<ThreeCanvasProps & T, Thr
                     </canvas>
                 </div>
 
+
+                {/* annotation layer */}
+                <div style={layerStyle} ref={this.untransformedAnnotationLayerRef} >
+                    <div style={{width: '100%', height: '100%', position: 'relative'}}>
+                        {this.renderUntransformedAnnotation()}
+                    </div>
+                </div>
+
                 {/* annotation layer */}
                 <div style={annotationLayerStyle} ref={this.annotationLayerRef} >
                     <div style={annotationLayerTransformStyle}>
@@ -310,9 +310,7 @@ export class ThreeCanvas<T, S> extends React.Component<ThreeCanvasProps & T, Thr
                     </div>
                 </div>
 
-
-                { shadowTop }
-                { shadowBottom }
+                <FadeGradient destinationColor={color.background} position='absolute' orientation='bottom' bottom='0' left='0' />
 
             </div>
         )

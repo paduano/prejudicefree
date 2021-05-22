@@ -3,10 +3,11 @@ import { Box } from '@material-ui/core';
 import { useAppSelector } from '../hooks';
 import { groupsForDemographic } from '../observation';
 import { GroupLayoutInfo } from './viz/grid_viz_configs';
-import styles from '../../styles/axis.module.css'
+import styles from '../../styles/chart_annotation.module.css'
 import classNames from 'classnames/bind';
 import { colorGradientList, colorGradientListCSS } from './ui_utils';
 import { formatPercent } from '../data/format';
+import { ChartAnnotationWrapper } from './chart_annotation_wrapper';
 
 interface Props {
     groupLayoutInfo: GroupLayoutInfo;
@@ -106,30 +107,16 @@ export const BarCharts = React.memo((props: Props) => {
         return renderBarChart({x, y, height: length, percentages, direction, key: i})
     });
 
-    // const getSegmentPos = (groupIndex: number) => {
-    //     const x3d = groupLayoutInfo.groupPosX[groupIndex][currentRow];
-    //     return getAnnotationPos(x3d, groupLayoutInfo.groupPosY[groupIndex][currentRow]);
-    // }
-    // const getSegmentWidth = (groupIndex: number) => getSizeTransform(groupLayoutInfo.rectWidths[groupIndex][currentRow]);
-
-    const clsWrapper = classNames(styles.axis, {
-        [styles.axisHidden]: animationInProgress,
-        [styles.axisTransitionProperties]: !animationInProgress, // since the fade out makes the animation jump
-    });
-
     const wrapperStyles = {
-        left: 0,
-        top: 0,
         pointerEvents: 'none',
-        color: 'white'
     } as any;
 
     return (
-        <Box id='bar-charts' className={clsWrapper} position='absolute' display='flex' flexDirection='column' style={wrapperStyles} >
+        <ChartAnnotationWrapper id='bar-charts' position='absolute' display='flex' flexDirection='column' style={wrapperStyles} >
             <Box position='relative'>
                 {charts}
             </Box>
-        </Box>
+        </ChartAnnotationWrapper>
     );
 });
 

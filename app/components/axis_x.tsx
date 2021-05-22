@@ -4,8 +4,9 @@ import { Box } from '@material-ui/core';
 import { useAppDispatch, useAppSelector } from '../hooks';
 import { getReadableDescriptionForDemographic, getReadableDescriptionForGroup, groupsForDemographic } from '../observation';
 import { GroupLayoutInfo } from './viz/grid_viz_configs';
-import styles from '../../styles/axis.module.css'
+import styles from '../../styles/chart_annotation.module.css'
 import classNames from 'classnames/bind';
+import { ChartAnnotationWrapper } from './chart_annotation_wrapper';
 
 interface Props {
     groupLayoutInfo: GroupLayoutInfo;
@@ -15,18 +16,11 @@ interface Props {
 
 export const AxisX = React.memo((props: Props) => {
     const { groupLayoutInfo, getAnnotationPos, getSizeTransform} = props;
-    const dispatch = useAppDispatch()
     const demo = useAppSelector(state => {
         return state.rawData.primaryFilterDemographic;
     });
-    const animationInProgress = useAppSelector(state => {
-        return state.rawData.animationInProgress;
-    });
 
-    const demoGroups = groupsForDemographic(demo);
-
-    console.count('render');
-
+    console.count('render axis');
    
     const currentRow = useAppSelector(state => {
         return state.rawData.currentRow
@@ -49,8 +43,6 @@ export const AxisX = React.memo((props: Props) => {
         const borderStyle = '1px solid #FFFFFF';
         const squareStyle =  {
             borderBottom: borderStyle,
-            // borderLeft: borderStyle,
-            // borderRight: borderStyle,
             height: '20px',
         };
         return (
@@ -80,25 +72,13 @@ export const AxisX = React.memo((props: Props) => {
         </Box>
     );
 
-    const clsAxis = classNames(styles.axis, {
-        [styles.axisHidden]: animationInProgress,
-        [styles.axisTransitionProperties]: !animationInProgress, // since the fade out makes the animation jump
-    });
-
-    const wrapperStyles = {
-        left: 0,
-        top: 0,
-        pointerEvents: 'none',
-        color: 'white'
-    } as any;
-
     return (
-        <Box className={clsAxis} position='absolute' display='flex' flexDirection='column' style={wrapperStyles} >
+        <ChartAnnotationWrapper position='absolute' display='flex' flexDirection='column' >
             <Box position='relative'>
                 {xSegments}
                 {legendTitle}
             </Box>
-        </Box>
-    );
+        </ChartAnnotationWrapper>
+    )
 });
 

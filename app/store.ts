@@ -3,10 +3,10 @@ import thunk from 'redux-thunk';
 
 import { createSlice } from '@reduxjs/toolkit'
 import { AllEntriesStore, AltObservationQuery, AltStatsAndQuery, filterAndStatObservationsWithVariations, filterAndStatsObservations, filterByCountryAndAvailableDemographics, formatAllEntriesStore, getEmptyStats, getGroupStats, GroupStats, Observation, ObservationDemographics, ObservationQuery, StatsAccumulator, ValuesQuery } from './observation';
-
+import { OnboardingObjectPositions, ONBOARDING_STEPS_LIST } from './onboarding';
 
 // Define a type for the slice state
-interface StoreState {
+export interface StoreState {
     allEntries: AllEntriesStore,
     filteredEntries: Observation[]
     valuesQuery: ValuesQuery;
@@ -23,6 +23,10 @@ interface StoreState {
     currentColumn: number,
     currentGroupStats: GroupStats|null,
     animationInProgress: boolean,
+
+    currentOnboardingStepIndex: number,
+    currentOnboardingMessageStepIndex: number,
+    onboardingObjectPositions: OnboardingObjectPositions,
 }
 
 export type SelectTypes = 'country' | 'value' | 'demographic';
@@ -56,10 +60,16 @@ const initialState: StoreState = {
     filteredEntries: [],
     filterQuery: {},
     valuesQuery: {
-        // selectedValue: undefined,
-        selectedValue: 'justify_abortion',
+        selectedValue: undefined,
+        // selectedValue: 'justify_abortion',
         value: 0,
+        // value: 8,
     },
+    // primaryFilterDemographic: 'age',
+    // secondaryFilterDemographic: 'education',
+    primaryFilterDemographic: undefined,
+    secondaryFilterDemographic: undefined,
+
     filterStats: getEmptyStats(),
     altStatsAndQueries: [],
 
@@ -68,16 +78,19 @@ const initialState: StoreState = {
         current: undefined,
         params: {},
     },
-    primaryFilterDemographic: undefined,
-    // primaryFilterDemographic: 'age',
-    secondaryFilterDemographic: undefined,
-    // secondaryFilterDemographic: 'education',
     currentRow: 0,
     currentColumn: 0, // used for placing you
     selectedObservationId: null,
     selectedObservation: null,
     animationInProgress: true,
     currentGroupStats: null,
+
+    // onboarding
+    currentOnboardingStepIndex: 0,
+    // currentOnboardingStepIndex: 5,
+    currentOnboardingMessageStepIndex: 0,
+
+    onboardingObjectPositions: {}
 }
 
 const applyObservationsQueryReducer = (state: StoreState, allEntries: AllEntriesStore, filterQuery: ObservationQuery) => {
@@ -135,7 +148,7 @@ export const rawDataSlice = createSlice({
         uiSetSelect: (state, action: PayloadAction<Partial<UISelect>>) => {
             state.uiSelect = Object.assign({}, state.uiSelect, { current: action.payload.current, params: action.payload.params ?? {} });
         },
-        setPrimaryFilterDemographic: (state, action: PayloadAction<{ demographic?: ObservationDemographics }>) => {
+        setPrimaryFilterDemographic: (state, action: PayloadAction<{ demographic: ObservationDemographics|null }>) => {
             state.primaryFilterDemographic = action.payload.demographic;
             state.currentRow = 0;
             state.currentColumn = 0;
@@ -148,7 +161,7 @@ export const rawDataSlice = createSlice({
             );
             applyCurrentGroupStats(state);
         },
-        setSecondaryFilterDemographic: (state, action: PayloadAction<{ demographic?: ObservationDemographics }>) => {
+        setSecondaryFilterDemographic: (state, action: PayloadAction<{ demographic: ObservationDemographics|null }>) => {
             state.secondaryFilterDemographic = action.payload.demographic;
             state.currentRow = 0;
             applyFilterCountryAndDemographicsReducer(
@@ -160,10 +173,10 @@ export const rawDataSlice = createSlice({
             );
             applyCurrentGroupStats(state);
         },
-        setSelectedObservationId: (state, action: PayloadAction<{ id?: number }>) => {
+        setSelectedObservationId: (state, action: PayloadAction<{ id: number|null }>) => {
             state.selectedObservationId = action.payload.id;
         },
-        setSelectedObservation: (state, action: PayloadAction<{ o?: Observation }>) => {
+        setSelectedObservation: (state, action: PayloadAction<{ o: Observation|null }>) => {
             if (action.payload.o) {
                 state.selectedObservationId = action.payload.o.id;
                 state.selectedObservation = action.payload.o;
@@ -182,6 +195,27 @@ export const rawDataSlice = createSlice({
         },
         setAnimationInProgress: (state, action: PayloadAction<{ value: boolean }>) => {
             state.animationInProgress = action.payload.value;
+        },
+        nextOnboardingStep: (state, action: PayloadAction<void>) => {
+            if (state.currentOnboardingStepIndex < ONBOARDING_STEPS_LIST.length - 1) {
+                state.currentOnboardingStepIndex += 1;
+                state.currentOnboardingMessageStepIndex = 0;
+            } else {
+                console.warn('no more onboarding steps available');
+            }
+        },
+        setOnboardingObjectPositions: (state, action: PayloadAction<Partial<OnboardingObjectPositions>>) => {
+            state.onboardingObjectPositions = Object.assign({}, state.onboardingObjectPositions, action.payload);
+
+        },
+        nextOnboardingMessage: (state, action: PayloadAction<void>) => {
+            const step = ONBOARDING_STEPS_LIST[state.currentOnboardingStepIndex];
+            if (step && step.messages && state.currentOnboardingMessageStepIndex < step.messages.length - 1) {
+                state.currentOnboardingMessageStepIndex += 1;
+            } else {
+                state.currentOnboardingMessageStepIndex = null;
+                console.log('no more onboarding steps available');
+            }
         },
     },
     extraReducers: (builder) => {
@@ -222,7 +256,10 @@ export const {
     setPrimaryFilterDemographic,
     setSecondaryFilterDemographic,
     setSelectedObservationId,
-    setCurrentRow 
+    setCurrentRow,
+    nextOnboardingStep,
+    setOnboardingObjectPositions,
+    nextOnboardingMessage,
 } = rawDataSlice.actions
 
 // store set up

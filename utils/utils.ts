@@ -15,7 +15,6 @@ export function getMousePos(canvas, evt) {
     };
 }   
 
-
 export function debug(dict: {[index: string]: any}) {
     const colors = ["f3722c","f8961e","f9c74f","90be6d","43aa8b","577590"];
     const keys = Object.keys(dict);

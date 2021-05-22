@@ -1,14 +1,11 @@
 
-import { Box, Typography } from '@material-ui/core'
-import React, { useEffect, useRef, useState } from 'react';
+import { Typography } from '@material-ui/core'
+import React, { useRef, useState } from 'react';
 import styles from '../../styles/value_range.module.css'
 import { clamp } from '../../utils/utils';
-import { countryCodeToName } from '../data/countries';
-import { useAppDispatch, useAppSelector } from '../hooks';
-import { ValuesMap } from '../observation';
-import { uiSetSelect, updateObservationsQuery, updateValuesQuery } from '../store';
-import { selectAvailableCountries, getFlagFromCountryCode, mousePos } from './ui_utils';
+import { mousePos } from './ui_utils';
 import classNames from 'classnames/bind';
+import { useAccentStyles } from './theme';
 
 interface ValueRangeProps {
     value: number
@@ -18,6 +15,7 @@ interface ValueRangeProps {
 
 export function ValueRange(props: ValueRangeProps) {
     const { value } = props;
+    const accentClasses = useAccentStyles();
     // const [value, setValue] = useState(initialValue);
     const [hoverValue, setHoverValue] = useState(value);
     const [numericValueBottom, setNumericValueBottom] = useState(value);
@@ -59,12 +57,14 @@ export function ValueRange(props: ValueRangeProps) {
         const v = 10 - i;
         const w = (1 + (v) * 0.8) * 10;
         const onSepClick = () => props.onValueSet(v);
-        const cls = classNames(styles.sepDiv, {[styles.sepDivSelected]: v == value});
+        const sepDivSelected = v == value;
+        const cls = classNames(styles.sepDiv, { [styles.sepDivSelected]: sepDivSelected});
+        const typoCls = sepDivSelected ? accentClasses.accentText : '';
         return (
             <div className={cls} key={i} onClick={onSepClick}>
                 <div className={styles.sepDivLine} style={{ width: `${w}%` }}></div>
                 <div className={styles.sepDivNumber}>
-                    <Typography variant='h3'>
+                    <Typography variant='h3' className={typoCls} >
                         {10-i}
                     </Typography>
                 </div>

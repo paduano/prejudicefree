@@ -27,6 +27,7 @@ import envmap_vertex from 'three/src/renderers/shaders/ShaderChunk/envmap_vertex
 import fog_vertex from 'three/src/renderers/shaders/ShaderChunk/fog_vertex.glsl';
 
 const shader = /* glsl */`
+#define ACCENT_COLOR vec3(1., 0.768, 0.098) 
 
 // how far away you push the people around you
 #define YOURSELF_DISTANCE 0.15 
@@ -137,8 +138,8 @@ void main() {
 	// I can probably optimize this code and avoid an IF, but is it worth it?
 	float selectScale = 0.;
 	if (index == selectedIndex) {
-		pointColor = vec3(1.,1.,0.1);
-		selectScale = 0.5;
+		pointColor = ACCENT_COLOR;
+		selectScale = 0.7;
 	}
 	// scale if picking to make selection easier
 	vec3 scaling = (transformed - translate_pos) * 2. * max(picking, selectScale);

@@ -192,10 +192,7 @@
     
 [ ] Story support
     [ ] store support for story steps
-    [ ] chart support for enabling/disabling features
-    [ ] message box for current step
-    [ ] message box for info about yourself 
-    [ ] custom message box 
+    [ ] 
 
 [ ] BUGS
     [ ] missing flag for netherlan antilles, using flag from NL
@@ -204,18 +201,30 @@
     [ ] fix education ranges. For italy for istance they are wrong
     [ ] I can select no primary demographic and a secondary demographic -> break
     [ ] fix jump when loading
+    [ ] fix flags in safari
+    [ ] fix button underline buttonUnderlineCover (background color is black)
+    [ ] disable text selection on annotation
 
 [ ] MISC
-    [ ] experiment dark blue as background
+    [√] experiment dark blue as background
+    [ ] move barcharts to the background
+    [ ] sort demographic and values by most divisive
+    [ ] fix screen resizing
+    [ ] accent colors
+        const useStyles = makeStyles((invertedTheme) => ({
+            accentText: {
+                color: '#FF0000'
+            }
+        }));
 
 
 ## backlog
 [√] finish data cleaning
-[ ] add data from previous wave, to be loaded optionally?
-[ ] create a mini-infographic to experiment different way to show the tabular data?
 [ ] memoize svg marker triangle for the selected person
 ---
 [ ] add index for country in json stored
+[ ] create a mini-infographic to experiment different way to show the tabular data?
+[ ] add data from previous wave, to be loaded optionally?
 
 
 # Scripts
@@ -231,3 +240,5 @@
  instead: a = new Array(2).fill(null).map(() => new Array(2).fill(null).map(() => new Array()))
 
 - managed to connect iphone to localhost https://mtm.dev/iphone-localhost-mac
+- access previous value with react hook using refs. Refs are not only for dom elements:
+https://blog.logrocket.com/how-to-get-previous-props-state-with-react-hooks/    

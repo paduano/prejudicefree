@@ -4,9 +4,10 @@ import { Box } from '@material-ui/core';
 import { useAppDispatch, useAppSelector } from '../hooks';
 import { getReadableDescriptionForDemographic, getReadableDescriptionForGroup, groupsForDemographic } from '../observation';
 import { GroupLayoutInfo } from './viz/grid_viz_configs';
-import styles from '../../styles/axis.module.css'
+import styles from '../../styles/chart_annotation.module.css'
 import classNames from 'classnames/bind';
 import { colorGradientList, colorGradientListCSS } from './ui_utils';
+import { ChartAnnotationWrapper } from './chart_annotation_wrapper';
 
 interface Props {
 }
@@ -39,27 +40,14 @@ export const Legend = React.memo((props: Props) => {
         )
     })
 
-    // refactor and reuse code below
-
-    const animationInProgress = useAppSelector(state => {
-        return state.rawData.animationInProgress;
-    });
-    
-    const clsWrapper = classNames(styles.axis, {
-        [styles.axisHidden]: animationInProgress,
-        [styles.axisTransitionProperties]: !animationInProgress,
-    });
-
     const wrapperStyles = {
         width: '200px',
     } as any;
 
     return (
-        <Box className={clsWrapper} style={wrapperStyles} >
-            <Box display='flex' flexDirection='columns'>
-                {colorDivs}
-            </Box>
-        </Box>
+        <ChartAnnotationWrapper display='flex' flexDirection='columns' style={wrapperStyles} >
+            {colorDivs}
+        </ChartAnnotationWrapper>
     );
 });
 

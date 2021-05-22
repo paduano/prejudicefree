@@ -4,47 +4,35 @@ import React, { Fragment, useState } from 'react';
 import styles from '../../styles/select.module.css'
 import { countryCodeToName } from '../data/countries';
 import { useAppDispatch, useAppSelector } from '../hooks';
-import { getReadableDescriptionForDemographic, ObservationDemographics, ObservationDemographicsList, ValuesMap } from '../observation';
+import { getReadableDescriptionForDemographic, ObservationDemographics, ObservationDemographicsList, ValuesMap, ValuesQuery } from '../observation';
 import { setPrimaryFilterDemographic, setSecondaryFilterDemographic, uiSetSelect, updateObservationsQuery, updateValuesQuery } from '../store';
 import { Chevron } from './chevron'
-import { selectAvailableCountries, getFlagFromCountryCode } from './ui_utils';
+import { selectAvailableCountries, getFlagFromCountryCode, Button, FadeInBox } from './ui_utils';
 import classNames from 'classnames/bind';
 import { ValueRange } from './value_range';
 import { CSSTransition, TransitionGroup } from 'react-transition-group'
+import { isFeatureAvailableSelector } from '../onboarding';
+import { useAccentStyles } from './theme';
 
 interface SelectProps {
     label: string | JSX.Element;
     height: string;
-    onClick: () => void;
+    onClick: (evt: any) => void;
 }
 
-export function Select(props: SelectProps) {
+export function Select(props: SelectProps & BoxProps) {
     const chevronSize = '';
+    const {onClick, label, ...rest} = props;
     return (
-        <div className={styles.container} onClick={props.onClick} >
+        <Box className={styles.container} onClick={props.onClick} {...rest}>
             <div className={styles.innerContainer} style={{ height: props.height }}>
                 {props.label}
                 <Chevron className={styles.innerContainerChevron} width='100%' height='60%' />
             </div>
-        </div>
+        </Box>
     );
 }
 
-// UTILS
-function FadeInBox(props: BoxProps & {visible: boolean}) {
-    const { visible, className, children, ...rest} = props;
-    const cls = classNames(className, styles.fadeHidden);
-    return (
-        <CSSTransition in={visible} timeout={1000} classNames={{
-            enter: styles.enterFade,
-            enterActive: styles.enterActiveFadeWidthDelay,
-        }}>
-            <Box {...rest} className={cls} key='key'>
-                {visible ? children : null}
-            </Box>
-        </CSSTransition>
-    )
-}
 
 // ---
 
@@ -73,7 +61,8 @@ function getCountryValueSelector() {
     });
 }
 
-export function CountrySelect() {
+export function CountrySelect(props: BoxProps) {
+    const {height, ...rest} = props;
     const dispatch = useAppDispatch()
     const countryValue = getCountryValueSelector();
 
@@ -81,10 +70,12 @@ export function CountrySelect() {
         dispatch(uiSetSelect({ current: 'country' }));
     };
     const flag = countryValue ? (
-        getFlagFromCountryCode(countryValue, styles.flagSvg)
+        <div style={{'height': '100%', display:'inline-block'}}>
+            {getFlagFromCountryCode(countryValue, styles.flagSvg)}
+        </div>
     ) : null;
     return (
-        <Select label={flag} height='3rem' onClick={handleClick} />
+        <Select label={flag} height={height ?? '3rem'} onClick={handleClick} {...rest} />
     );
 }
 
@@ -120,53 +111,30 @@ const countryOverlay = () => {
 
 // Value ----
 
-export function ValuesSelect() {
+export function ValuesSelect(props: BoxProps & {variant: 'h1' | 'h2' | 'h3', accent?: boolean}) {
+    const { height, variant, accent, ...rest} = props;
     const dispatch = useAppDispatch()
     const selectedValue = useAppSelector(state => {
         return state.rawData.valuesQuery.selectedValue;
     });
 
-    const label = selectedValue ? ValuesMap[selectedValue] : '...';
+    const typoCls = accent ? useAccentStyles().accentText : '';
+
+    const label = selectedValue ? 
+        <Typography variant={variant} className={typoCls}>
+            {ValuesMap[selectedValue]} 
+        </Typography>
+    : '...';
 
     const handleClick = () => {
         dispatch(uiSetSelect({ current: 'value' }));
     };
     return (
-        <Select label={label} height='3rem' onClick={handleClick} />
+        <Select label={label} height='3rem' onClick={handleClick} {...rest} />
     );
 }
 
-const Button = (props: { label: string, select: boolean, className?: string, onClick: (evt: any) => void } & React.ButtonHTMLAttributes<{}>) => {
-    const { label, children, className, select, ...rest } = props;
-    const [white, setWhite] = useState(false);
-
-    const cls = classNames(styles.buttonContainer, props.className ?? '');
-    const clsWhite = classNames(styles.buttonWhite, { [styles.buttonWhiteVisible]: white || select });
-    const onMouseDown = () => {
-        setWhite(true);
-    };
-    const dismissHover = () => {
-        setWhite(false);
-    }
-    return (
-        <div className={cls} onClick={props.onClick} {...rest} onMouseDown={onMouseDown} onMouseUp={dismissHover} onMouseLeave={dismissHover} >
-            <div className={styles.buttonInnerContainer}>
-                <div className={styles.buttonUnderlineContainer} />
-                <div className={styles.buttonUnderlineCover} />
-                <div className={clsWhite}>
-                    <Typography variant='h3'>
-                        {label}
-                    </Typography>
-                </div>
-                <Typography variant='h3'>
-                    {label}
-                </Typography>
-            </div>
-        </div>
-    );
-}
-
-const valueOverlay = () => {
+export const ValuesView = (props: {onSubmit: (valuesQuery: ValuesQuery) => void}) => {
     const dispatch = useAppDispatch();
     const values = Object.keys(ValuesMap) as (keyof typeof ValuesMap)[];
 
@@ -190,11 +158,10 @@ const valueOverlay = () => {
     };
 
     const handleOk = (evt) => {
-        dispatch(updateValuesQuery({ selectedValue: uiSelectedValue, value: uiSelectedNumericValue }));
-        dispatch(uiSetSelect({ current: null }));
+        props.onSubmit({ selectedValue: uiSelectedValue, value: uiSelectedNumericValue });
     };
 
-    const NextButton = <Button label='ok' select={false} onClick={handleOk} />
+    const NextButton = <Button accent label='ok' select={false} onClick={handleOk} />
 
     const rangeText = (
         <Box display='flex' alignItems='middle' flexDirection='column' p={4}>
@@ -219,29 +186,44 @@ const valueOverlay = () => {
             </Box>
         );
     })
+
+    return (
+        <Fragment>
+            <Box flex={1} display='flex' flexDirection='column'>
+                {valueButtons}
+            </Box>
+            <CSSTransition in={!!uiSelectedValue} timeout={1000} classNames={{
+                enter: styles.enterFade,
+                enterActive: styles.enterActiveFadeWidthDelay,
+            }}>
+                <Box flexBasis='120px' mt={'10px'} className={styles.fadeHidden} key='key'>
+                    {!!uiSelectedValue ? <ValueRange value={uiSelectedNumericValue} onValueSet={handleNumericValueSet} key='value-range' /> : null}
+                </Box>
+            </CSSTransition>
+            <CSSTransition in={!!uiSelectedValue} timeout={1000} classNames={{
+                enter: styles.enterFade,
+                enterActive: styles.enterActiveFadeWidthDelay,
+            }}>
+                <Box flex={1} position='relative' className={styles.fadeHidden} key='key'>
+                    {!!uiSelectedValue ? rangeText : null}
+                </Box>
+            </CSSTransition>
+        </Fragment>
+    );
+}
+
+const valueOverlay = () => {
+    const dispatch = useAppDispatch();
+
+    const onSubmit = (query: ValuesQuery) => {
+        dispatch(updateValuesQuery(query));
+        dispatch(uiSetSelect({ current: null }));
+    }
+   
     return (
         <SelectDialog title={'Select a value from the list'} subtitle='list is ordered by....'>
             <Box display='flex' flexDirection='row' width='700px' mt={2}>
-                <Box flex={1} display='flex' flexDirection='column'>
-                    {valueButtons}
-                </Box>
-                <CSSTransition in={!!uiSelectedValue} timeout={1000} classNames={{
-                    enter: styles.enterFade,
-                    enterActive: styles.enterActiveFadeWidthDelay,
-                }}>
-                    <Box flexBasis='120px' mt={'10px'} className={styles.fadeHidden} key='key'>
-                        {!!uiSelectedValue ? <ValueRange value={uiSelectedNumericValue} onValueSet={handleNumericValueSet} key='value-range' /> : null}
-                    </Box>
-                </CSSTransition>
-                <CSSTransition in={!!uiSelectedValue} timeout={1000} classNames={{
-                    enter: styles.enterFade,
-                    enterActive: styles.enterActiveFadeWidthDelay,
-                }}>
-                    <Box flex={1} position='relative' className={styles.fadeHidden} key='key'>
-                        {!!uiSelectedValue ? rangeText : null}
-                    </Box>
-                </CSSTransition>
-
+                <ValuesView onSubmit={onSubmit} />
             </Box>
         </SelectDialog>
     );
@@ -262,19 +244,96 @@ function getDemoSelector(axis: Axis) {
     });
 }
 
-export function DemographicSelect(props: { axis: Axis }) {
-    const axis = props.axis;
+export function DemographicSelect(props: BoxProps & { axis: Axis, variant: 'h1' | 'h2' | 'h3', accent?: boolean }) {
+    const { axis, variant, accent, ...rest} = props;
     const dispatch = useAppDispatch()
     const selectedDemographic = getDemoSelector(axis);
-    const label = selectedDemographic ?? '...';
+    const typoCls = accent ? useAccentStyles().accentText : '';
+    const label = selectedDemographic ?
+        <Typography variant={variant} className={typoCls}>
+            {selectedDemographic}
+        </Typography>
+        : '...';
 
     const handleClick = () => {
         dispatch(uiSetSelect({ current: 'demographic', params: { axis } }));
     };
 
     return (
-        <Select label={label} height='3rem' onClick={handleClick} />
+        <Select label={label} height='3rem' onClick={handleClick} {...rest} />
     );
+}
+
+export const DemographicView = (props: { axis: Axis, onSubmit: (demo: ObservationDemographics|null) => void}) => {
+    const axis = props.axis;
+    const selectedDemographic = getDemoSelector(axis);
+    const otherDemographic = getDemoSelector(axis == 'x' ? 'y' : 'x');
+
+    const [uiSelectedDemo, setUiSelectedDemo] = useState(selectedDemographic);
+
+    const isFeatureRemoveButtonAvailable = useAppSelector(isFeatureAvailableSelector('remove_demographic_button'));
+
+    const handleDemoSelect = (demo: ObservationDemographics) => {
+        if (demo == null) {
+            // remove filter
+            props.onSubmit(null);
+        } else {
+            setUiSelectedDemo(demo);
+        }
+    };
+
+    const handleOk = (evt) => {
+        props.onSubmit(uiSelectedDemo);
+    };
+
+    const NextButton = <Button accent label='ok' select={false} onClick={handleOk} />
+
+    const demoText = (
+        <Box display='flex' alignItems='middle' flexDirection='column' p={4}>
+            <Typography variant='h4'>
+                We will display here some info about the demographic you selected.
+                Did you know that <b>{uiSelectedDemo}</b> ... bla bla bla ... in society"
+            </Typography>
+            <Box mt={2}>
+                {!!uiSelectedDemo ? NextButton : null}
+            </Box>
+        </Box>
+    );
+
+    const demoButtons = [];
+
+    demoButtons.push(...ObservationDemographicsList.map((v: ObservationDemographics) => {
+        const label = getReadableDescriptionForDemographic(v);
+        const select = uiSelectedDemo == v;
+        const fadeOut = !select && !!uiSelectedDemo;
+        const cls = classNames(styles.valuesButtonContainer, { [styles.fadeOutButton]: fadeOut });
+        const removeDemo = otherDemographic == v;
+        return (
+            <Box className={cls} key={v} hidden={removeDemo}>
+                <Button label={label} select={select} onClick={() => handleDemoSelect(v)}> </Button>
+            </Box>
+        );
+    }));
+
+    if (isFeatureRemoveButtonAvailable) {
+        // add remove demographic button
+        demoButtons.push((
+            <Box className={styles.valuesButtonContainer} key={'no-filter'} mt={2}>
+                <Button label={'Remove filter'} select={false} onClick={() => handleDemoSelect(null)}> </Button>
+            </Box>
+        ));
+    }
+
+    return (
+        <Fragment>
+            <Box flex={1} display='flex' flexDirection='column'>
+                {demoButtons}
+            </Box>
+            <FadeInBox visible={!!uiSelectedDemo} flex={1} display='flex' flexDirection='column'>
+                {demoText}
+            </FadeInBox>
+        </Fragment>
+    )
 }
 
 const demographicOverlay = (props: { axis: Axis }) => {
@@ -292,65 +351,15 @@ const demographicOverlay = (props: { axis: Axis }) => {
         }
     }
 
-    const handleDemoSelect = (demo: ObservationDemographics) => {
-        if (demo == null) {
-            // remove filter
-            dispatchDemo(null);
-            dispatch(uiSetSelect({ current: null }));
-        } else {
-            setUiSelectedDemo(demo);
-        }
-    };
-
-    const handleOk = (evt) => {
-        dispatchDemo(uiSelectedDemo);
+    const handleOnSubmit = (demo: ObservationDemographics|null) => {
+        dispatchDemo(demo);
         dispatch(uiSetSelect({ current: null }));
-    };
-
-    const NextButton = <Button label='ok' select={false} onClick={handleOk} />
-
-    const demoText = (
-        <Box display='flex' alignItems='middle' flexDirection='column' p={4}>
-            <Typography variant='h4'>
-                We will display here some info about the demographic you selected. 
-                Did you know that <b>{uiSelectedDemo}</b> ... bla bla bla ... in society"
-            </Typography>
-            <Box mt={2}>
-                {!!uiSelectedDemo ? NextButton : null}
-            </Box>
-        </Box>
-    );
-
-    const demoButtons = [];
-
-    demoButtons.push(...ObservationDemographicsList.map((v: ObservationDemographics) => {
-        const label = getReadableDescriptionForDemographic(v);
-        const select = uiSelectedDemo == v;
-        const fadeOut = !select && !!uiSelectedDemo;
-        const cls = classNames(styles.valuesButtonContainer, { [styles.fadeOutButton]: fadeOut });
-        return (
-            <Box className={cls} key={v}>
-                <Button label={label} select={select} onClick={() => handleDemoSelect(v)}> </Button>
-            </Box>
-        );
-    }));
-
-    // add remove demographic button
-    demoButtons.push((
-        <Box className={styles.valuesButtonContainer} key={'no-filter'} mt={2}>
-            <Button label={'Remove filter'} select={false} onClick={() => handleDemoSelect(null)}> </Button>
-        </Box>
-    ));
+    }
 
     return (
         <SelectDialog title={'Select a demographic from the list'} subtitle='list is ordered by....'>
             <Box display='flex' flexDirection='row' width='700px' mt={2}>
-                <Box flex={1} display='flex' flexDirection='column'>
-                    {demoButtons}
-                </Box>
-                <FadeInBox visible={!!uiSelectedDemo} flex={1} display='flex' flexDirection='column'>
-                    {demoText}
-                </FadeInBox>
+                <DemographicView onSubmit={handleOnSubmit} axis={axis} />
             </Box>
         </SelectDialog>
     );

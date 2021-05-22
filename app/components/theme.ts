@@ -1,5 +1,6 @@
 import { blue, green, purple } from '@material-ui/core/colors';
 import { createMuiTheme, makeStyles, StylesProvider } from '@material-ui/core/styles';
+import { color } from './ui_utils';
 export const sliderThumbRadius = 28;
 
 const iOSBoxShadow =
@@ -80,7 +81,7 @@ export const invertedTheme = createMuiTheme({
         },
         h2: {
             fontSize: '2rem',
-            fontStyle: 'italic',
+            // fontStyle: 'italic', // YYY
         },
         h3: {
             fontSize: '1rem',
@@ -115,3 +116,9 @@ export const invertedTheme = createMuiTheme({
         },
     },
 });
+
+export const useAccentStyles = makeStyles((invertedTheme) => ({
+    accentText: {
+        color: color.accent
+    }
+}));
