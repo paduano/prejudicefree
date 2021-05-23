@@ -166,9 +166,13 @@ export const ValuesView = (props: {onSubmit: (valuesQuery: ValuesQuery) => void}
     const rangeText = (
         <Box display='flex' alignItems='middle' flexDirection='column' p={4}>
             <Typography variant='h4'>
-                Select a value from 1 to 10 on the scale, answering the question:
-                "How much do you tolerate <b>{ValuesMap[uiSelectedValue]}</b> in society?"
+                Choose a value from 1 to 10 on the scale, answering the question: 
             </Typography>
+            <Box mt={2}>
+                <Typography variant='h2'>
+                    <i>"How much do you tolerate <b>{ValuesMap[uiSelectedValue]}</b> in society?"</i>
+                </Typography>
+            </Box>
             <Box mt={2}>
                 {uiSelectedNumericValue > 0 ? NextButton : null}
             </Box>
@@ -290,10 +294,10 @@ export const DemographicView = (props: { axis: Axis, onSubmit: (demo: Observatio
 
     const demoText = (
         <Box display='flex' alignItems='middle' flexDirection='column' p={4}>
-            <Typography variant='h4'>
+            {/* <Typography variant='h4'>
                 We will display here some info about the demographic you selected.
                 Did you know that <b>{uiSelectedDemo}</b> ... bla bla bla ... in society"
-            </Typography>
+            </Typography> */}
             <Box mt={2}>
                 {!!uiSelectedDemo ? NextButton : null}
             </Box>
@@ -329,7 +333,7 @@ export const DemographicView = (props: { axis: Axis, onSubmit: (demo: Observatio
             <Box flex={1} display='flex' flexDirection='column'>
                 {demoButtons}
             </Box>
-            <FadeInBox visible={!!uiSelectedDemo} flex={1} display='flex' flexDirection='column'>
+            <FadeInBox visible={!!uiSelectedDemo} flex={1} display='flex' flexDirection='column' justifyContent='flex-end'>
                 {demoText}
             </FadeInBox>
         </Fragment>

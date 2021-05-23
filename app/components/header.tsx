@@ -9,6 +9,7 @@ import { color, colorGradientListCSS, FadeGradient } from './ui_utils';
 import { CountrySelect, DemographicSelect, DemographicView, ValuesSelect, ValuesView } from './select';
 import styles from '../../styles/titles.module.css'
 import { getCurrentStep, NextOnboardingStepButton, OnboardingStepTypes } from '../onboarding';
+import YouMarker from './you_marker';
 
 
 export function FullTitle() {
@@ -37,7 +38,7 @@ export function FullTitle() {
 
 const NextHeaderPrompt = (props: { children: JSX.Element | JSX.Element[] | string, nextLabel?: string}) => {
     return (
-        <Box display='flex' alignItems='center'>
+        <Box display='flex' alignItems='center' pr={6} >
             {props.children}
             <Box flexGrow={1} />
             <NextOnboardingStepButton display='inline-block' nextLabel={props.nextLabel} />
@@ -69,7 +70,7 @@ const SimpleHeaderSubtitle = (props: { children: string }) => {
 const TitleSelector = (props: {primaryDemographic?: boolean, secondaryDemographic?}) => {
     const classes = useAccentStyles();
     return (
-        <Box >
+        <Box mb={1}>
             <Box display='flex' alignItems='center'>
                 <Typography variant='h2' display='inline' className={classes.accentText}> What{' '} </Typography>
                 <CountrySelect ml={1} mr={1} mb={0} />
@@ -158,8 +159,16 @@ const HeaderContents = {
                     Prejudice Free.
                 </SimpleHeaderTitle>
                 <Typography variant='h4'>
-                    As part of the World Values Survey initiative, 120,000 people were interviewed around the world about their values.
-                    This website is trying to show a bit of each one of them, plus you.
+
+                    Are you free to form your own beliefs?
+                    <br />
+                    Over the past 5 years 120,000 people were interviewed around the world about their opinions and values as part of the <i>World Values Survey</i>.
+                    <br />
+                    <br />
+
+                    This website will take you through a short journey to show you how some socio-demographic factors, 
+                    often outside our control, might affect how people around you think.
+                    
                 </Typography>
                  
                 <NextHeaderPrompt>
@@ -184,12 +193,12 @@ const HeaderContents = {
         return (
             <Fragment>
                 <SimpleHeaderTitle>
-                    What do you want to know?
+                    Select a topic.
                 </SimpleHeaderTitle>
 
                 <Typography variant='h4'>
-                    I listed below a number of things that people find sometimes divisive or controversial. 
-                    In what are you interested to see what your country thinks about?
+                    I listed below a number of things that people may find divisive or controversial. 
+                    Pick the topic you'd like to dive in.
                 </Typography>
                 <Box display='flex' flexDirection='row' width='100%' mt={4}>
                     <ValuesView onSubmit={onValuesSubmit} />
@@ -213,16 +222,17 @@ const HeaderContents = {
                 {/* description */}
                 <Typography variant='h4'>
                     People around you hold different opinions on {vLabel}. <br/>
-                    We colored them <span style={{ color: colorGradientListCSS(2) }}>{' '}●{' '}</span>blue if they answered that
+                    I colored them <span style={{ color: colorGradientListCSS(2) }}>{' '}●{' '}</span>blue if they answered that
                     they tolerate {vLabel} 7 or more, <span style={{ color: colorGradientListCSS(0) }}>{' '}●{' '}</span>red if they answered 4 or less,
-                    <span style={{ color: colorGradientListCSS(1) }}>{' '}●{' '}</span>gray otherwise. <br/>
-                    Remember that the people you are seeing on the screen are real people that ansered the survey.
-                    You can click on them with the mouse cursor and know a bit more about them. 
+                    <span style={{ color: colorGradientListCSS(1) }}>{' '}●{' '}</span>gray the rest. <br/>
+                    <br />
+                    Remember, the people on the screen are real people that answered the survey.
+                    You can hover over them with the mouse cursor and read a bit about them on the right.
                 </Typography>
 
                 <NextHeaderPrompt>
                     <Typography variant='h4' display='inline' >
-                        When you’re done fiddling around, click next.
+                        When you’re done fiddling around, click next and I'll try to bring some order on the screen!
                     </Typography>
                 </NextHeaderPrompt>
             </Fragment>
@@ -239,8 +249,8 @@ const HeaderContents = {
                
                 {/* description */}
                 <Typography variant='h4'>
-                    Let's bring some order. The people are sorted according to their answer. <br/>
-                    You (the one new selected in yellow) are placed close to people that thinks similarly to you.
+                    The people are sorted according to their answer. <br/>
+                    Where do you stand? You are marked with "<YouMarker />", and placed close to people that thinks similarly to you.
                 </Typography>
 
                 <NextHeaderPrompt>
@@ -268,9 +278,9 @@ const HeaderContents = {
                 </SimpleHeaderTitle>
 
                 <Typography variant='h4'>
-                    Now, let’s make things more interesting. 
-                    I listed below a list of characteristics we can split the population by. Select one of them
-                    and let's see how people's opinion changes withing each group.
+                    Now let’s make things more interesting. 
+                    I listed below some characteristics we can split the population by. Select one of them
+                    and see how people's opinions change within each group.
                 </Typography>
 
                 <Box display='flex' flexDirection='row' width='100%' mt={4}>
@@ -335,7 +345,7 @@ const HeaderContents = {
 
                 <NextHeaderPrompt nextLabel='Got it'>
                     <Typography variant='h4' display='inline' >
-                        You made it to the end. Try to change country, values, demographics and understand how your values rank compared to others.
+                        You made it to the end. Try to change country, topic, demographics and understand how your opinion compares to others.
                     </Typography>
                 </NextHeaderPrompt>
             </Fragment>

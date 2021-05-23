@@ -155,11 +155,11 @@ const describeYourself = () => {
         getReadableGroupDescriptor(currentColumn, currentRow, demo1, demo2) + ', ';
 
     const below = (
-        <Fragment> <b>{formatPercent(groupStats.nBelow / groupStats.totalObservations)}{' '}</b> are more opposed to the topic than you </Fragment>
+        <Fragment> <b>{formatPercent(groupStats.nBelow / groupStats.totalObservations)}{' '}</b> is more opposed to the topic than you </Fragment>
     );
 
     const above = (
-        <Fragment> <b>{formatPercent(groupStats.nAbove / groupStats.totalObservations)}</b> are more tolerant</Fragment>
+        <Fragment> <b>{formatPercent(groupStats.nAbove / groupStats.totalObservations)}</b> is more tolerant</Fragment>
     );
 
     const samePercentText = formatPercent(groupStats.nLikeYou / groupStats.totalObservations);
@@ -173,8 +173,8 @@ const describeYourself = () => {
                 </Typography>
                 <Box mt={1}>
                     <Typography variant='h6'>
-                        {groupDesc} <b>{samePercentText}</b> have given the same answer than you, and 
-                        their average answer is <b>{formatScoreOneDecimal(groupStats.average)}</b>.
+                        {groupDesc} <b>{samePercentText}</b> has given the same answer than you, and 
+                        the average is <b>{formatScoreOneDecimal(groupStats.average)}</b>.
                     </Typography>
                 </Box>
                 <Box mt={1}>

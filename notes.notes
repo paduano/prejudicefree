@@ -205,8 +205,9 @@
 [ ] improve next prompt with different location
 [ ] flashing numbers in the detail pane
 [ ] fix flags in safari
+[ ] text appears and fade in with right timing to tell the story
 
-[ ] diversify model
+[ ] diversify 3d model
 [ ] bigger model, bigger viz
 [ ] (feat) better density for individual rows. I don't need to keep all columns the same density
 
@@ -224,6 +225,9 @@
 [ ] fix missing flag for netherlan antilles, using flag from NL
 [ ] fix screen resizing
 [ ] experiment disabling z-buffering and rendering a model with a countorur on top
+
+[ ] one group viz should not be horizontal, inconsistent with next one
+[ ] fix decimal value for detail panel
 
 - wishlist
 [ ] (opt) allow editing on the legend

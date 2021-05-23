@@ -637,10 +637,14 @@ export function getReadableGroupDescriptor(
 
     // sort demographics to have first religion or sex
     let firstDemo = demoX;
+    let firstGroupIndex = groupX;
     let secondDemo = demoY;
+    let secondGroupIndex = groupY;
     if (demoY == 'sex') {
         firstDemo = demoY;
+        firstGroupIndex = groupY;
         secondDemo = demoX;
+        secondGroupIndex = groupX;
     }
 
     // compose sentence

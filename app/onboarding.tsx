@@ -88,8 +88,7 @@ export const ONBOARDING_STEPS_LIST: OnboardingStep[] = [
                 type: 'DRAG_AND_DROP_YOURSELF',
                 text: `
                     Remember, this is you! You can drag yourself in different groups on the chart, 
-                    and the "about you" section on the left will update to reflect
-                    how your answer compares to people in the same group.
+                    and the "about you" section will update.
                     `,
                 anchor: 'yourself', 
             }
@@ -186,7 +185,7 @@ export function isFeatureAvailableAtStep(onboardingStepType: OnboardingStepTypes
                 return true;
             }
         case 'side_panel':
-            if (onboardingStepType < OnboardingStepTypes.VIZ_RANDOM) {
+            if ([OnboardingStepTypes.SELECT_DEMO_X, OnboardingStepTypes.SELECT_DEMO_Y].indexOf(onboardingStepType) == -1) {
                 return false;
             } else {
                 return true;

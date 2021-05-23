@@ -16,35 +16,15 @@ interface ValueRangeProps {
 export function ValueRange(props: ValueRangeProps) {
     const { value } = props;
     const accentClasses = useAccentStyles();
-    // const [value, setValue] = useState(initialValue);
-    const [hoverValue, setHoverValue] = useState(value);
-    const [numericValueBottom, setNumericValueBottom] = useState(value);
     const [mouseDown, setMouseDown] = useState(false);
     const containerRef = useRef(null);
     const backgroundRef = useRef(null);
 
-    const updateValueBackgroundAndCallback = (evt: React.MouseEvent<HTMLElement>, updateOnlyNumber) => {
-        const { y } = mousePos(evt, containerRef.current);
-        const h = containerRef.current.getBoundingClientRect().height;
-        const p = clamp(1 - (y / h), 0, 1);
-        const v = Math.ceil(p * 10);
-        if (!updateOnlyNumber) {
-            // setValue(v);
-            setNumericValueBottom((v/10) * h)
-            props.onValueSet(v);
-        }
-        if (value == 0 || value == undefined) {
-            setNumericValueBottom((v/10) * h)
-        }
-        setHoverValue(v);
-    }
 
     const onMouseDown = (evt: React.MouseEvent<HTMLElement>) => {
-        updateValueBackgroundAndCallback(evt, false);
         setMouseDown(true);
     }
     const onMouseMove = (evt: React.MouseEvent<HTMLElement>) => {
-        updateValueBackgroundAndCallback(evt, !mouseDown);
     }
     const onClick = (evt: React.MouseEvent<HTMLElement>) => {
 
@@ -60,8 +40,13 @@ export function ValueRange(props: ValueRangeProps) {
         const sepDivSelected = v == value;
         const cls = classNames(styles.sepDiv, { [styles.sepDivSelected]: sepDivSelected});
         const typoCls = sepDivSelected ? accentClasses.accentText : '';
+        const setV = () => {
+            if (mouseDown) {
+                props.onValueSet(v);
+            }
+        }
         return (
-            <div className={cls} key={i} onClick={onSepClick}>
+            <div className={cls} key={i} onClick={onSepClick} onMouseMove={setV} onMouseDown={setV}>
                 <div className={styles.sepDivLine} style={{ width: `${w}%` }}></div>
                 <div className={styles.sepDivNumber}>
                     <Typography variant='h3' className={typoCls} >
@@ -82,7 +67,8 @@ export function ValueRange(props: ValueRangeProps) {
             onMouseDown={onMouseDown} 
             onMouseUp={dismiss} 
             onMouseLeave={dismiss} 
-            onMouseMove={onMouseMove}>
+            // onMouseMove={onMouseMove}
+            >
             <div className={styles.innerContainer}>
                 {sepDivs}
                 <div className={styles.whiteBackground} style={whiteBackgroundStyle} ref={backgroundRef} />
