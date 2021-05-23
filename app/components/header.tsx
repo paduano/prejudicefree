@@ -1,19 +1,12 @@
-import React, { Fragment, lazy, useMemo } from 'react';
-import { makeStyles } from '@material-ui/core/styles';
+import React, { Fragment } from 'react';
 import Typography from '@material-ui/core/Typography';
-import Slider from '@material-ui/core/Slider';
-import { ThemeProvider } from '@material-ui/styles';
-import theme, { useAccentStyles } from './theme';
-import { FormControl, FormLabel, RadioGroup, FormControlLabel, Radio, Box, InputLabel, MenuItem, Switch, Checkbox } from '@material-ui/core';
-import { countryCodeToName } from '../data/countries';
-import { ageRanges, educationLevels, educationRanges, getIndexFromRange, incomeRanges } from '../data/legend';
+import { useAccentStyles } from './theme';
+import { Box } from '@material-ui/core';
 import { useAppDispatch, useAppSelector } from '../hooks';
-import { nextOnboardingStep, RootState, setPrimaryFilterDemographic, setSecondaryFilterDemographic, updateObservationsQuery, updateValuesQuery } from '../store';
-import { shallowEqual, useSelector } from 'react-redux';
-import { createSelector } from '@reduxjs/toolkit';
-import { AllEntriesStore, Observation, ObservationDemographics, ValuesMap, ValuesQuery } from '../observation';
-import { color, colorGradientListCSS, FadeGradient, getColorIndex, getFlagFromCountryCode, selectAvailableCountries } from './ui_utils';
-import { CountrySelect, DemographicSelect, DemographicView, Select, ValuesSelect, ValuesView } from './select';
+import { nextOnboardingStep, setPrimaryFilterDemographic, setSecondaryFilterDemographic, updateValuesQuery } from '../store';
+import { ObservationDemographics, ValuesMap, ValuesQuery } from '../observation';
+import { color, colorGradientListCSS, FadeGradient } from './ui_utils';
+import { CountrySelect, DemographicSelect, DemographicView, ValuesSelect, ValuesView } from './select';
 import styles from '../../styles/titles.module.css'
 import { getCurrentStep, NextOnboardingStepButton, OnboardingStepTypes } from '../onboarding';
 
@@ -220,9 +213,9 @@ const HeaderContents = {
                 {/* description */}
                 <Typography variant='h4'>
                     People around you hold different opinions on {vLabel}. <br/>
-                    We colored them <span style={{ color: colorGradientListCSS(2)}}>blue{' '}</span> if they answered that 
-                    tolerate {vLabel} more 7, <span style={{ color: colorGradientListCSS(0) }}>red{' '}</span> if less than 4, 
-                    <span style={{ color: colorGradientListCSS(1) }}>{' '}gray{' '}</span> otherwise. <br/>
+                    We colored them <span style={{ color: colorGradientListCSS(2) }}>{' '}●{' '}</span>blue if they answered that
+                    they tolerate {vLabel} 7 or more, <span style={{ color: colorGradientListCSS(0) }}>{' '}●{' '}</span>red if they answered 4 or less,
+                    <span style={{ color: colorGradientListCSS(1) }}>{' '}●{' '}</span>gray otherwise. <br/>
                     Remember that the people you are seeing on the screen are real people that ansered the survey.
                     You can click on them with the mouse cursor and know a bit more about them. 
                 </Typography>

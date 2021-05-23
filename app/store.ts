@@ -62,8 +62,8 @@ const initialState: StoreState = {
     valuesQuery: {
         selectedValue: undefined,
         // selectedValue: 'justify_abortion',
-        value: 0,
-        // value: 8,
+        // value: 0,
+        value: 8,
     },
     // primaryFilterDemographic: 'age',
     // secondaryFilterDemographic: 'education',

@@ -2,7 +2,7 @@ import React, { Fragment, useEffect } from 'react';
 import Typography from '@material-ui/core/Typography';
 import { Box } from '@material-ui/core';
 import { useAppDispatch, useAppSelector } from '../hooks';
-import { getReadableDescriptionForDemographic, getReadableDescriptionForGroup, groupsForDemographic, Observation, ValuesMap } from '../observation';
+import { getReadableDescriptionForDemographic, getReadableDescriptionForGroupValue, getReadableGroupDescriptor, groupsForDemographic, Observation, ValuesMap } from '../observation';
 import { GroupLayoutInfo } from './viz/grid_viz_configs';
 import axisStyles from '../../styles/chart_annotation.module.css'
 import classNames from 'classnames/bind';
@@ -14,13 +14,16 @@ import { ChartAnnotationWrapper } from './chart_annotation_wrapper';
 import YouMarker from './you_marker';
 import { isFeatureAvailableSelector } from '../onboarding';
 import { useAccentStyles } from './theme';
+import { SelectionMarker } from './selection_marker';
 
 interface Props {
 }
 
-const formatScore = (s: number) => `${Math.trunc(s * 9 + 1)}/10`;
+// const formatScore = (s: number) => `${Math.trunc(s * 9 + 1)}/10`; // 1-10
+const formatScore = (s: number) => `${s}/10`;
 const formatScoreOneDecimal = (s: number) => {
-    let v = (s * 9 + 1);
+    // let v = (s * 9 + 1); // 1-10
+    let v = s;
     let vstring;
     // I should use a library for doing this XXX
     if (v % 1 >= 0.1) {
@@ -96,9 +99,11 @@ export const SelectedObservation = React.memo((props: Props) => {
         // return state.rawData.allEntries['840'][0]
     });
 
+    const marker = <SelectionMarker />;
+
     return (
         <Fragment>
-            <SidePanel hide={!selectedObservation} title='About the selected person'>
+            <SidePanel hide={!selectedObservation} title='About the selected person' marker={marker}>
                 <Typography variant='h6'>
                     {selectedObservation ? describeObservation(selectedObservation) : null}
                 </Typography>
@@ -120,6 +125,12 @@ const describeYourself = () => {
     const groupStats = useAppSelector(state => {
         return state.rawData.currentGroupStats;
     });
+    const currentRow = useAppSelector(state => {
+        return state.rawData.currentRow;
+    });
+    const currentColumn = useAppSelector(state => {
+        return state.rawData.currentColumn;
+    });
 
     const countryName = useAppSelector(state => {
         if (state.rawData.filterQuery.country_codes && state.rawData.filterQuery.country_codes.length > 0) {
@@ -140,28 +151,35 @@ const describeYourself = () => {
     const entireCountry = !demo1 && !demo2;
 
     const groupDesc = entireCountry ? 
-        `In ${countryName}` : `In the demographic selected in ${countryName}`;
+        `In ${countryName}` : 
+        getReadableGroupDescriptor(currentColumn, currentRow, demo1, demo2) + ', ';
 
-    const below = `${formatPercent(groupStats.nBelow / groupStats.totalObservations)
-                    } are more opposed to the topic than you`
-    const above = `${formatPercent(groupStats.nAbove / groupStats.totalObservations)
-        } are more tolerant than you`
+    const below = (
+        <Fragment> <b>{formatPercent(groupStats.nBelow / groupStats.totalObservations)}{' '}</b> are more opposed to the topic than you </Fragment>
+    );
 
+    const above = (
+        <Fragment> <b>{formatPercent(groupStats.nAbove / groupStats.totalObservations)}</b> are more tolerant</Fragment>
+    );
+
+    const samePercentText = formatPercent(groupStats.nLikeYou / groupStats.totalObservations);
+    const valueText = ValuesMap[selectedValue];
+    const youTolerateValueText = <b>{numericValue}/10</b>;
     return (
         <Fragment>
             <Box display='flex' flexDirection='column'>
                 <Typography variant='h6'>
-                    {`You have answered that you tolerate ${ValuesMap[selectedValue]} ${numericValue}/10.`} 
+                    You have answered that you tolerate {valueText} {youTolerateValueText}.
                 </Typography>
                 <Box mt={1}>
                     <Typography variant='h6'>
-                        {`${groupDesc} the average answer is ${formatScoreOneDecimal(groupStats.average)},  
-                        and ${formatPercent(groupStats.nLikeYou / groupStats.totalObservations)} have given an answer similar to yours.`}
+                        {groupDesc} <b>{samePercentText}</b> have given the same answer than you, and 
+                        their average answer is <b>{formatScoreOneDecimal(groupStats.average)}</b>.
                     </Typography>
                 </Box>
                 <Box mt={1}>
                     <Typography variant='h6'>
-                        {`${groupDesc} ${below} and ${above}.`}
+                       {below} and {above}
                     </Typography>
                 </Box>
             </Box>

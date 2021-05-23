@@ -23,6 +23,7 @@ import chartStyles from '../../../styles/chart_annotation.module.css'
 import { getCurrentOnboardingMessageSelector, getCurrentVizConfigSelector, isFeatureAvailableSelector, OnboardingMessage, OnboardingObjectPositions } from '../../onboarding';
 import { throttle } from 'throttle-debounce';
 import { color } from '../ui_utils';
+import { SelectionMarker } from '../selection_marker';
 
 
 const PI_2 = 1.57079632679489661923;
@@ -47,14 +48,17 @@ interface GridVizProps extends ThreeCanvasProps {
     currentColumn: number;
     setCurrentColumn: (c: number) => void;
     animationInProgress: boolean;
-    featureColoredMenEnabled: boolean;
-    featureChartsEnabled: boolean;
     vizConfig: DotsVizConfiguration<any>;
     setOnboardingObjectPositions: (pos: OnboardingObjectPositions) => void,
     disableCameraTrack: boolean,
 
     nextOnboardingMessage: () => void;
     currentOnboardingMessage: OnboardingMessage,
+
+    featureColoredMenEnabled: boolean;
+    featureChartsEnabled: boolean;
+    featurePickingEnabled: boolean;
+    featurePickingMarkerEnabled: boolean;
 }
 
 interface GridVizState extends ThreeCanvasState {
@@ -292,7 +296,7 @@ class GridVizView extends ThreeCanvas<GridVizProps, GridVizState> {
         const { selectedObservationId, primaryFilterDemographic, secondaryFilterDemographic, featureChartsEnabled} = this.props;
         const {groupLayoutInfo} = this.state;
         const attributes = this.getCurrentAttributes(true);
-        let selectionCircle: JSX.Element = null
+        let pickSelection: JSX.Element = null
         if (selectedObservationId && attributes) {
             const i = this.observationIdToIndexMap.get(selectedObservationId);
             
@@ -300,7 +304,12 @@ class GridVizView extends ThreeCanvas<GridVizProps, GridVizState> {
             const y = attributes.position.getY(i);
             const pos = this.getAnnotationPos(x, y);
             // selectionCircle = <circle cx={pos.x} cy={pos.y - 10} r="6" stroke="white" strokeWidth="2" fill="none" />;
-            selectionCircle = <svg x={pos.x - 8} y={pos.y - 14} width="16" height="10" viewBox="0 0 8 5" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M3.96215 4.56519L0.226299 0.434751L7.698 0.43475L3.96215 4.56519Z" fill="white" /> </svg>
+            // selectionCircle = <svg x={} y={pos.y - 14} width="16" height="10" viewBox="0 0 8 5" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M3.96215 4.56519L0.226299 0.434751L7.698 0.43475L3.96215 4.56519Z" fill="white" /> </svg>
+            pickSelection = (
+                <Box id='selection-marker' position='absolute' left={pos.x - 8} top={pos.y - 16} >
+                    <SelectionMarker />
+                </Box >
+            );
 
         }
         const svgStyle = {
@@ -312,9 +321,9 @@ class GridVizView extends ThreeCanvas<GridVizProps, GridVizState> {
 
         return (
             <Fragment>
-                <svg width={this.props.width} height={this.props.height} style={svgStyle}>
-                    {selectionCircle}
-                </svg>
+                <ChartAnnotationWrapper hidden={this.state.yourselfAnimationInProgress || this.state.isDraggingYourself || !this.props.featurePickingMarkerEnabled}>
+                    {pickSelection}
+                </ChartAnnotationWrapper>
                 {featureChartsEnabled && groupLayoutInfo && primaryFilterDemographic ?
                     <AxisX  groupLayoutInfo={groupLayoutInfo} 
                             getSizeTransform={this.getSizeTransform}
@@ -392,9 +401,7 @@ class GridVizView extends ThreeCanvas<GridVizProps, GridVizState> {
             this.dropYourselfToPos(mousePos);
         } else {
             // people picking
-            if (!this.state.isDraggingYourself) {
-                this.pickAPerson(mousePos)
-            }
+            this.pickAPerson(mousePos)
         }
     }
 
@@ -436,6 +443,8 @@ class GridVizView extends ThreeCanvas<GridVizProps, GridVizState> {
         if (this.state.isDraggingYourself) {
             const mousePos = getMousePos(this.canvasRef.current, evt);
             this.dragYourselfToPos(mousePos);
+        } else if (this.props.featurePickingEnabled) {
+            this.throttledPicAPerson(evt)
         }
     }
 
@@ -767,6 +776,12 @@ class GridVizView extends ThreeCanvas<GridVizProps, GridVizState> {
         } else return null
     }
 
+    throttledPicAPerson = throttle(200, false /* no trailing */, (evt: MouseEvent) => {
+        if (!this.state.isDraggingYourself) {
+            const mousePos = getMousePos(this.canvasRef.current, evt);
+            this.pickAPerson(mousePos);
+        }
+    });
 
     pickAPerson(mousePos: { x: number, y: number }) {
         const {observations} = this.props;
@@ -800,11 +815,14 @@ function mapStateToProps(state: RootState, ownProps: GridVizProps) {
         currentRow: state.rawData.currentRow,
         currentColumn: state.rawData.currentColumn,
         animationInProgress: state.rawData.animationInProgress,
-        featureColoredMenEnabled: isFeatureAvailableSelector('colored_men')(state),
-        featureChartsEnabled: isFeatureAvailableSelector('charts')(state),
         vizConfig: getCurrentVizConfigSelector(state),
         disableCameraTrack: !!getCurrentOnboardingMessageSelector(state),
         currentOnboardingMessage: getCurrentOnboardingMessageSelector(state),
+
+        featureColoredMenEnabled: isFeatureAvailableSelector('colored_men')(state),
+        featureChartsEnabled: isFeatureAvailableSelector('charts')(state),
+        featurePickingEnabled: isFeatureAvailableSelector('picking')(state),
+        featurePickingMarkerEnabled: isFeatureAvailableSelector('picking_marker')(state),
     }
 }
 

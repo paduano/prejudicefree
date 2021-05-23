@@ -139,10 +139,10 @@ void main() {
 	float selectScale = 0.;
 	if (index == selectedIndex) {
 		pointColor = ACCENT_COLOR;
-		selectScale = 0.7;
+		selectScale = 0.4;
 	}
 	// scale if picking to make selection easier
-	vec3 scaling = (transformed - translate_pos) * 2. * max(picking, selectScale);
+	vec3 scaling = (transformed - translate_pos) * 1. * max(picking, selectScale);
 	transformed += scaling;
 
 	//

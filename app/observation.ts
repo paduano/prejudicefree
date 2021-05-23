@@ -26,7 +26,7 @@ export const ValuesMap = {
     justify_euthanasia: 'euthanasia',
     justify_suicide: 'suicide',
     justify_casual_sex: 'casual sex',
-    justify_death_penalty:'death penalty' 
+    justify_death_penalty: 'death penalty'
 }
 
 export interface Observation extends RawValues {
@@ -68,8 +68,8 @@ export interface ValuesQuery {
 export interface AltObservationQuery extends ObservationQuery {
     whatChanged: {
         variable: 'is_religious' | 'education_parents',
-        from: boolean|number;
-        to: boolean|number;
+        from: boolean | number;
+        to: boolean | number;
     }
 }
 
@@ -79,8 +79,8 @@ export interface AltStatsAndQuery {
 }
 
 export interface StatsAccumulator {
-    country_code: {[id: string]: number},
-    sex: {[id in Sex]: number}
+    country_code: { [id: string]: number },
+    sex: { [id in Sex]: number }
     // birth_year?: number, // do segmentation by generation
     // education_parents?: number, //  segment
     income_quantiles: {
@@ -88,13 +88,13 @@ export interface StatsAccumulator {
         _41_60: number,
         _71_100: number,
     }
-    is_religious: {[id: string]: number},
-    against_homo: {[id: string]: number},
-    against_abortion: {[id: string]: number},
-    political_orientation: {[id: string]: number},
-    people_can_be_trusted: {[id: string]: number},
-    trust_people_first_time: {[id: string]: number}, 
-    against_immigrants: {[id: string]: number}, 
+    is_religious: { [id: string]: number },
+    against_homo: { [id: string]: number },
+    against_abortion: { [id: string]: number },
+    political_orientation: { [id: string]: number },
+    people_can_be_trusted: { [id: string]: number },
+    trust_people_first_time: { [id: string]: number },
+    against_immigrants: { [id: string]: number },
 }
 
 export interface GroupStats {
@@ -108,28 +108,28 @@ export interface GroupStats {
 export const getEmptyStats = (): StatsAccumulator => {
     return {
         country_code: {},
-        sex: {'M': 0, 'F': 0},
+        sex: { 'M': 0, 'F': 0 },
         income_quantiles: {
             _0_40: 0,
             _41_60: 0,
             _71_100: 0,
         },
-        is_religious: {'true': 0, 'false': 0},
-        against_homo: {'true': 0, 'false': 0},
-        against_abortion: {'true': 0, 'false': 0},
-        political_orientation: {'true': 0, 'false': 0},
-        people_can_be_trusted: {'true': 0, 'false': 0},
-        trust_people_first_time: {'true': 0, 'false': 0}, 
-        against_immigrants: {'true': 0, 'false': 0}, 
+        is_religious: { 'true': 0, 'false': 0 },
+        against_homo: { 'true': 0, 'false': 0 },
+        against_abortion: { 'true': 0, 'false': 0 },
+        political_orientation: { 'true': 0, 'false': 0 },
+        people_can_be_trusted: { 'true': 0, 'false': 0 },
+        trust_people_first_time: { 'true': 0, 'false': 0 },
+        against_immigrants: { 'true': 0, 'false': 0 },
     }
 }
 
 const TRUE_OR_FALSE_KEYS = [
-    'is_religious', 
-    'against_homo', 
-    'against_abortion', 
-    'against_immigrants', 
-    'people_can_be_trusted', 
+    'is_religious',
+    'against_homo',
+    'against_abortion',
+    'against_immigrants',
+    'people_can_be_trusted',
     'trust_people_first_time'
 ];
 
@@ -137,15 +137,15 @@ const TRUE_OR_FALSE_KEYS = [
 const FACTOR_KEYS = [
     'sex',
     'country_code',
-    'political_orientation', 
+    'political_orientation',
 ];
 
 export function getGroupStats(
-    observations: Observation[], 
-    groupX: number, 
-    groupY: number, 
-    demoX: ObservationDemographics|null, 
-    demoY: ObservationDemographics|null, 
+    observations: Observation[],
+    groupX: number,
+    groupY: number,
+    demoX: ObservationDemographics | null,
+    demoY: ObservationDemographics | null,
     valuesQuery: ValuesQuery
 ) {
     const stats: GroupStats = {
@@ -156,10 +156,11 @@ export function getGroupStats(
         average: 0,
     }
 
-    const userNumericValue = normalize_1_10_to_0_1(valuesQuery.value);
+    // const userNumericValue = normalize_1_10_to_0_1(valuesQuery.value); // 1-10
+    const userNumericValue = valuesQuery.value;
 
     let totForAverage = 0;
-    for(let i = 0; i < observations.length; i++) {
+    for (let i = 0; i < observations.length; i++) {
         const o = observations[i];
         if (demoX) {
             const queryX = makeQueryForDemographicGroup(demoX, groupX);
@@ -204,31 +205,31 @@ export function filterByCountryAndAvailableDemographics(allEntries: AllEntriesSt
                 return false;
             }
         }
-        return true; 
+        return true;
     });
 }
 
-export function filterAndStatsObservations(observations: Observation[], query: ObservationQuery ) {
+export function filterAndStatsObservations(observations: Observation[], query: ObservationQuery) {
     const filteredEntries: Observation[] = [];
     const stats: StatsAccumulator = {
         country_code: {},
-        sex: {'M': 0, 'F': 0},
+        sex: { 'M': 0, 'F': 0 },
         income_quantiles: {
             _0_40: 0,
             _41_60: 0,
             _71_100: 0,
         },
-        is_religious: {'true': 0, 'false': 0},
-        against_homo: {'true': 0, 'false': 0},
-        against_abortion: {'true': 0, 'false': 0},
-        political_orientation: {'true': 0, 'false': 0},
-        people_can_be_trusted: {'true': 0, 'false': 0},
-        trust_people_first_time: {'true': 0, 'false': 0}, 
-        against_immigrants: {'true': 0, 'false': 0}, 
+        is_religious: { 'true': 0, 'false': 0 },
+        against_homo: { 'true': 0, 'false': 0 },
+        against_abortion: { 'true': 0, 'false': 0 },
+        political_orientation: { 'true': 0, 'false': 0 },
+        people_can_be_trusted: { 'true': 0, 'false': 0 },
+        trust_people_first_time: { 'true': 0, 'false': 0 },
+        against_immigrants: { 'true': 0, 'false': 0 },
     };
-    
+
     for (let i = 0; i < observations.length; i++) {
-        const o = observations[i]; 
+        const o = observations[i];
         if (matchObservation(o, query)) {
             filteredEntries.push(o);
             accumulateStat(o, stats);
@@ -236,7 +237,7 @@ export function filterAndStatsObservations(observations: Observation[], query: O
     }
 
     return {
-        filteredEntries, 
+        filteredEntries,
         stats,
     }
 }
@@ -268,12 +269,14 @@ export function filterAndStatObservationsWithVariations(observStore: AllEntriesS
         }
     });
 
-    const {stats, filteredEntries} = filterAndStatsObservations(observations, query);
+    const { stats, filteredEntries } = filterAndStatsObservations(observations, query);
     const altQueries = generateAlternativeQueries(query);
-    const altStatsAndQuery = altQueries.map(query => {return {
-        stats: filterAndStatsObservations(observations, query).stats,
-        query,
-    }});
+    const altStatsAndQuery = altQueries.map(query => {
+        return {
+            stats: filterAndStatsObservations(observations, query).stats,
+            query,
+        }
+    });
 
     return {
         filteredEntries,
@@ -282,14 +285,14 @@ export function filterAndStatObservationsWithVariations(observStore: AllEntriesS
     }
 }
 
-function generateAlternativeQueries(original: ObservationQuery ): AltObservationQuery[] {
+function generateAlternativeQueries(original: ObservationQuery): AltObservationQuery[] {
     const queries: AltObservationQuery[] = []
 
     // vary religion
     if (original.is_religious != undefined) {
-        const flipReligiosity = Object.assign({}, );
+        const flipReligiosity = Object.assign({},);
         queries.push({
-            ...original, 
+            ...original,
             is_religious: !original.is_religious,
             whatChanged: {
                 variable: 'is_religious',
@@ -299,7 +302,7 @@ function generateAlternativeQueries(original: ObservationQuery ): AltObservation
         });
     } else {
         queries.push({
-            ...original, 
+            ...original,
             is_religious: true,
             whatChanged: {
                 variable: 'is_religious',
@@ -308,7 +311,7 @@ function generateAlternativeQueries(original: ObservationQuery ): AltObservation
             }
         });
         queries.push({
-            ...original, 
+            ...original,
             is_religious: false,
             whatChanged: {
                 variable: 'is_religious',
@@ -324,12 +327,12 @@ function generateAlternativeQueries(original: ObservationQuery ): AltObservation
         if (i != currentIndex) {
             queries.push({
                 ...original,
-                min_education_parents: educationRanges[i][0], 
+                min_education_parents: educationRanges[i][0],
                 max_education_parents: educationRanges[i][1],
                 whatChanged: {
                     variable: 'education_parents',
                     from: currentIndex,
-                    to: i 
+                    to: i
                 }
             });
         }
@@ -345,7 +348,7 @@ function accumulateStat(o: Observation, stat: StatsAccumulator) {
             if (v != 'true' && v != 'false') {
                 throw `${v} must be 'true' or 'false'`
             }
-            stat[key][v] += 1; 
+            stat[key][v] += 1;
         }
     });
 
@@ -355,15 +358,15 @@ function accumulateStat(o: Observation, stat: StatsAccumulator) {
             if (stat[key][v] == undefined) {
                 stat[key][v] = 0;
             }
-            stat[key][v] += 1; 
+            stat[key][v] += 1;
         }
     });
 
     if (o.income_quantiles != undefined) {
         const q = o.income_quantiles;
-        stat.income_quantiles._0_40 += q < 4 ? 1 : 0; 
-        stat.income_quantiles._41_60 += q >= 4 && q <= 6 ? 1 : 0; 
-        stat.income_quantiles._71_100 += q > 7 ? 1 : 0; 
+        stat.income_quantiles._0_40 += q < 4 ? 1 : 0;
+        stat.income_quantiles._41_60 += q >= 4 && q <= 6 ? 1 : 0;
+        stat.income_quantiles._71_100 += q > 7 ? 1 : 0;
     }
 }
 
@@ -372,37 +375,37 @@ function matchObservation(o: Observation, query: ObservationQuery): boolean {
     if (query.country_codes) {
         if (o.country_code == undefined || query.country_codes.indexOf(o.country_code) == -1) {
             return false;
-        } 
+        }
     }
 
     // sex
     if (query.sex) {
         if (o.sex == undefined || query.sex != o.sex) {
             return false;
-        } 
+        }
     }
 
     // religiosity
     if (query.is_religious != undefined) {
         if (o.is_religious == undefined || query.is_religious != o.is_religious) {
             return false;
-        } 
+        }
     }
 
     // min birth year
     if (query.min_birth_year != undefined) {
         if (o.birth_year == undefined || query.min_birth_year > o.birth_year) {
             return false;
-        } 
+        }
     }
 
     // max birth year
     if (query.max_birth_year != undefined) {
         if (o.birth_year == undefined || query.max_birth_year < o.birth_year) {
             return false;
-        } 
+        }
     }
-    
+
     // min education
     if (query.min_education != undefined) {
         if (o.education == undefined || query.min_education > o.education) {
@@ -421,37 +424,36 @@ function matchObservation(o: Observation, query: ObservationQuery): boolean {
     if (query.min_education_parents != undefined) {
         if (o.education_parents == undefined || query.min_education_parents > o.education_parents) {
             return false;
-        } 
+        }
     }
 
     // max education parents
     if (query.max_education_parents != undefined) {
         if (o.education_parents == undefined || query.max_education_parents < o.education_parents) {
             return false;
-        } 
+        }
     }
 
-   
+
     // min income
     if (query.min_income_quantiles != undefined) {
         if (o.income_quantiles == undefined || query.min_income_quantiles > o.income_quantiles) {
             return false;
-        } 
+        }
     }
 
     // max income
     if (query.max_income_quantiles != undefined) {
         if (o.income_quantiles == undefined || query.max_income_quantiles < o.income_quantiles) {
             return false;
-        } 
+        }
     }
 
     return true;
-} 
+}
 
-// value matching, returns 0 - 1 
 export function valuesForObservation(observation: Observation, query: ValuesQuery): number {
-    if (query.selectedValue != undefined && observation[query.selectedValue] !== undefined ) {
+    if (query.selectedValue != undefined && observation[query.selectedValue] !== undefined) {
         return observation[query.selectedValue];
     }
     return 0;
@@ -461,7 +463,7 @@ export function valuesForObservation(observation: Observation, query: ValuesQuer
 export type ObservationDemographics = 'age' | 'sex' | 'education' | 'education_parents' | 'income' | 'religiosity';
 export const ObservationDemographicsList = ['age', 'sex', 'education', 'education_parents', 'income', 'religiosity'];
 
-export function groupsForDemographic(demo: ObservationDemographics): any[]{
+export function groupsForDemographic(demo: ObservationDemographics): any[] {
     switch (demo) {
         case 'age':
             return ageRanges;
@@ -541,7 +543,7 @@ export function getDemographicGroupIndex(o: Observation, demo: ObservationDemogr
     throw `wasn't able to find the demographic group for ob: ${o.id} and demo: ${demo}`;
 }
 
-export function getReadableDescriptionForGroup(demo: ObservationDemographics, index: number): string {
+export function getReadableDescriptionForGroupValue(demo: ObservationDemographics, index: number): string {
     const group = groupsForDemographic(demo)[index];
 
     switch (demo) {
@@ -590,10 +592,63 @@ export function getReadableDescriptionForDemographic(demo: ObservationDemographi
         case 'education':
             return 'education';
         case 'education_parents':
-            return 'education parents';
+            return 'education of the parents';
         case 'income':
             return 'income';
         case 'religiosity':
             return 'religiosity';
     };
+}
+
+export function getReadableGroupDescriptor(
+    groupX: number,
+    groupY: number,
+    demoX: ObservationDemographics,
+    demoY: ObservationDemographics | null,) {
+
+    const desc = (d: ObservationDemographics, i: number, order: 'first' | 'second') => {
+        const valueText = getReadableDescriptionForGroupValue(d, i);
+        const group = groupsForDemographic(d)[i];
+        const appendPronoun = order == 'first' ? 'those' : '';
+        switch (d) {
+            case 'age':
+                return `${appendPronoun} in the age group ${valueText}`;
+            case 'sex':
+                if (group == 'M') {
+                    return "males";
+                } else if (group == 'F') {
+                    return "females";
+                }
+            case 'education':
+                return `${appendPronoun} with ${valueText} degree`;
+            case 'education_parents':
+                return `${appendPronoun} with parents with ${valueText} degree`;
+            case 'income':
+                return `${appendPronoun} in the ${valueText} income bracket`;
+            case 'religiosity':
+                if (group == true) {
+                    return `${appendPronoun} who are religious`;
+                } else {
+                    return `${appendPronoun} not religious`;
+                }
+        }
+
+    }
+
+    // sort demographics to have first religion or sex
+    let firstDemo = demoX;
+    let secondDemo = demoY;
+    if (demoY == 'sex') {
+        firstDemo = demoY;
+        secondDemo = demoX;
+    }
+
+    // compose sentence
+    let sentence = 'Among ' + desc(firstDemo, groupX, 'first');
+    if (demoY) {
+        const conjunction = firstDemo == 'sex' ? '' : ' and ';
+        sentence += conjunction + desc(secondDemo, groupY, 'second');
+    }
+    return sentence;
+
 }

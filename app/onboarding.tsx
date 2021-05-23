@@ -40,7 +40,9 @@ type Features =
     'side_panel' |
     'legend' | 
     'colored_men' |
-    'remove_demographic_button'
+    'remove_demographic_button' |
+    'picking' |
+    'picking_marker' 
     ;
 
 export interface Step {
@@ -184,7 +186,19 @@ export function isFeatureAvailableAtStep(onboardingStepType: OnboardingStepTypes
                 return true;
             }
         case 'side_panel':
-            if ([OnboardingStepTypes.SELECT_DEMO_X, OnboardingStepTypes.SELECT_DEMO_Y].indexOf(onboardingStepType) == -1) {
+            if (onboardingStepType < OnboardingStepTypes.VIZ_RANDOM) {
+                return false;
+            } else {
+                return true;
+            }
+        case 'picking':
+            if (onboardingStepType < OnboardingStepTypes.VIZ_RANDOM) {
+                return false;
+            } else {
+                return true;
+            }
+        case 'picking_marker':
+            if (onboardingStepType < OnboardingStepTypes.VIZ_ONE_GROUP) {
                 return false;
             } else {
                 return true;

@@ -251,7 +251,7 @@ export function DemographicSelect(props: BoxProps & { axis: Axis, variant: 'h1' 
     const typoCls = accent ? useAccentStyles().accentText : '';
     const label = selectedDemographic ?
         <Typography variant={variant} className={typoCls}>
-            {selectedDemographic}
+            {getReadableDescriptionForDemographic(selectedDemographic)}
         </Typography>
         : '...';
 

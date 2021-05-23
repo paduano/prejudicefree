@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import Typography from '@material-ui/core/Typography';
 import { Box } from '@material-ui/core';
 import { useAppDispatch, useAppSelector } from '../hooks';
-import { getReadableDescriptionForDemographic, getReadableDescriptionForGroup, groupsForDemographic } from '../observation';
+import { getReadableDescriptionForDemographic, getReadableDescriptionForGroupValue, groupsForDemographic } from '../observation';
 import { GroupLayoutInfo } from './viz/grid_viz_configs';
 import styles from '../../styles/chart_annotation.module.css'
 import classNames from 'classnames/bind';

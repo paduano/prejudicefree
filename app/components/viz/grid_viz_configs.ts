@@ -176,7 +176,8 @@ export const DotsTestMultiGroup: DotsVizConfiguration<VizPrepareState> = {
         const totalObservations: number[][] = new Array(nGroupX)
             .fill(null).map(() => new Array(nGroupY).fill(0)); // X Y array of 0s
 
-        const yourselfValue = normalize_1_10_to_0_1(valuesQuery.value);
+        // const yourselfValue = normalize_1_10_to_0_1(valuesQuery.value); 0-1
+        const yourselfValue = valuesQuery.value;
         const yourselfPositions: { x: number, y: number}[][] = new Array(nGroupX)
             .fill(null).map(() => new Array(nGroupY)
             .fill(null));

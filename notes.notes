@@ -146,13 +146,8 @@
             [√] hide axis while moving
         [√] gray out borders
             - use https://cssgradient.io/ to generate gradients
-    [ ] Improve people model. 
-        Different model mix
     ---
-    [ ] Improve util/rect layout
-        [ ] better density for individual rows. I don't need to keep all columns the same density
-    [ ] improve 3d parallax effect
-    [ ] improve ease/movement effect of the little men
+    [√] improve 3d parallax effect
     [x] Overaly barchart
         [x] hover effect and number %
 
@@ -166,7 +161,6 @@
         [√] X filter
         [√] Y filter
     [√] legend component
-        [ ] (opt) allow editing on the legend
     [√] value filter
         [√] design button
         [√] value picker 
@@ -178,7 +172,6 @@
     [√] drop areas
     [√] movement
     [√] people moving effect to give space
-    [ ] yellow marker 
 
 [√] Better stats 
     [√] stats for yourself
@@ -188,34 +181,52 @@
         - use same scene for picking and rendering. What are the drawbacks?
     [√] person highlight
     [√] popup about the person selected
-    [ ] experiment disabling z-buffering and rendering a model with a countorur on top
     
-[ ] Story support
-    [ ] store support for story steps
-    [ ] 
+[√] Story support
+    [√] store support for story steps
 
 [ ] BUGS
-    [ ] missing flag for netherlan antilles, using flag from NL
-    [ ] handle remove filter option, is a bit confusing
-    [ ] How to reformat the subtitle if you don't select a X or a Y option?
-    [ ] fix education ranges. For italy for istance they are wrong
-    [ ] I can select no primary demographic and a secondary demographic -> break
-    [ ] fix jump when loading
-    [ ] fix flags in safari
-    [ ] fix button underline buttonUnderlineCover (background color is black)
-    [ ] disable text selection on annotation
+
+    [√] fix button underline buttonUnderlineCover (background color is black)
 
 [ ] MISC
     [√] experiment dark blue as background
-    [ ] move barcharts to the background
-    [ ] sort demographic and values by most divisive
-    [ ] fix screen resizing
-    [ ] accent colors
+    [√] accent colors
         const useStyles = makeStyles((invertedTheme) => ({
             accentText: {
                 color: '#FF0000'
             }
         }));
+
+## improvements
+[√] improve details about the demographic in the "about you" section to make it clear what it refers to
+[√] improve select with hover
+[ ] fix education ranges. For italy for istance they are wrong
+[ ] improve next prompt with different location
+[ ] flashing numbers in the detail pane
+[ ] fix flags in safari
+
+[ ] diversify model
+[ ] bigger model, bigger viz
+[ ] (feat) better density for individual rows. I don't need to keep all columns the same density
+
+[ ] handle remove filter option, is a bit confusing
+[ ] How to reformat the subtitle if you don't select a X or a Y option?
+[ ] I can select no primary demographic and a secondary demographic -> break
+[ ] sort demographic and values by most divisive
+
+[ ] improve loading experience
+[ ] improve barcharts by moving to the background
+[ ] drop down selection should not be full-screen
+
+
+[ ] fix - text selection on annotation should not be possible
+[ ] fix missing flag for netherlan antilles, using flag from NL
+[ ] fix screen resizing
+[ ] experiment disabling z-buffering and rendering a model with a countorur on top
+
+- wishlist
+[ ] (opt) allow editing on the legend
 
 
 ## backlog

@@ -90,11 +90,16 @@ export const colorGradientListCSS = (index: number) => {
 
 
 export const getColorIndex = (v: number) => {
-    if (v < 0 || v > 1) {
-        throw `${v} not a valid color gradient value`
+    // if (v < 0 || v > 1) {
+    //     throw `${v} not a valid color gradient value`
+    // }
+    // const cListIndex = Math.round(v * (colorGradientList.length - 1));
+    let cListIndex = 1;
+    if (v <= 4) {
+        cListIndex = 0
+    } else if (v >= 7) {
+        cListIndex = 2
     }
-
-    const cListIndex = Math.round(v * (colorGradientList.length - 1));
     return cListIndex;
 }
 
