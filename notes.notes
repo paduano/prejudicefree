@@ -228,6 +228,7 @@
 
 [ ] one group viz should not be horizontal, inconsistent with next one
 [ ] fix decimal value for detail panel
+[ ] adapt school ranges -- maybe remove not highschool if not enough people
 
 - wishlist
 [ ] (opt) allow editing on the legend

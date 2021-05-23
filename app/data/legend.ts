@@ -11,8 +11,8 @@ export const educationLevels = [
 ];
 
 export const ageRanges = [[1991, 2002], [1982, 1991], [1970, 1981], [1940, 1969]];
-export const incomeRanges = [[1, 3], [4, 7], [8, 10]];
-export const educationRanges = [[0, 3], [4, 5], [6, 8]];
+export const incomeRanges = [[1, 4], [5, 7], [8, 10]];
+export const educationRanges = [[0, 2], [3, 5], [6, 8]];
 
 export const getIndexFromRange = (min: number, max: number, ranges: number[][]) => {
     for (let i = 0; i < ranges.length; i++) {
