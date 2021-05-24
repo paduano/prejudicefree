@@ -270,6 +270,7 @@ export class ThreeCanvas<T, S> extends React.Component<ThreeCanvasProps & T, Thr
             // transform: annotationLayerTransform,
             width: '100%',
             height: '100%',
+            zIndex: 9,
         }
 
         const mainContainerStyle = {

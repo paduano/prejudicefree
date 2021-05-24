@@ -62,8 +62,8 @@ const initialState: StoreState = {
     valuesQuery: {
         selectedValue: undefined,
         // selectedValue: 'justify_abortion',
-        // value: 0,
-        value: 8,
+        value: 0,
+        // value: 8,
     },
     // primaryFilterDemographic: 'age',
     // secondaryFilterDemographic: 'education',
@@ -87,7 +87,7 @@ const initialState: StoreState = {
 
     // onboarding
     currentOnboardingStepIndex: 0,
-    // currentOnboardingStepIndex: 5,
+    // currentOnboardingStepIndex: 8,
     currentOnboardingMessageStepIndex: 0,
 
     onboardingObjectPositions: {}
@@ -164,6 +164,7 @@ export const rawDataSlice = createSlice({
         setSecondaryFilterDemographic: (state, action: PayloadAction<{ demographic: ObservationDemographics|null }>) => {
             state.secondaryFilterDemographic = action.payload.demographic;
             state.currentRow = 0;
+            state.currentColumn = 0;
             applyFilterCountryAndDemographicsReducer(
                 state,
                 state.allEntries,

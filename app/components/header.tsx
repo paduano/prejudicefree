@@ -125,7 +125,7 @@ export function Header() {
     return (
         <Box
             id='title-outer-container'
-            zIndex={9}
+            zIndex={10}
             style={outerContainerStyle}
             height={headerBaseHeight}
             alignItems='center'

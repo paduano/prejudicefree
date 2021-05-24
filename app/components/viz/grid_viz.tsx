@@ -298,11 +298,6 @@ class GridVizView extends ThreeCanvas<GridVizProps, GridVizState> {
                         getSizeTransform={this.getSizeTransform}
                         getAnnotationPos={this.getAnnotationPos} /> : null
                 }
-                {featureChartsEnabled && groupLayoutInfo && secondaryFilterDemographic ?
-                    <AxisY groupLayoutInfo={groupLayoutInfo}
-                        getSizeTransform={this.getSizeTransform}
-                        getAnnotationPos={this.getAnnotationPos} /> : null
-                }
                 {featureChartsEnabled && groupLayoutInfo ?
                     <BarCharts groupLayoutInfo={groupLayoutInfo}
                         getSizeTransform={this.getSizeTransform}
@@ -336,6 +331,11 @@ class GridVizView extends ThreeCanvas<GridVizProps, GridVizState> {
                 <ChartAnnotationWrapper hidden={this.state.yourselfAnimationInProgress || this.state.isDraggingYourself || !this.props.featurePickingMarkerEnabled}>
                     {pickSelection}
                 </ChartAnnotationWrapper>
+                {featureChartsEnabled && groupLayoutInfo && secondaryFilterDemographic ?
+                    <AxisY groupLayoutInfo={groupLayoutInfo}
+                        getSizeTransform={this.getSizeTransform}
+                        getAnnotationPos={this.getAnnotationPos} /> : null
+                }
             </Fragment>
         );
     }
@@ -540,7 +540,7 @@ class GridVizView extends ThreeCanvas<GridVizProps, GridVizState> {
         });
         this.instancedMaterial.transparent = false;
         this.instancedGeometry = (threeAssets.man.children[0] as THREE.Mesh).geometry.clone(); // clone to not break HMR
-        this.instancedGeometry.scale(0.04, 0.04, 0.04);
+        this.instancedGeometry.scale(0.05, 0.05, 0.05);
         this.instancedGeometry.rotateX(PI_2);
         // this.instancedGeometry = new THREE.BoxGeometry( 0.02, 0.02, 0.1 );
         this.instancedGeometry.setAttribute('position1', new THREE.InstancedBufferAttribute(Float32Array.from(dotsVerticesAttr), 3))
