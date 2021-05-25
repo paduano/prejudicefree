@@ -126,7 +126,7 @@ void main() {
 
 	// gl_FragColor = vec4( outgoingLight, diffuseColor.a );
 	// gl_FragColor = vec4( 1., 1., 1., 1. );
-	float l = 0.6 + 0.4 * clamp(dot(vNormal, vec3(1.,1.,1.)), 0., 1.);
+	float l = 0.6 + 0.3 * clamp(dot(vNormal, vec3(1.,1.,1.)), 0., 1.);
 
 	if (picking > 0.) {
 		// color picking

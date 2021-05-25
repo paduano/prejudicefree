@@ -108,7 +108,7 @@ export const AxisY = React.memo((props: Props) => {
 
     const clsPlus = classNames(styles.axisButton, {[styles.buttonDisabled]: !plusButtonEnabled});
     const clsMinus = classNames(styles.axisButton, { [styles.buttonDisabled]: !minusButtonEnabled});
-    const refTSHACK = { ref: plusRef} as any;
+    const refTSHACK = { ref: plusRef};
     const plusButton = (
         <Box className={clsPlus} display='flex' justifyContent='center' onClick={increaseRow} style={buttonStyle(plusButtonEnabled, 'top')} {...refTSHACK}>
             <Plus />

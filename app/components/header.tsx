@@ -1,42 +1,49 @@
 import React, { Fragment } from 'react';
 import Typography from '@material-ui/core/Typography';
 import { useAccentStyles } from './theme';
-import { Box } from '@material-ui/core';
+import { Box, useTheme } from '@material-ui/core';
 import { useAppDispatch, useAppSelector } from '../hooks';
 import { nextOnboardingStep, setPrimaryFilterDemographic, setSecondaryFilterDemographic, updateValuesQuery } from '../store';
 import { ObservationDemographics, ValuesMap, ValuesQuery } from '../observation';
-import { color, colorGradientListCSS, FadeGradient } from './ui_utils';
+import { FadeGradient, FadeInBoxWithDelay} from './ui_utils';
 import { CountrySelect, DemographicSelect, DemographicView, ValuesSelect, ValuesView } from './select';
 import styles from '../../styles/titles.module.css'
 import { getCurrentStep, NextOnboardingStepButton, OnboardingStepTypes } from '../onboarding';
 import YouMarker from './you_marker';
+import { color, colorGradientListCSS } from './colors';
+import { countryNameAppSelector, isLimitedWidthSelector } from '../selectors';
 
 
 export function FullTitle() {
-
+    const theme = useTheme();
+    const limitedWidth = isLimitedWidthSelector();
+    const containerStyles = {
+        textAlign: limitedWidth ? 'left' : 'center',
+        width: '100%',
+    } as any;
     return (
-        <Box display='flex' flexDirection='column' className={styles.titleContainer} zIndex='9'>
+        <Box display='flex' style={containerStyles} flexDirection='column'  zIndex='9'>
             <Box>
                 <Typography variant='h1' >
                     What{' '}
-                    <CountrySelect />
+                    <CountrySelect ml={1} mr={1} mb={0} height={theme.typography.h1.fontSize} />
                     {' '} thinks about {' '}
-                    <ValuesSelect variant='h1' />
+                    <ValuesSelect variant='h1' height={theme.typography.h1.fontSize}/>
                 </Typography>
             </Box>
             <Box mt={1}>
                 <Typography variant='h2' >
                     Broken down by{' '}
-                    <DemographicSelect variant='h2' axis='x' />
+                    <DemographicSelect variant='h2' height={theme.typography.h2.fontSize} axis='x' />
                     {' '} and {' '}
-                    <DemographicSelect variant='h2' axis='y' />
+                    <DemographicSelect variant='h2' height={theme.typography.h2.fontSize} axis='y' />
                 </Typography>
             </Box>
         </Box>
     );
 }
 
-const NextHeaderPrompt = (props: { children: JSX.Element | JSX.Element[] | string, nextLabel?: string}) => {
+const NextHeaderPrompt = (props: { children: JSX.Element | JSX.Element[] | string, nextLabel?: string }) => {
     return (
         <Box display='flex' alignItems='center' pr={6} >
             {props.children}
@@ -46,7 +53,7 @@ const NextHeaderPrompt = (props: { children: JSX.Element | JSX.Element[] | strin
     )
 }
 
-const SimpleHeaderTitle = (props: {children: string}) => {
+const SimpleHeaderTitle = (props: { children: string }) => {
     const classes = useAccentStyles();
     const style = {
         marginBottom: '0.25rem',
@@ -58,16 +65,16 @@ const SimpleHeaderTitle = (props: {children: string}) => {
     )
 }
 
-const SimpleHeaderSubtitle = (props: { children: string }) => {
-    const classes = useAccentStyles();
-    return (
-        <Typography variant='h4'>
-            {props.children}
-        </Typography>
-    )
-}
+// const SimpleHeaderSubtitle = (props: { children: string }) => {
+//     const classes = useAccentStyles();
+//     return (
+//         <Typography variant='h4'>
+//             {props.children}
+//         </Typography>
+//     )
+// }
 
-const TitleSelector = (props: {primaryDemographic?: boolean, secondaryDemographic?}) => {
+const TitleSelector = (props: { primaryDemographic?: boolean, secondaryDemographic?}) => {
     const classes = useAccentStyles();
     return (
         <Box mb={1}>
@@ -81,7 +88,7 @@ const TitleSelector = (props: {primaryDemographic?: boolean, secondaryDemographi
                 <Box display='flex' alignItems='center'>
                     {/* primary */}
                     <Typography variant='h4' >
-                        Broken down by{' '}
+                        <b>Broken down by{' '}</b>
                     </Typography>
                     <DemographicSelect variant='h4' axis='x' ml={1} />
 
@@ -107,13 +114,7 @@ export function Header() {
     const innerContainerStyle = {
         backgroundColor: color.backgroundWithOpacity,
     }
-    // const backStyle = {
-    //     position: 'absolute',
-    //     top: 0,
-    //     left: 0,
-    //     width: 'calc(100% - 50px)',
-    //     height: '100%',
-    // } as any;
+    const limitedWidth = isLimitedWidthSelector();
 
     const onboardingStep = useAppSelector(getCurrentStep);
 
@@ -128,20 +129,21 @@ export function Header() {
             zIndex={10}
             style={outerContainerStyle}
             height={headerBaseHeight}
-            alignItems='center'
+            alignItems={limitedWidth ? 'flex-start' : 'center'}
         >
             <Box
                 id='title-inner-container'
                 position='relative'
-                margin='auto'
+                margin={limitedWidth ? 0 :  'auto'}
+                p={limitedWidth ? 2 :  0}
                 style={innerContainerStyle}
                 minHeight={headerBaseHeight}
-                width={900}
+                width={limitedWidth ? '100%' : 900}
             >
                 <HeaderContent />
                 {/* <div style={backStyle}></div> */}
             </Box>
-            <FadeGradient destinationColor={color.backgroundWithOpacity} orientation='top' />
+            <FadeGradient width={limitedWidth ? '100%' : 900}  margin='auto' destinationColor={color.backgroundWithOpacity} orientation='top' />
         </Box>
     );
 }
@@ -154,29 +156,37 @@ const HeaderContents = {
      */
     [OnboardingStepTypes.SELECT_COUNTRY]: () => {
         return (
-            <Fragment>
+            <Box>
                 <SimpleHeaderTitle>
                     Prejudice Free.
                 </SimpleHeaderTitle>
-                <Typography variant='h4'>
+                <FadeInBoxWithDelay fadeInAfter={500}>
+                    <Typography variant='h4'>
+                        Are you free to form your own beliefs?
+                    </Typography>
+                </FadeInBoxWithDelay>
 
-                    Are you free to form your own beliefs?
-                    <br />
-                    Over the past 5 years 120,000 people were interviewed around the world about their opinions and values as part of the <i>World Values Survey</i>.
-                    <br />
-                    <br />
+                <FadeInBoxWithDelay fadeInAfter={4000} mt={2}>
+                    <Typography variant='h4'>
+                        Over the past 5 years 120,000 people were interviewed around the world about their opinions and values as part of the <i>World Values Survey</i>.
+                    </Typography>
+                </FadeInBoxWithDelay>
 
-                    This website will take you through a short journey to show you how some socio-demographic factors, 
-                    often outside our control, might affect how people around you think.
-                    
-                </Typography>
-                 
-                <NextHeaderPrompt>
-                    <Typography variant='h4' display='inline'> Select your country{' '} </Typography>
-                    <CountrySelect ml={1} mr={1} mb={1} height={'2.7rem'} />
-                    <Typography variant='h4' display='inline'>  {' '}and click next.{' '} </Typography>
-                </NextHeaderPrompt>
-            </Fragment>
+                <FadeInBoxWithDelay fadeInAfter={8000} mt={2}>
+                    <Typography variant='h4'>
+                        This website will take you through a short data-driven journey to show you how some socio-demographic factors,
+                        often outside our control, might affect how people around you think.
+                    </Typography>
+                </FadeInBoxWithDelay>
+
+                <FadeInBoxWithDelay fadeInAfter={14000}>
+                    <NextHeaderPrompt>
+                        <Typography variant='h4' display='inline'> Select your country{' '} </Typography>
+                        <CountrySelect ml={1} mr={1} mb={1} height={'2.7rem'} />
+                        <Typography variant='h4' display='inline'>  {' '}and click next.{' '} </Typography>
+                    </NextHeaderPrompt>
+                </FadeInBoxWithDelay>
+            </Box>
         );
 
     },
@@ -197,7 +207,7 @@ const HeaderContents = {
                 </SimpleHeaderTitle>
 
                 <Typography variant='h4'>
-                    I listed below a number of things that people may find divisive or controversial. 
+                    I listed below a number of things that people may find divisive or controversial.
                     Pick the topic you'd like to dive in.
                 </Typography>
                 <Box display='flex' flexDirection='row' width='100%' mt={4}>
@@ -215,26 +225,35 @@ const HeaderContents = {
             return state.rawData.valuesQuery.selectedValue;
         });
         const vLabel = ValuesMap[selectedValue];
+        const countryName = countryNameAppSelector();
         return (
             <Fragment>
                 <TitleSelector />
 
                 {/* description */}
-                <Typography variant='h4'>
-                    People around you hold different opinions on {vLabel}. <br/>
-                    I colored them <span style={{ color: colorGradientListCSS(2) }}>{' '}●{' '}</span>blue if they answered that
-                    they tolerate {vLabel} 7 or more, <span style={{ color: colorGradientListCSS(0) }}>{' '}●{' '}</span>red if they answered 4 or less,
-                    <span style={{ color: colorGradientListCSS(1) }}>{' '}●{' '}</span>gray the rest. <br/>
-                    <br />
-                    Remember, the people on the screen are real people that answered the survey.
-                    You can hover over them with the mouse cursor and read a bit about them on the right.
-                </Typography>
-
-                <NextHeaderPrompt>
-                    <Typography variant='h4' display='inline' >
-                        When you’re done fiddling around, click next and I'll try to bring some order on the screen!
+                <FadeInBoxWithDelay fadeInAfter={500}>
+                    <Typography variant='h4'>
+                        People around you in {countryName} hold different opinions on {vLabel}. <br />
+                        I colored them <span style={{ color: colorGradientListCSS(2) }}>{' '}●{' '}</span>blue if they answered that
+                        they tolerate {vLabel} 7 or more, <span style={{ color: colorGradientListCSS(0) }}>{' '}●{' '}</span>red if they answered 4 or less,
+                        <span style={{ color: colorGradientListCSS(1) }}>{' '}●{' '}</span>gray the rest. <br />
                     </Typography>
-                </NextHeaderPrompt>
+                </FadeInBoxWithDelay>
+
+                <FadeInBoxWithDelay fadeInAfter={4000} mt={2}>
+                    <Typography variant='h4'>
+                        The figures you see on the screen are all people the answered the survey in {countryName}.
+                        You can hover over them with the mouse cursor and read a bit about them on the right.
+                    </Typography>
+                </FadeInBoxWithDelay>
+
+                <FadeInBoxWithDelay fadeInAfter={12000}>
+                    <NextHeaderPrompt>
+                        <Typography variant='h4' display='inline' >
+                            When you’re done fiddling around, click next and I'll try to bring some order on the screen!
+                    </Typography>
+                    </NextHeaderPrompt>
+                </FadeInBoxWithDelay>
             </Fragment>
         );
     },
@@ -246,18 +265,22 @@ const HeaderContents = {
         return (
             <Fragment>
                 <TitleSelector />
-               
-                {/* description */}
-                <Typography variant='h4'>
-                    The people are sorted according to their answer. <br/>
-                    Where do you stand? You are marked with "<YouMarker />", and placed close to people that thinks similarly to you.
-                </Typography>
 
-                <NextHeaderPrompt>
-                    <Typography variant='h4' display='inline' >
-                        When you’re done fiddling around, click next.
+                {/* description */}
+                <FadeInBoxWithDelay fadeInAfter={3000}>
+                    <Typography variant='h4'>
+                        The people are sorted according to their answer. <br />
+                        Where do you stand? You are marked with "<YouMarker />", and placed close to people that thinks similarly to you.
                     </Typography>
-                </NextHeaderPrompt>
+                </FadeInBoxWithDelay>
+
+                <FadeInBoxWithDelay fadeInAfter={8000}>
+                    <NextHeaderPrompt>
+                        <Typography variant='h4' display='inline' >
+                            But we're not done yet. What makes people's opinion change within the same country?
+                        </Typography>
+                    </NextHeaderPrompt>
+                </FadeInBoxWithDelay>
             </Fragment>
         );
     },
@@ -277,15 +300,19 @@ const HeaderContents = {
                     Select a demographic.
                 </SimpleHeaderTitle>
 
-                <Typography variant='h4'>
-                    Now let’s make things more interesting. 
-                    I listed below some characteristics we can split the population by. Select one of them
-                    and see how people's opinions change within each group.
-                </Typography>
+                <FadeInBoxWithDelay fadeInAfter={500}>
+                    <Typography variant='h4'>
+                        Now let’s make things more interesting.
+                        I listed below some characteristics we can split the population by. Select one of them
+                        and see how people's opinions change within each group.
+                    </Typography>
+                </FadeInBoxWithDelay>
 
-                <Box display='flex' flexDirection='row' width='100%' mt={4}>
-                    <DemographicView axis='x' onSubmit={onDemoSubmit} />
-                </Box>
+                <FadeInBoxWithDelay fadeInAfter={4000}>
+                    <Box display='flex' flexDirection='row' width='100%' mt={4}>
+                        <DemographicView axis='x' onSubmit={onDemoSubmit} />
+                    </Box>
+                </FadeInBoxWithDelay>
             </Fragment>
         );
     },
@@ -294,16 +321,20 @@ const HeaderContents = {
     * visualize demo x
     */
     [OnboardingStepTypes.VIZ_DEMO_X]: () => {
+        const onboardingMessageStep = useAppSelector(state => state.rawData.currentOnboardingMessageStepIndex);
         return (
             <Fragment>
                 <TitleSelector primaryDemographic />
 
-                <NextHeaderPrompt>
-                    <Typography variant='h4' display='inline' >
-                        Feel free to play with the filters above.
-                        When you’re ready to take it to the next level, click next.
+                {onboardingMessageStep == null ?
+                    <FadeInBoxWithDelay fadeInAfter={4000}>
+                        <NextHeaderPrompt>
+                            <Typography variant='h4' display='inline' >
+                                Feel free to play with the filters above.
+                                When you’re ready to take it to the next level, click next.
                     </Typography>
-                </NextHeaderPrompt>
+                        </NextHeaderPrompt>
+                    </FadeInBoxWithDelay> : null}
             </Fragment>
         );
     },
@@ -338,16 +369,20 @@ const HeaderContents = {
     * visualize demo y
     */
     [OnboardingStepTypes.VIZ_DEMO_Y]: () => {
+        const onboardingMessageStep = useAppSelector(state => state.rawData.currentOnboardingMessageStepIndex);
         // for now, same as full viz
         return (
             <Fragment>
                 <FullTitle />
-
-                <NextHeaderPrompt nextLabel='Got it'>
-                    <Typography variant='h4' display='inline' >
-                        You made it to the end. Try to change country, topic, demographics and understand how your opinion compares to others.
+                {onboardingMessageStep == null &&
+                    <FadeInBoxWithDelay fadeInAfter={4000} mt={2}>
+                        <NextHeaderPrompt nextLabel='Got it'>
+                            <Typography variant='h4' display='inline' >
+                                You made it to the end. Try to change country, topic, demographics and understand how your opinion compares to others.
                     </Typography>
-                </NextHeaderPrompt>
+                        </NextHeaderPrompt>
+                    </FadeInBoxWithDelay>
+                }
             </Fragment>
         );
     },

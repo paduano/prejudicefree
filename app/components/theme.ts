@@ -1,6 +1,6 @@
 import { blue, green, purple } from '@material-ui/core/colors';
 import { createMuiTheme, makeStyles, StylesProvider } from '@material-ui/core/styles';
-import { color } from './ui_utils';
+import { color } from './colors';
 export const sliderThumbRadius = 28;
 
 const iOSBoxShadow =
@@ -67,7 +67,11 @@ export default theme;
 
 
 export const invertedTheme = createMuiTheme({
-  
+    palette: {
+        background: {
+            default: color.background,
+        }
+    },
     typography: {
         allVariants: {
             color: "#FFFFFF",
@@ -115,6 +119,19 @@ export const invertedTheme = createMuiTheme({
             ].join(','),
         },
     },
+});
+
+export const invertedThemeMobile = createMuiTheme(invertedTheme, {
+
+    typography: {
+        h1: {
+            fontSize: '2rem',
+        },
+        h2: {
+            fontSize: '1.5rem',
+        },
+    }
+
 });
 
 export const useAccentStyles = makeStyles((invertedTheme) => ({

@@ -1,0 +1,12 @@
+.runFlashAnimation {
+  animation: flash 1s 1; 
+}
+
+@keyframes flash {
+  0% {
+    color: #fec419,
+  }
+  100% {
+    color: #FFFFFF;
+  }
+};

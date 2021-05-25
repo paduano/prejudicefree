@@ -5,7 +5,8 @@ import { ThemeProvider } from '@material-ui/core/styles';
 import { Provider} from 'react-redux';
 import { store } from '../app/store';
 import CssBaseline from '@material-ui/core/CssBaseline';
-import theme from '../app/components/theme';
+import { invertedTheme } from '../app/components/theme';
+import '../styles/globals.css'
 
 export default function MyApp(props) {
   const { Component, pageProps } = props;
@@ -21,7 +22,7 @@ export default function MyApp(props) {
   return (
     <React.Fragment>
       <Head>
-          <title>Values MVP</title>
+          <title>Prejudice-free</title>
           <meta name="description" content="..." />
           <link rel="icon" href="/favicon.ico" />
           <link rel="preconnect" href="https://fonts.gstatic.com" />
@@ -29,7 +30,7 @@ export default function MyApp(props) {
           <link href="https://fonts.googleapis.com/css2?family=News+Cycle:wght@400;700&family=Noticia+Text:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet" />
           <link href="https://fonts.googleapis.com/css2?family=News+Cycle:wght@400;700&display=swap" rel="stylesheet"/>
       </Head>
-      <ThemeProvider theme={theme}>
+      <ThemeProvider theme={invertedTheme}>
         <Provider store={store}>
           {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
           <CssBaseline />

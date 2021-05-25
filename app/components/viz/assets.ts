@@ -15,6 +15,7 @@ function OBJLoaderPromise(url: string): Promise<THREE.Group> {
 
 export async function LoadResources() {
     threeAssets = {
-        man: await OBJLoaderPromise('/man2_55.obj')
+        // man: await OBJLoaderPromise('/man2_55.obj')
+        man: await OBJLoaderPromise('/man-pose02.obj')
     };
 }

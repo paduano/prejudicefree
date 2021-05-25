@@ -1,3 +1,4 @@
+import Rand, { PRNG } from 'rand-seed';
 export const PI = 3.141592653589793;
 export const PI2 = 6.283185307179586;
 export const PI_HALF = 1.5707963267948966;
@@ -51,8 +52,14 @@ export function debug(dict: {[index: string]: any}) {
     console.log(out, `color: #${color}`);
 }
 
-export const rand = (min: number, max: number) => {
-    return min + (max-min) * Math.random();
+export const rand = (min: number, max: number, generator?: Rand) => {
+    let r = 0;
+    if (generator) {
+        r = generator.next();
+    } else {
+        r = Math.random()
+    }
+    return min + (max-min) * r;
 }
 
 export const randInCircle = (radius: number, minRadius: number = 0) => {

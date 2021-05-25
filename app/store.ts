@@ -4,6 +4,9 @@ import thunk from 'redux-thunk';
 import { createSlice } from '@reduxjs/toolkit'
 import { AllEntriesStore, AltObservationQuery, AltStatsAndQuery, filterAndStatObservationsWithVariations, filterAndStatsObservations, filterByCountryAndAvailableDemographics, formatAllEntriesStore, getEmptyStats, getGroupStats, GroupStats, Observation, ObservationDemographics, ObservationQuery, StatsAccumulator, ValuesQuery } from './observation';
 import { OnboardingObjectPositions, ONBOARDING_STEPS_LIST } from './onboarding';
+import { useAppSelector } from './hooks';
+import { countryCodeToName } from './data/countries';
+import { isLimitedWidth } from './components/ui_utils';
 
 // Define a type for the slice state
 export interface StoreState {
@@ -27,6 +30,8 @@ export interface StoreState {
     currentOnboardingStepIndex: number,
     currentOnboardingMessageStepIndex: number,
     onboardingObjectPositions: OnboardingObjectPositions,
+
+    isLimitedWidth: boolean,
 }
 
 export type SelectTypes = 'country' | 'value' | 'demographic';
@@ -61,12 +66,9 @@ const initialState: StoreState = {
     filterQuery: {},
     valuesQuery: {
         selectedValue: undefined,
-        // selectedValue: 'justify_abortion',
         value: 0,
-        // value: 8,
     },
-    // primaryFilterDemographic: 'age',
-    // secondaryFilterDemographic: 'education',
+
     primaryFilterDemographic: undefined,
     secondaryFilterDemographic: undefined,
 
@@ -87,11 +89,18 @@ const initialState: StoreState = {
 
     // onboarding
     currentOnboardingStepIndex: 0,
-    // currentOnboardingStepIndex: 8,
     currentOnboardingMessageStepIndex: 0,
 
-    onboardingObjectPositions: {}
+    onboardingObjectPositions: {},
+    isLimitedWidth: isLimitedWidth(),
 }
+
+// overrides
+// initialState.currentOnboardingStepIndex = 8;
+// initialState.primaryFilterDemographic = 'age';
+// initialState.secondaryFilterDemographic = 'education';
+// initialState.valuesQuery.selectedValue = 'justify_abortion';
+// initialState.valuesQuery.value = 8;
 
 const applyObservationsQueryReducer = (state: StoreState, allEntries: AllEntriesStore, filterQuery: ObservationQuery) => {
     const { filteredEntries, stats, altStatsAndQuery } = filterAndStatObservationsWithVariations(allEntries, filterQuery);

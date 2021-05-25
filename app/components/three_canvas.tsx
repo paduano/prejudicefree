@@ -4,7 +4,8 @@ import dynamic from "next/dynamic";
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer';
 import { debug, getMousePos } from '../../utils/utils';
 import { Box } from '@material-ui/core';
-import { color, FadeGradient } from './ui_utils';
+import { FadeGradient } from './ui_utils';
+import { color } from './colors';
 
 // import type {GUI} from 'dat.gui';
 
@@ -133,7 +134,9 @@ export class ThreeCanvas<T, S> extends React.Component<ThreeCanvasProps & T, Thr
 
     getSizeTransform = (v: number) => {
         const { width, height } = this.props;
-        return v * width / 10.2;
+        // return v * width / 10.2;
+        return v * 800 / 10.2;
+        // return v * 450 / 10.2;
     }
 
     getPosFromAnnotationPos = (x: number, y: number) => {
@@ -146,7 +149,8 @@ export class ThreeCanvas<T, S> extends React.Component<ThreeCanvasProps & T, Thr
 
     getSizeTransformInv = (v: number) => {
         const { width, height } = this.props;
-        return v / width * 10;
+        return v / 800 * 10;
+        // return v / width * 10;
     }
 
     tmpVec = new THREE.Vector3();

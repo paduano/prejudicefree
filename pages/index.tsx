@@ -4,14 +4,16 @@ import { connect } from 'react-redux';
 import { fetchAllVizData, RootState, UISelect } from '../app/store';
 import React from 'react';
 import { Box, ThemeProvider, Typography } from '@material-ui/core';
-import { invertedTheme } from '../app/components/theme';
+import { invertedTheme, invertedThemeMobile } from '../app/components/theme';
 import dynamic from 'next/dynamic';
 import { Header } from '../app/components/header';
-import { color, MAIN_CONTAINER_ID } from '../app/components/ui_utils';
+import { MAIN_CONTAINER_ID } from '../app/components/ui_utils';
 import { SelectOverlays } from '../app/components/select';
 import { Legend } from '../app/components/legend';
 import { DetailPanel } from '../app/components/detail_panels';
 import { FocusOverlay, isFeatureAvailableSelector } from '../app/onboarding';
+import { color } from '../app/components/colors';
+import { NavBar } from '../app/components/navbar';
 
 const GridViz = dynamic(() => import('../app/components/viz/grid_viz').then((module) => module.GridViz as any), {
   ssr: false,
@@ -22,6 +24,7 @@ interface MVPProps {
   loadingState: string;
   selectOverlay?: UISelect;
   featureLegendEnabled: boolean,
+  limitedWidth: boolean,
 }
 
 interface MVPState {
@@ -66,7 +69,7 @@ export class MVP extends React.Component<MVPProps, MVPState> {
     if (this.props.selectOverlay.current) {
       const Overlay = SelectOverlays[this.props.selectOverlay.current] as any;
       return (
-        <div className={styles.selectOverlayContainer} style={{background: color.background}}>
+        <div className={styles.selectOverlayContainer} style={{ background: color.background }}>
           <Overlay {...this.props.selectOverlay.params} />
         </div>
       );
@@ -90,32 +93,50 @@ export class MVP extends React.Component<MVPProps, MVPState> {
     );
   }
 
+  renderViz() {
+    const { limitedWidth } = this.props;
+    if (limitedWidth) {
+      return (
+        <Box style={{ overflowY: 'hidden' }} width={'100%'}>
+          <GridViz width={450} height={300} backgroundColor={color.background} />
+        </Box>
+      );
+    } else {
+      return (
+        <GridViz width={900} height={600} backgroundColor={color.background} />
+      );
+    }
+  }
+
   render() {
+    const { limitedWidth } = this.props;
+    const width = 900;
     return (
-      <ThemeProvider theme={invertedTheme}>
-        <div id={MAIN_CONTAINER_ID} className={styles.container} style={{background: color.background}}>
+      <ThemeProvider theme={limitedWidth ? invertedThemeMobile : invertedTheme}>
+        <div id={MAIN_CONTAINER_ID} className={styles.container} style={{ background: color.background }}>
+          <NavBar current='viz'></NavBar>
 
           {/* modals, full screen selects */}
           {this.renderSelectOverlay()}
           {this.renderFocusOverlay()}
           {this.loadingComplete() ? (
-            <Box display='flex' flexDirection='column' justifyContent='center' height='100%'>
+            <Box display='flex' flexDirection='column' justifyContent={limitedWidth ? '' : 'center'} height='100%'>
 
               {/* Header */}
               <Header />
 
               {/* main viz space */}
-              <Box display='flex' flexDirection='row' width='100%' justifyContent='center'  >
+              <Box display='flex' flexDirection={limitedWidth ? 'column' : 'row'} width='100%' justifyContent='center'  >
 
                 {/* left column */}
-                <Box flexGrow={1} flexBasis={'200px'} />
+                {!limitedWidth ? <Box flexGrow={1} flexBasis={'200px'} /> : null}
 
                 {/* 3d */}
-                <GridViz width={800} height={600} backgroundColor={color.background} /> 
+                {this.renderViz()}
 
                 {/* right column */}
                 <Box display='flex' flexDirection='column' flexGrow={1} justifyContent='center' zIndex={1 /* force new stacking context */}>
-                  <Box pl={1} width='200px'>
+                  <Box pl={1} width={limitedWidth ? '100%' : '200px'}>
                     <DetailPanel />
                   </Box>
                 </Box>
@@ -136,6 +157,7 @@ function mapStateToProps(state: RootState, ownProps: MVPProps) {
     loadingState: state.rawData.loadingState,
     selectOverlay: state.rawData.uiSelect,
     featureLegendEnabled: isFeatureAvailableSelector('legend')(state),
+    limitedWidth: state.rawData.isLimitedWidth,
   }
 }
 

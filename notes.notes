@@ -201,13 +201,24 @@
 ## improvements
 [√] improve details about the demographic in the "about you" section to make it clear what it refers to
 [√] improve select with hover
-[ ] fix education ranges. For italy for istance they are wrong
+[√] fix education ranges. For italy for istance they are wrong
+[√] about page
+[!] google analytics 
+[!] performance improvements
+[!] copy check
+[!] fix flags in safari
+[!] improve loading experience
+[!] make buttons actual buttons
+[√] fix next css bug
+[!] mobile
+[√] change title
 [ ] improve next prompt with different location
 [ ] flashing numbers in the detail pane
-[ ] fix flags in safari
 [ ] text appears and fade in with right timing to tell the story
+[ ] 'i feel lucky' option
 
-[ ] diversify 3d model
+[x] diversify 3d model
+    tried and failed
 [ ] bigger model, bigger viz
 [ ] (feat) better density for individual rows. I don't need to keep all columns the same density
 
@@ -216,8 +227,7 @@
 [ ] I can select no primary demographic and a secondary demographic -> break
 [ ] sort demographic and values by most divisive
 
-[ ] improve loading experience
-[ ] improve barcharts by moving to the background
+[√] improve barcharts by moving to the background
 [ ] drop down selection should not be full-screen
 
 
@@ -236,11 +246,23 @@
 
 ## backlog
 [√] finish data cleaning
-[ ] memoize svg marker triangle for the selected person
 ---
-[ ] add index for country in json stored
-[ ] create a mini-infographic to experiment different way to show the tabular data?
-[ ] add data from previous wave, to be loaded optionally?
+[x] add index for country in json stored
+[x] add data from previous wave, to be loaded optionally?
+
+# Launch
+## Needed for launch
+
+
+
+## Launch plan
+- https://www.reddit.com/r/dataisbeautiful/submit
+    use [OC] 
+    greate an animated gif
+- https://news.ycombinator.com/submit
+
+articles
+http://virostatiq.com/publish-data-visualizations-reach-desired-audience/
 
 
 # Scripts

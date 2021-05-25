@@ -13,6 +13,7 @@ import { ValueRange } from './value_range';
 import { CSSTransition, TransitionGroup } from 'react-transition-group'
 import { isFeatureAvailableSelector } from '../onboarding';
 import { useAccentStyles } from './theme';
+import { isLimitedWidthSelector } from '../selectors';
 
 interface SelectProps {
     label: string | JSX.Element;
@@ -37,11 +38,16 @@ export function Select(props: SelectProps & BoxProps) {
 // ---
 
 function SelectDialog(props: { title: JSX.Element | string, subtitle?: JSX.Element | string, children?: JSX.Element[] | JSX.Element }) {
+    const limitedWidth = isLimitedWidthSelector();
     return (
         <Box display='flex' flexDirection='column'>
-            <Box mb={3}>
-                <Typography variant='h2' align='center'>{props.title}</Typography>
-            </Box>
+            {
+            !limitedWidth ?
+                <Box mb={3}>
+                    <Typography variant='h2' align='center'>{props.title}</Typography>
+                </Box>
+            : null
+            }
             {props.children}
         </Box>
     );
@@ -130,13 +136,14 @@ export function ValuesSelect(props: BoxProps & {variant: 'h1' | 'h2' | 'h3', acc
         dispatch(uiSetSelect({ current: 'value' }));
     };
     return (
-        <Select label={label} height='3rem' onClick={handleClick} {...rest} />
+        <Select label={label} height={height || '3rem'} onClick={handleClick} {...rest} />
     );
 }
 
 export const ValuesView = (props: {onSubmit: (valuesQuery: ValuesQuery) => void}) => {
     const dispatch = useAppDispatch();
     const values = Object.keys(ValuesMap) as (keyof typeof ValuesMap)[];
+    const limitedWidth = isLimitedWidthSelector();
 
     const selectedValue = useAppSelector(state => {
         return state.rawData.valuesQuery.selectedValue;
@@ -145,7 +152,8 @@ export const ValuesView = (props: {onSubmit: (valuesQuery: ValuesQuery) => void}
         return state.rawData.valuesQuery.value;
     });
 
-    const [uiSelectedValue, setUiSelectedValue] = useState(selectedValue);
+    // const [uiSelectedValue, setUiSelectedValue] = useState(selectedValue);
+    const [uiSelectedValue, setUiSelectedValue] = useState(null);
     const [uiSelectedNumericValue, setUiSelectedNumericValue] = useState(numericValue);
 
     const handleValueSelect = (value: keyof typeof ValuesMap) => {
@@ -161,7 +169,12 @@ export const ValuesView = (props: {onSubmit: (valuesQuery: ValuesQuery) => void}
         props.onSubmit({ selectedValue: uiSelectedValue, value: uiSelectedNumericValue });
     };
 
+    const handlePrev = (evt) => {
+        setUiSelectedValue(null)
+    };
+
     const NextButton = <Button accent label='ok' select={false} onClick={handleOk} />
+    const PrevButton = <Button label='< back' select={false} onClick={handlePrev} />
 
     const rangeText = (
         <Box display='flex' alignItems='middle' flexDirection='column' p={4}>
@@ -173,7 +186,8 @@ export const ValuesView = (props: {onSubmit: (valuesQuery: ValuesQuery) => void}
                     <i>"How much do you tolerate <b>{ValuesMap[uiSelectedValue]}</b> in society?"</i>
                 </Typography>
             </Box>
-            <Box mt={2}>
+            <Box mt={2} display='flex' flexDirection='row'>
+                {limitedWidth ? PrevButton : null}
                 {uiSelectedNumericValue > 0 ? NextButton : null}
             </Box>
         </Box>
@@ -190,34 +204,52 @@ export const ValuesView = (props: {onSubmit: (valuesQuery: ValuesQuery) => void}
             </Box>
         );
     })
+    
+    const hideValueButtons = limitedWidth && uiSelectedValue;
 
     return (
         <Fragment>
+            {
+            !hideValueButtons ?
             <Box flex={1} display='flex' flexDirection='column'>
                 {valueButtons}
+            </Box> 
+            : null
+            }
+            <Box display='flex' 
+                flexDirection={limitedWidth ? 'column' : 'row'} 
+                height={limitedWidth ? '100%' : ''}
+                ml={!limitedWidth ? 8 : 0}>
+
+                <CSSTransition in={!!uiSelectedValue} timeout={1000} classNames={{
+                    enter: styles.enterFade,
+                    enterActive: styles.enterActiveFadeWidthDelay,
+                }}>
+                    <Box flexBasis='120px' 
+                        width={limitedWidth ? '200px' : '120px' }
+                        flex={limitedWidth ? 1 : null}
+                        margin={limitedWidth ? 'auto': ''}
+                        mt={'10px'} 
+                        className={styles.fadeHidden} key='key'>
+                        {!!uiSelectedValue ? <ValueRange value={uiSelectedNumericValue} onValueSet={handleNumericValueSet} key='value-range' /> : null}
+                    </Box>
+                </CSSTransition>
+                <CSSTransition in={!!uiSelectedValue} timeout={1000} classNames={{
+                    enter: styles.enterFade,
+                    enterActive: styles.enterActiveFadeWidthDelay,
+                }}>
+                    <Box flex={1} position='relative' className={styles.fadeHidden} key='key'>
+                        {!!uiSelectedValue ? rangeText : null}
+                    </Box>
+                </CSSTransition>
             </Box>
-            <CSSTransition in={!!uiSelectedValue} timeout={1000} classNames={{
-                enter: styles.enterFade,
-                enterActive: styles.enterActiveFadeWidthDelay,
-            }}>
-                <Box flexBasis='120px' mt={'10px'} className={styles.fadeHidden} key='key'>
-                    {!!uiSelectedValue ? <ValueRange value={uiSelectedNumericValue} onValueSet={handleNumericValueSet} key='value-range' /> : null}
-                </Box>
-            </CSSTransition>
-            <CSSTransition in={!!uiSelectedValue} timeout={1000} classNames={{
-                enter: styles.enterFade,
-                enterActive: styles.enterActiveFadeWidthDelay,
-            }}>
-                <Box flex={1} position='relative' className={styles.fadeHidden} key='key'>
-                    {!!uiSelectedValue ? rangeText : null}
-                </Box>
-            </CSSTransition>
         </Fragment>
     );
 }
 
 const valueOverlay = () => {
     const dispatch = useAppDispatch();
+    const limitedWidth = isLimitedWidthSelector();
 
     const onSubmit = (query: ValuesQuery) => {
         dispatch(updateValuesQuery(query));
@@ -226,7 +258,7 @@ const valueOverlay = () => {
    
     return (
         <SelectDialog title={'Select a value from the list'} subtitle='list is ordered by....'>
-            <Box display='flex' flexDirection='row' width='700px' mt={2}>
+            <Box display='flex' flexDirection='row' width={limitedWidth ? '100%' : '700px'} height={limitedWidth ? '100%' : null} mt={2}>
                 <ValuesView onSubmit={onSubmit} />
             </Box>
         </SelectDialog>
@@ -249,7 +281,7 @@ function getDemoSelector(axis: Axis) {
 }
 
 export function DemographicSelect(props: BoxProps & { axis: Axis, variant: 'h1' | 'h2' | 'h3' | 'h4', accent?: boolean }) {
-    const { axis, variant, accent, ...rest} = props;
+    const { axis, variant, accent, height, ...rest} = props;
     const dispatch = useAppDispatch()
     const selectedDemographic = getDemoSelector(axis);
     const typoCls = accent ? useAccentStyles().accentText : '';
@@ -264,7 +296,7 @@ export function DemographicSelect(props: BoxProps & { axis: Axis, variant: 'h1' 
     };
 
     return (
-        <Select label={label} height='3rem' onClick={handleClick} {...rest} />
+        <Select label={label} height={height ?? '3rem'} onClick={handleClick} {...rest} />
     );
 }
 
@@ -278,31 +310,35 @@ export const DemographicView = (props: { axis: Axis, onSubmit: (demo: Observatio
     const isFeatureRemoveButtonAvailable = useAppSelector(isFeatureAvailableSelector('remove_demographic_button'));
 
     const handleDemoSelect = (demo: ObservationDemographics) => {
-        if (demo == null) {
-            // remove filter
-            props.onSubmit(null);
-        } else {
-            setUiSelectedDemo(demo);
-        }
+        setUiSelectedDemo(demo);
+        setTimeout(() => {
+            props.onSubmit(demo);
+        }, 600);
+        // if (demo == null) {
+        //     // remove filter
+        //     props.onSubmit(null);
+        // } else {
+        //     setUiSelectedDemo(demo);
+        // }
     };
 
-    const handleOk = (evt) => {
-        props.onSubmit(uiSelectedDemo);
-    };
+    // const handleOk = (evt) => {
+    //     props.onSubmit(uiSelectedDemo);
+    // };
 
-    const NextButton = <Button accent label='ok' select={false} onClick={handleOk} />
+    // const NextButton = <Button accent label='ok' select={false} onClick={handleOk} />
 
-    const demoText = (
-        <Box display='flex' alignItems='middle' flexDirection='column' p={4}>
-            {/* <Typography variant='h4'>
-                We will display here some info about the demographic you selected.
-                Did you know that <b>{uiSelectedDemo}</b> ... bla bla bla ... in society"
-            </Typography> */}
-            <Box mt={2}>
-                {!!uiSelectedDemo ? NextButton : null}
-            </Box>
-        </Box>
-    );
+    // const demoText = (
+    //     <Box display='flex' alignItems='middle' flexDirection='column' p={4}>
+    //         {/* <Typography variant='h4'>
+    //             We will display here some info about the demographic you selected.
+    //             Did you know that <b>{uiSelectedDemo}</b> ... bla bla bla ... in society"
+    //         </Typography> */}
+    //         <Box mt={2}>
+    //             {!!uiSelectedDemo ? NextButton : null}
+    //         </Box>
+    //     </Box>
+    // );
 
     const demoButtons = [];
 
@@ -323,7 +359,7 @@ export const DemographicView = (props: { axis: Axis, onSubmit: (demo: Observatio
         // add remove demographic button
         demoButtons.push((
             <Box className={styles.valuesButtonContainer} key={'no-filter'} mt={2}>
-                <Button label={'Remove filter'} select={false} onClick={() => handleDemoSelect(null)}> </Button>
+                <Button label={'Remove all filters'} select={false} onClick={() => handleDemoSelect(null)}> </Button>
             </Box>
         ));
     }
@@ -333,9 +369,9 @@ export const DemographicView = (props: { axis: Axis, onSubmit: (demo: Observatio
             <Box flex={1} display='flex' flexDirection='column'>
                 {demoButtons}
             </Box>
-            <FadeInBox visible={!!uiSelectedDemo} flex={1} display='flex' flexDirection='column' justifyContent='flex-end'>
+            {/* <FadeInBox visible={!!uiSelectedDemo} flex={1} display='flex' flexDirection='column' justifyContent='flex-end'>
                 {demoText}
-            </FadeInBox>
+            </FadeInBox> */}
         </Fragment>
     )
 }
@@ -344,13 +380,15 @@ const demographicOverlay = (props: { axis: Axis }) => {
     const axis = props.axis;
     const dispatch = useAppDispatch();
     const selectedDemographic = getDemoSelector(props.axis);
-
-    const [uiSelectedDemo, setUiSelectedDemo] = useState(selectedDemographic);
+    const xDemographic = getDemoSelector('x');
 
     const dispatchDemo = (demo: ObservationDemographics | null) => {
-        if (axis == 'x') {
+        if (demo == null) {
+            dispatch(setSecondaryFilterDemographic({ demographic: null}));
+            dispatch(setPrimaryFilterDemographic({ demographic: null}));
+        } else if (axis == 'x' || xDemographic == null) {
             dispatch(setPrimaryFilterDemographic({ demographic: demo }));
-        } else {
+        } else if (axis == 'y') {
             dispatch(setSecondaryFilterDemographic({ demographic: demo }));
         }
     }

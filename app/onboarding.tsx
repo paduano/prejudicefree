@@ -234,7 +234,7 @@ export const FocusOverlay = () => {
             usedMessageRef.current = currentMessage;
             setTimeout(() => {
                 setVisible(true);
-            }, 4000);
+            }, 8000);
         }
 
         // if we close the focus, reset the ui visible state

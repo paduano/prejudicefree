@@ -1,6 +1,7 @@
 import { debug, pie, PI_HALF, rand, randInCircle, randInGroup, dotsInRect, normalize_1_10_to_0_1 } from "../../../utils/utils";
 import { getDemographicGroupIndex, groupsForDemographic, Observation, ObservationDemographics, ObservationQuery, valuesForObservation, ValuesQuery } from "../../observation";
-import { colorGradientList, getColorIndex } from "../ui_utils";
+import Rand from 'rand-seed';
+import { colorGradientList, getColorIndex } from "../colors";
 
 export interface DotAttributes {
     position?: {
@@ -26,6 +27,7 @@ export interface LayoutParams {
     secondaryFilterDemographic: ObservationDemographics;
     currentRow: number;
     useColors: boolean;
+    hideAll?: boolean;
 }
 
 export interface GroupLayoutInfo {
@@ -35,16 +37,8 @@ export interface GroupLayoutInfo {
     rectHeights: number[][],
     observationsByColorIndex: number[][][], // array for each group
     totalObservations: number[][],
-    yourselfPositions: { x: number, y: number}[][],
+    yourselfPositions: { x: number, y: number }[][],
 }
-
-const blueColor = { r: 117 / 255, g: 189 / 255, b: 255 / 255 };
-const redColor = { r: 236 / 255, g: 72 / 255, b: 82 / 255 };
-
-const colors = Array.from({ length: 255 }, (x, i) => {
-    return { r: 117 / 255, g: 189 / 255, b: i / 255 }
-})
-
 
 const colorGradient = (cListIndex: number) => {
     return {
@@ -68,33 +62,39 @@ export type DotsVizConfiguration<T> = {
     dot?: (index: number, observation: Observation, layoutParams: LayoutParams, state: T) => DotAttributes;
 }
 
-export const DotsUniformConfig: DotsVizConfiguration<void> = {
-    prepare: (layoutParams: LayoutParams) => { return {
-        groupLayoutInfo: {
-            groupPosX: [[0]],
-            groupPosY: [[0]],
-            rectWidths: [[0]],
-            rectHeights: [[0]],
-            observationsByColorIndex: [[0]],
-            totalObservations: [[0]],
-            yourselfPositions: [[{x: 0, y: 0}]],
-        },
-    }},
-    dot: (i: number, ob: Observation, layoutParams: LayoutParams, state: void) => {
-        let x = rand(-6, 6);
-        let y = rand(-4, 4);
-        let z = rand(-4, 0);
+export const DotsUniformConfig: DotsVizConfiguration<{ randomGenerator: Rand}> = {
+    prepare: (layoutParams: LayoutParams) => {
+        const { country_codes } = layoutParams.filterQuery;
+        const seed = country_codes ? country_codes[0] : '123';
+        return {
+            groupLayoutInfo: {
+                groupPosX: [[0]],
+                groupPosY: [[0]],
+                rectWidths: [[0]],
+                rectHeights: [[0]],
+                observationsByColorIndex: [[0]],
+                totalObservations: [[0]],
+                yourselfPositions: [[{ x: 0, y: 0 }]],
+            },
+            randomGenerator: new Rand(seed),
+        }
+    },
+    dot: (i: number, ob: Observation, layoutParams: LayoutParams, state: { randomGenerator: Rand }) => {
+        const { randomGenerator } = state;
+        let x = rand(-6, 6, randomGenerator);
+        let y = rand(-4, 4, randomGenerator);
+        let z = rand(-4, 0, randomGenerator);
         const valuesMatch = valuesForObservation(ob, layoutParams.valuesQuery);
         const colorIndex = getColorIndex(valuesMatch);
-        
-        const color = layoutParams.useColors ? colorGradient(colorIndex) : grayGradient(rand(0, 1));
+
+        const color = layoutParams.useColors ? colorGradient(colorIndex) : grayGradient(rand(.0, 0.7));
         return {
             position: {
                 x,
                 y,
                 z
             },
-            opacity: 1,
+            opacity: layoutParams.hideAll ? 0 : 1,
             color,
         }
     }
@@ -148,12 +148,12 @@ function getDemoFiltersFromFilterQuery(filterQuery: ObservationQuery) {
             demoY = 'religiosity';
         }
     }
-    return {demoX, demoY};
+    return { demoX, demoY };
 }
 
-export interface VizPrepareState { 
-    idPosMap: any, 
-    groupLayoutInfo: GroupLayoutInfo, 
+export interface VizPrepareState {
+    idPosMap: any,
+    groupLayoutInfo: GroupLayoutInfo,
 }
 
 export const DotsTestMultiGroup: DotsVizConfiguration<VizPrepareState> = {
@@ -169,18 +169,18 @@ export const DotsTestMultiGroup: DotsVizConfiguration<VizPrepareState> = {
         const nGroupY = !!demoY ? groupsForDemographic(demoY).length : 1;
         const groups: Observation[][][] = new Array(nGroupX)
             .fill(null).map(() => new Array(nGroupY)
-            .fill(null).map(() => new Array())); // init multi-dimensional empty X Y array
+                .fill(null).map(() => new Array())); // init multi-dimensional empty X Y array
         const observationsByColorIndex: number[][][] = new Array(nGroupX)
             .fill(null).map(() => new Array(nGroupY)
-            .fill(null).map(() => new Array(colorGradientList.length).fill(0))); // X Y array of cList count init at 0s
+                .fill(null).map(() => new Array(colorGradientList.length).fill(0))); // X Y array of cList count init at 0s
         const totalObservations: number[][] = new Array(nGroupX)
             .fill(null).map(() => new Array(nGroupY).fill(0)); // X Y array of 0s
 
         // const yourselfValue = normalize_1_10_to_0_1(valuesQuery.value); 0-1
         const yourselfValue = valuesQuery.value;
-        const yourselfPositions: { x: number, y: number}[][] = new Array(nGroupX)
+        const yourselfPositions: { x: number, y: number }[][] = new Array(nGroupX)
             .fill(null).map(() => new Array(nGroupY)
-            .fill(null));
+                .fill(null));
 
         // 2. group assignment
         // -------------------
@@ -240,13 +240,15 @@ export const DotsTestMultiGroup: DotsVizConfiguration<VizPrepareState> = {
         }
         // compute widths and pos
         let acc_x = 0;
+        const MIN_WIDTH = 0.5;
+        const MIN_HEIGHT = 2;
         for (let x = 0; x < nGroupX; x++) {
             let acc_y = 0;
             for (let y = 0; y < nGroupY; y++) {
                 const hr = totRow[y] / N;
                 const wr = totColumns[x] / N;
-                const width = wr * VIZ_WIDTH;
-                let height = hr * VIZ_HEIGHT;
+                const width = Math.max(wr * VIZ_WIDTH, MIN_WIDTH);
+                let height = Math.max(hr * VIZ_HEIGHT, MIN_HEIGHT);
 
                 rectWidths[x][y] = width;
                 rectHeights[x][y] = height;
@@ -309,7 +311,7 @@ export const DotsTestMultiGroup: DotsVizConfiguration<VizPrepareState> = {
                         x: pos.x + displaceX,
                         y: pos.y + displaceY,
                         groupX: x,
-                        groupY: y 
+                        groupY: y
                     };
                 }
             }
@@ -334,7 +336,7 @@ export const DotsTestMultiGroup: DotsVizConfiguration<VizPrepareState> = {
                 rectWidths,
                 rectHeights,
                 observationsByColorIndex,
-                totalObservations, 
+                totalObservations,
                 yourselfPositions,
             },
         };

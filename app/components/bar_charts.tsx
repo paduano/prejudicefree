@@ -5,20 +5,20 @@ import { groupsForDemographic } from '../observation';
 import { GroupLayoutInfo } from './viz/grid_viz_configs';
 import styles from '../../styles/chart_annotation.module.css'
 import classNames from 'classnames/bind';
-import { colorGradientList, colorGradientListCSS } from './ui_utils';
 import { formatPercent } from '../data/format';
 import { ChartAnnotationWrapper } from './chart_annotation_wrapper';
+import { colorGradientList, colorGradientListCSS } from './colors';
 
 interface Props {
     groupLayoutInfo: GroupLayoutInfo;
-    getAnnotationPos: (x: number, y: number) => {x: number, y: number},
+    getAnnotationPos: (x: number, y: number) => { x: number, y: number },
     getSizeTransform: (v: number) => number,
 }
 
-function renderBarChart(props: {x: number, y: number, height: number, percentages: number[], direction: 'h'|'v', key}) {
-    const { x, y, height, percentages, direction, key} = props;
-        const isVertical = direction == 'v';
-        const isHorizontal = direction == 'h';
+function renderBarChart(props: { x: number, y: number, height: number, percentages: number[], direction: 'h' | 'v', key }) {
+    const { x, y, height, percentages, direction, key } = props;
+    const isVertical = direction == 'v';
+    const isHorizontal = direction == 'h';
 
     const bars = []
     for (let i = percentages.length - 1; i >= 0; i--) {
@@ -26,6 +26,12 @@ function renderBarChart(props: {x: number, y: number, height: number, percentage
         const color = colorGradientListCSS(i);
         const paddingBetweenLines = 2;
         const long = `calc(${percent * 100}% - ${paddingBetweenLines}px)`;
+
+        const percentBlock = <Box ml='4px'>
+            <div className={styles.barchartPercentNumber} style={{ color: color }}>
+                {formatPercent(percent)}
+            </div>
+        </Box>
 
         const barStyle = {
             height: isVertical ? long : '100%',
@@ -40,13 +46,7 @@ function renderBarChart(props: {x: number, y: number, height: number, percentage
         } as any;
         bars.push(
             <div style={barStyle} key={`bar-${i}`}>
-                <Box ml='4px'>
-                    {/* <Typography variant='h3' color={color}> */}
-                    <div className={styles.barchartPercentNumber} style={{color: color}}>
-                        {formatPercent(percent)}
-                    {/* </Typography> */}
-                    </div>
-                </Box>
+                {percent > 0.04 ? percentBlock : null}
             </div>
         );
     }
@@ -69,7 +69,7 @@ function renderBarChart(props: {x: number, y: number, height: number, percentage
 }
 
 export const BarCharts = React.memo((props: Props) => {
-    const { groupLayoutInfo, getAnnotationPos, getSizeTransform} = props;
+    const { groupLayoutInfo, getAnnotationPos, getSizeTransform } = props;
     const demo = useAppSelector(state => {
         return state.rawData.primaryFilterDemographic;
     });
@@ -104,7 +104,7 @@ export const BarCharts = React.memo((props: Props) => {
 
         const direction = isVertical ? 'v' : 'h';
 
-        return renderBarChart({x, y, height: length, percentages, direction, key: i})
+        return renderBarChart({ x, y, height: length, percentages, direction, key: i })
     });
 
     const wrapperStyles = {

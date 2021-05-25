@@ -3,12 +3,13 @@ import { countryCodeTo2, countryCodeToName } from "../data/countries";
 import { AllEntriesStore } from "../observation";
 import { RootState } from "../store";
 import Flags from 'country-flag-icons/react/3x2'
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Box, BoxProps, Typography } from "@material-ui/core";
 import classNames from 'classnames/bind';
 import styles from '../../styles/select.module.css'
 import { CSSTransition } from "react-transition-group";
 import { useAccentStyles } from "./theme";
+import { colorGradientList } from "./colors";
 
 export const MAIN_CONTAINER_ID = 'main-container';
 
@@ -41,66 +42,6 @@ export function mousePos(evt: React.MouseEvent<HTMLElement>, parent: HTMLDivElem
     return {
         x: evt.clientX - parent.offsetLeft, y: evt.clientY - parent.offsetTop
     };
-}
-
-export const color = {
-    // background: '#040728', // blue
-    // accent: '#f7ed5c', // bright yellow 
-    accent: '#fec419', // orangy yellow
-    background: '#030622', // dark blue
-    backgroundWithOpacity: 'rgba(4, 6, 34, 0.8)', // dark blue
-}
-
-export const colorGradientList = [
-    // inverted
-    // [117, 189, 255],
-    // // [158, 202, 225],
-    // [255, 255, 204],
-    // // [255, 237, 160],
-    // [254, 217, 118],
-    // // [254, 178, 76],
-    // // [253, 141, 60],
-    // [252, 78, 42],
-    // // [227, 26, 28],
-    // [177, 0, 38],
-
-    // from red to blue
-    // [177, 0, 38],
-    // [252, 78, 42],
-    // [254, 217, 118],
-    // [255, 255, 204],
-    // [117, 189, 255],
-
-
-    // 3 steps
-    // [234, 28, 28],
-    // [78, 73, 73, 1],
-    // [52, 72, 246],
-
-    // 3 steps for blue background
-    [234, 28, 28],
-    [131, 111, 111],
-    [89, 78, 255],
-]
-
-export const colorGradientListCSS = (index: number) => {
-    const color = colorGradientList[index];
-    return `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
-}
-
-
-export const getColorIndex = (v: number) => {
-    // if (v < 0 || v > 1) {
-    //     throw `${v} not a valid color gradient value`
-    // }
-    // const cListIndex = Math.round(v * (colorGradientList.length - 1));
-    let cListIndex = 1;
-    if (v <= 4) {
-        cListIndex = 0
-    } else if (v >= 7) {
-        cListIndex = 2
-    }
-    return cListIndex;
 }
 
 export const FadeGradient = (props: BoxProps & {orientation: 'top' | 'bottom', destinationColor: string}) => {
@@ -153,6 +94,7 @@ export const Button = (props: { label: string, select: boolean, className?: stri
 export function FadeInBox(props: BoxProps & { visible: boolean }) {
     const { visible, className, children, ...rest } = props;
     const cls = classNames(className, styles.fadeHidden);
+    
     return (
         <CSSTransition in={visible} timeout={1000} classNames={{
             enter: styles.enterFade,
@@ -163,4 +105,27 @@ export function FadeInBox(props: BoxProps & { visible: boolean }) {
             </Box>
         </CSSTransition>
     )
+}
+
+export function FadeInBoxWithDelay(props: BoxProps & {children: any, fadeInAfter?: number}) {
+    const { children, fadeInAfter, ...rest } = props;
+    const [uiVisible, setUiVisible] = useState(false);
+    useEffect(() => {
+        setTimeout(() => {
+            setUiVisible(true);
+        }, fadeInAfter);
+    })
+
+    const style = {
+        opacity: uiVisible ? 1 : 0,
+        transition: `opacity 1000ms linear`,
+    };
+    return <Box style={style} {...rest}>{children}</Box>
+}
+
+export function isLimitedWidth() {
+    if (typeof document !== 'undefined' && document.documentElement && typeof window !== 'undefined') {
+        const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0)
+        return vw < 1000;
+    } else return false;
 }

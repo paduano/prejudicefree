@@ -6,8 +6,8 @@ import { getReadableDescriptionForDemographic, getReadableDescriptionForGroupVal
 import { GroupLayoutInfo } from './viz/grid_viz_configs';
 import styles from '../../styles/chart_annotation.module.css'
 import classNames from 'classnames/bind';
-import { colorGradientList, colorGradientListCSS } from './ui_utils';
 import { ChartAnnotationWrapper } from './chart_annotation_wrapper';
+import { colorGradientList, colorGradientListCSS } from './colors';
 
 interface Props {
 }

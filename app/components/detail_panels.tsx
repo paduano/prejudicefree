@@ -1,12 +1,9 @@
-import React, { Fragment, useEffect } from 'react';
+import React, { Fragment, useEffect, useRef, useState } from 'react';
 import Typography from '@material-ui/core/Typography';
 import { Box } from '@material-ui/core';
-import { useAppDispatch, useAppSelector } from '../hooks';
-import { getReadableDescriptionForDemographic, getReadableDescriptionForGroupValue, getReadableGroupDescriptor, groupsForDemographic, Observation, ValuesMap } from '../observation';
-import { GroupLayoutInfo } from './viz/grid_viz_configs';
-import axisStyles from '../../styles/chart_annotation.module.css'
-import classNames from 'classnames/bind';
-import { colorGradientList, colorGradientListCSS, getColorIndex } from './ui_utils';
+import { useAppSelector } from '../hooks';
+import { getReadableGroupDescriptor, Observation, ValuesMap } from '../observation';
+import { color, getColorIndex } from './colors';
 import { educationLevels } from '../data/legend';
 import { countryCodeToName } from '../data/countries';
 import { formatPercent } from '../data/format';
@@ -15,11 +12,13 @@ import YouMarker from './you_marker';
 import { isFeatureAvailableSelector } from '../onboarding';
 import { useAccentStyles } from './theme';
 import { SelectionMarker } from './selection_marker';
+import styles from '../styles/detail_panel.module.css'
+import { countryNameAppSelector } from '../selectors';
 
 interface Props {
 }
 
-// const formatScore = (s: number) => `${Math.trunc(s * 9 + 1)}/10`; // 1-10
+const formatScore0to1 = (s: number) => `${Math.trunc(s * 9 + 1)}/10`; // 1-10
 const formatScore = (s: number) => `${s}/10`;
 const formatScoreOneDecimal = (s: number) => {
     // let v = (s * 9 + 1); // 1-10
@@ -74,7 +73,7 @@ const describeObservation = (o: Observation) => {
             <b>Gender:</b> {o.sex == 'M' ? 'male' : 'female'} <br/>
             <b>Born:</b> {o.birth_year} <br />
             <b>Education:</b>  {educationLevels[o.education]} <br />
-            <b>Income range:</b> {formatScore(o.income_quantiles/10)} <br />
+            <b>Income range:</b> {formatScore0to1(o.income_quantiles/10)} <br />
             <b>Religious:</b> {o.is_religious ? 'yes' : 'no'} <br />
             <div>•</div>
             {tolerate.length > 0 ? <Box mb={1}>
@@ -115,6 +114,34 @@ export const SelectedObservation = React.memo((props: Props) => {
 // YOU PANEL
 // -----------
 
+const FlashingPercent = (props: {children: string}) => {
+    const {children} = props;
+    const oldChild = useRef(null);
+    const [uiPaint, setUiPaint] = useState(false);
+    const duration = 1000;
+    
+    useEffect(() => {
+        if (children !== oldChild.current) {
+            oldChild.current = children;
+            setUiPaint(true);
+            setTimeout(() => {
+                setUiPaint(false);
+            }, duration);
+        }
+
+    }, [children]);
+
+    const style = {
+        color: uiPaint ? color.accent : '#FFFFFF',
+        transition: `color ${duration}ms linear`,
+    } as any;
+
+    return (
+        <span style={style}>{children}</span>
+    );
+
+}
+
 const describeYourself = () => {
     const selectedValue = useAppSelector(state => {
         return state.rawData.valuesQuery.selectedValue;
@@ -132,13 +159,7 @@ const describeYourself = () => {
         return state.rawData.currentColumn;
     });
 
-    const countryName = useAppSelector(state => {
-        if (state.rawData.filterQuery.country_codes && state.rawData.filterQuery.country_codes.length > 0) {
-            return countryCodeToName[state.rawData.filterQuery.country_codes[0]];
-        } else {
-            return '';
-        }
-    });
+    const countryName = countryNameAppSelector();
 
     const demo1 = useAppSelector(state => {
         return state.rawData.primaryFilterDemographic;
@@ -155,14 +176,16 @@ const describeYourself = () => {
         getReadableGroupDescriptor(currentColumn, currentRow, demo1, demo2) + ', ';
 
     const below = (
-        <Fragment> <b>{formatPercent(groupStats.nBelow / groupStats.totalObservations)}{' '}</b> is more opposed to the topic than you </Fragment>
+        <Fragment> <b><FlashingPercent>{formatPercent(groupStats.nBelow / groupStats.totalObservations)}</FlashingPercent></b>
+         {' '}is more opposed to the topic than you </Fragment>
     );
 
     const above = (
-        <Fragment> <b>{formatPercent(groupStats.nAbove / groupStats.totalObservations)}</b> is more tolerant</Fragment>
+        <Fragment> <b><FlashingPercent>{formatPercent(groupStats.nAbove / groupStats.totalObservations)}</FlashingPercent></b> 
+         {' '}is more tolerant</Fragment>
     );
 
-    const samePercentText = formatPercent(groupStats.nLikeYou / groupStats.totalObservations);
+    const samePercentText = <FlashingPercent>{formatPercent(groupStats.nLikeYou / groupStats.totalObservations)}</FlashingPercent>;
     const valueText = ValuesMap[selectedValue];
     const youTolerateValueText = <b>{numericValue}/10</b>;
     return (
@@ -174,12 +197,12 @@ const describeYourself = () => {
                 <Box mt={1}>
                     <Typography variant='h6'>
                         {groupDesc} <b>{samePercentText}</b> has given the same answer than you, and 
-                        the average is <b>{formatScoreOneDecimal(groupStats.average)}</b>.
+                        the average is <b><FlashingPercent>{formatScoreOneDecimal(groupStats.average)}</FlashingPercent></b>.
                     </Typography>
                 </Box>
                 <Box mt={1}>
                     <Typography variant='h6'>
-                       {below} and {above}
+                       {below} and {above}.
                     </Typography>
                 </Box>
             </Box>
