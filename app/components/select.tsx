@@ -40,7 +40,7 @@ export function Select(props: SelectProps & BoxProps) {
 function SelectDialog(props: { title: JSX.Element | string, subtitle?: JSX.Element | string, children?: JSX.Element[] | JSX.Element }) {
     const limitedWidth = isLimitedWidthSelector();
     return (
-        <Box display='flex' flexDirection='column'>
+        <Box display='flex' flexDirection='column' alignItems='stretch'>
             {
             !limitedWidth ?
                 <Box mb={3}>
@@ -218,7 +218,6 @@ export const ValuesView = (props: {onSubmit: (valuesQuery: ValuesQuery) => void}
             }
             <Box display='flex' 
                 flexDirection={limitedWidth ? 'column' : 'row'} 
-                height={limitedWidth ? '100%' : ''}
                 ml={!limitedWidth ? 8 : 0}>
 
                 <CSSTransition in={!!uiSelectedValue} timeout={1000} classNames={{
