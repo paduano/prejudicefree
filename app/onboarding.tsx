@@ -149,6 +149,11 @@ export function getCurrentVizConfigSelector(state: RootState) {
 export function getCurrentOnboardingMessageSelector(state: RootState): null|OnboardingMessage {
     const step = getCurrentStep(state);
     const messageStep = state.rawData.currentOnboardingMessageStepIndex;
+
+    if (state.rawData.isLimitedWidth) {
+        return null;
+    }
+
     if (step.messages && messageStep != null && messageStep < step.messages.length) {
         return step.messages[messageStep];
     } else {

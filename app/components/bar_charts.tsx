@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box } from '@material-ui/core';
+import { Box, useTheme } from '@material-ui/core';
 import { useAppSelector } from '../hooks';
 import { groupsForDemographic } from '../observation';
 import { GroupLayoutInfo } from './viz/grid_viz_configs';
@@ -19,6 +19,7 @@ function renderBarChart(props: { x: number, y: number, height: number, percentag
     const { x, y, height, percentages, direction, key } = props;
     const isVertical = direction == 'v';
     const isHorizontal = direction == 'h';
+    const theme = useTheme();
 
     const bars = []
     for (let i = percentages.length - 1; i >= 0; i--) {
@@ -28,7 +29,11 @@ function renderBarChart(props: { x: number, y: number, height: number, percentag
         const long = `calc(${percent * 100}% - ${paddingBetweenLines}px)`;
 
         const percentBlock = <Box ml='4px'>
-            <div className={styles.barchartPercentNumber} style={{ color: color }}>
+            <div className={styles.barchartPercentNumber} 
+                style={{ 
+                    color: color,
+                    fontSize: theme.typography.h3.fontSize }
+                }>
                 {formatPercent(percent)}
             </div>
         </Box>

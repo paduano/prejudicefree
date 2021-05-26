@@ -23,7 +23,7 @@ interface SelectProps {
 
 export function Select(props: SelectProps & BoxProps) {
     const chevronSize = '';
-    const {onClick, label, ...rest} = props;
+    const { onClick, label, ...rest } = props;
     return (
         <Box className={styles.container} onClick={props.onClick} {...rest}>
             <div className={styles.innerContainer} style={{ height: props.height }}>
@@ -40,13 +40,13 @@ export function Select(props: SelectProps & BoxProps) {
 function SelectDialog(props: { title: JSX.Element | string, subtitle?: JSX.Element | string, children?: JSX.Element[] | JSX.Element }) {
     const limitedWidth = isLimitedWidthSelector();
     return (
-        <Box display='flex' flexDirection='column' alignItems='stretch'>
+    <Box display='flex' flexDirection='column' alignItems='stretch'>
             {
-            !limitedWidth ?
-                <Box mb={3}>
-                    <Typography variant='h2' align='center'>{props.title}</Typography>
-                </Box>
-            : null
+                !limitedWidth ?
+                    <Box mb={3}>
+                        <Typography variant='h2' align='center'>{props.title}</Typography>
+                    </Box>
+                    : null
             }
             {props.children}
         </Box>
@@ -68,7 +68,7 @@ function getCountryValueSelector() {
 }
 
 export function CountrySelect(props: BoxProps) {
-    const {height, ...rest} = props;
+    const { height, ...rest } = props;
     const dispatch = useAppDispatch()
     const countryValue = getCountryValueSelector();
 
@@ -76,7 +76,7 @@ export function CountrySelect(props: BoxProps) {
         dispatch(uiSetSelect({ current: 'country' }));
     };
     const flag = countryValue ? (
-        <div style={{'height': '100%', display:'inline-block'}}>
+        <div style={{ 'height': '100%', display: 'inline-block' }}>
             {getFlagFromCountryCode(countryValue, styles.flagSvg)}
         </div>
     ) : null;
@@ -94,15 +94,31 @@ const countryOverlay = () => {
         dispatch(updateObservationsQuery({ country_codes: [code] }))
     };
     function countryMenuItems(codes: string[]) {
-        return codes.map(code => {
+        const items = [];
+        codes.sort((a, b) => countryCodeToName[a] < countryCodeToName[b] ? -1 : 1)
+        let currentLetter = '';
+        for (let i = 0; i < codes.length; i++) {
+            const code = codes[i];
+            const letter = countryCodeToName[code].charAt(0)
+            if (currentLetter != letter) {
+                currentLetter = letter;
+                items.push(
+                    <Box width='100%' mt={4} key={`country-${code}`}>
+                        <Typography variant='h2'>{currentLetter.toUpperCase()}</Typography>
+                    </Box>
+                )
+            }
+            
             const flag = getFlagFromCountryCode(code, styles.openSelectFlag);
-            return (
+            items.push(
                 <div className={styles.openSelectItem} key={code} onClick={() => handleCountryChange(code)}>
                     {flag}
                     <Typography variant='h3'> {countryCodeToName[code]} </Typography>
                 </div>
-            )
-        })
+            );
+
+        }
+        return items;
     }
     const menuItems = countryMenuItems(countries);
     return (
@@ -117,8 +133,8 @@ const countryOverlay = () => {
 
 // Value ----
 
-export function ValuesSelect(props: BoxProps & {variant: 'h1' | 'h2' | 'h3', accent?: boolean}) {
-    const { height, variant, accent, ...rest} = props;
+export function ValuesSelect(props: BoxProps & { variant: 'h1' | 'h2' | 'h3', accent?: boolean }) {
+    const { height, variant, accent, ...rest } = props;
     const dispatch = useAppDispatch()
     const selectedValue = useAppSelector(state => {
         return state.rawData.valuesQuery.selectedValue;
@@ -126,11 +142,11 @@ export function ValuesSelect(props: BoxProps & {variant: 'h1' | 'h2' | 'h3', acc
 
     const typoCls = accent ? useAccentStyles().accentText : '';
 
-    const label = selectedValue ? 
+    const label = selectedValue ?
         <Typography variant={variant} className={typoCls}>
-            {ValuesMap[selectedValue]} 
+            {ValuesMap[selectedValue]}
         </Typography>
-    : '...';
+        : '...';
 
     const handleClick = () => {
         dispatch(uiSetSelect({ current: 'value' }));
@@ -140,8 +156,10 @@ export function ValuesSelect(props: BoxProps & {variant: 'h1' | 'h2' | 'h3', acc
     );
 }
 
-export const ValuesView = (props: {onSubmit: (valuesQuery: ValuesQuery) => void}) => {
-    const dispatch = useAppDispatch();
+export const ValuesView = (props: {
+    onSelect?: (v: keyof typeof ValuesMap) => void, 
+    onSubmit: (valuesQuery: ValuesQuery) => void }
+) => {
     const values = Object.keys(ValuesMap) as (keyof typeof ValuesMap)[];
     const limitedWidth = isLimitedWidthSelector();
 
@@ -159,6 +177,7 @@ export const ValuesView = (props: {onSubmit: (valuesQuery: ValuesQuery) => void}
     const handleValueSelect = (value: keyof typeof ValuesMap) => {
         setUiSelectedValue(value);
         setUiSelectedNumericValue(0);
+        props.onSelect?.(value);
     };
 
     const handleNumericValueSet = (value: number) => {
@@ -171,6 +190,7 @@ export const ValuesView = (props: {onSubmit: (valuesQuery: ValuesQuery) => void}
 
     const handlePrev = (evt) => {
         setUiSelectedValue(null)
+        props.onSelect?.(null);
     };
 
     const NextButton = <Button accent label='ok' select={false} onClick={handleOk} />
@@ -179,7 +199,7 @@ export const ValuesView = (props: {onSubmit: (valuesQuery: ValuesQuery) => void}
     const rangeText = (
         <Box display='flex' alignItems='middle' flexDirection='column' p={4}>
             <Typography variant='h4'>
-                Choose a value from 1 to 10 on the scale, answering the question: 
+                Choose a value from 1 to 10 on the scale, answering the question:
             </Typography>
             <Box mt={2}>
                 <Typography variant='h2'>
@@ -204,31 +224,33 @@ export const ValuesView = (props: {onSubmit: (valuesQuery: ValuesQuery) => void}
             </Box>
         );
     })
-    
+
     const hideValueButtons = limitedWidth && uiSelectedValue;
 
     return (
         <Fragment>
             {
-            !hideValueButtons ?
-            <Box flex={1} display='flex' flexDirection='column'>
-                {valueButtons}
-            </Box> 
-            : null
+                !hideValueButtons ?
+                    <Box flex={1} display='flex' flexDirection='column'>
+                        {valueButtons}
+                    </Box>
+                    : null
             }
-            <Box display='flex' 
-                flexDirection={limitedWidth ? 'column' : 'row'} 
+            <Box display='flex'
+                flexDirection={limitedWidth ? 'column' : 'row'}
                 ml={!limitedWidth ? 8 : 0}>
 
                 <CSSTransition in={!!uiSelectedValue} timeout={1000} classNames={{
                     enter: styles.enterFade,
                     enterActive: styles.enterActiveFadeWidthDelay,
                 }}>
-                    <Box flexBasis='120px' 
-                        width={limitedWidth ? '200px' : '120px' }
-                        flex={limitedWidth ? 1 : null}
-                        margin={limitedWidth ? 'auto': ''}
-                        mt={'10px'} 
+                    <Box 
+                        flexBasis={limitedWidth ? undefined : '200px'}
+                        // flex={limitedWidth ? 1 : null}
+                        height={limitedWidth ? '50vh' : undefined}
+                        width={limitedWidth ? '200px' : undefined}
+                        margin={limitedWidth ? 'auto' : ''}
+                        mt={'10px'}
                         className={styles.fadeHidden} key='key'>
                         {!!uiSelectedValue ? <ValueRange value={uiSelectedNumericValue} onValueSet={handleNumericValueSet} key='value-range' /> : null}
                     </Box>
@@ -254,7 +276,7 @@ const valueOverlay = () => {
         dispatch(updateValuesQuery(query));
         dispatch(uiSetSelect({ current: null }));
     }
-   
+
     return (
         <SelectDialog title={'Select a value from the list'} subtitle='list is ordered by....'>
             <Box display='flex' flexDirection='row' width={limitedWidth ? '100%' : '700px'} height={limitedWidth ? '100%' : null} mt={2}>
@@ -280,7 +302,7 @@ function getDemoSelector(axis: Axis) {
 }
 
 export function DemographicSelect(props: BoxProps & { axis: Axis, variant: 'h1' | 'h2' | 'h3' | 'h4', accent?: boolean }) {
-    const { axis, variant, accent, height, ...rest} = props;
+    const { axis, variant, accent, height, ...rest } = props;
     const dispatch = useAppDispatch()
     const selectedDemographic = getDemoSelector(axis);
     const typoCls = accent ? useAccentStyles().accentText : '';
@@ -299,7 +321,7 @@ export function DemographicSelect(props: BoxProps & { axis: Axis, variant: 'h1' 
     );
 }
 
-export const DemographicView = (props: { axis: Axis, onSubmit: (demo: ObservationDemographics|null) => void}) => {
+export const DemographicView = (props: { axis: Axis, onSubmit: (demo: ObservationDemographics | null) => void }) => {
     const axis = props.axis;
     const selectedDemographic = getDemoSelector(axis);
     const otherDemographic = getDemoSelector(axis == 'x' ? 'y' : 'x');
@@ -378,13 +400,14 @@ export const DemographicView = (props: { axis: Axis, onSubmit: (demo: Observatio
 const demographicOverlay = (props: { axis: Axis }) => {
     const axis = props.axis;
     const dispatch = useAppDispatch();
+    const limitedWidth = isLimitedWidthSelector();
     const selectedDemographic = getDemoSelector(props.axis);
     const xDemographic = getDemoSelector('x');
 
     const dispatchDemo = (demo: ObservationDemographics | null) => {
         if (demo == null) {
-            dispatch(setSecondaryFilterDemographic({ demographic: null}));
-            dispatch(setPrimaryFilterDemographic({ demographic: null}));
+            dispatch(setSecondaryFilterDemographic({ demographic: null }));
+            dispatch(setPrimaryFilterDemographic({ demographic: null }));
         } else if (axis == 'x' || xDemographic == null) {
             dispatch(setPrimaryFilterDemographic({ demographic: demo }));
         } else if (axis == 'y') {
@@ -392,14 +415,14 @@ const demographicOverlay = (props: { axis: Axis }) => {
         }
     }
 
-    const handleOnSubmit = (demo: ObservationDemographics|null) => {
+    const handleOnSubmit = (demo: ObservationDemographics | null) => {
         dispatchDemo(demo);
         dispatch(uiSetSelect({ current: null }));
     }
 
     return (
         <SelectDialog title={'Select a demographic from the list'} subtitle='list is ordered by....'>
-            <Box display='flex' flexDirection='row' width='700px' mt={2}>
+            <Box display='flex' flexDirection='row' width={limitedWidth ? '100%' : '700px'} mt={2}>
                 <DemographicView onSubmit={handleOnSubmit} axis={axis} />
             </Box>
         </SelectDialog>

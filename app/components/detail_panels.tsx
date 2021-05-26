@@ -1,8 +1,8 @@
 import React, { Fragment, useEffect, useRef, useState } from 'react';
 import Typography from '@material-ui/core/Typography';
 import { Box } from '@material-ui/core';
-import { useAppSelector } from '../hooks';
-import { getReadableGroupDescriptor, Observation, ValuesMap } from '../observation';
+import { useAppDispatch, useAppSelector } from '../hooks';
+import { getReadableDescriptionForDemographic, getReadableDescriptionForGroupValue, getReadableGroupDescriptor, groupsForDemographic, Observation, ObservationDemographics, ValuesMap } from '../observation';
 import { color, getColorIndex } from './colors';
 import { educationLevels } from '../data/legend';
 import { countryCodeToName } from '../data/countries';
@@ -14,6 +14,8 @@ import { useAccentStyles } from './theme';
 import { SelectionMarker } from './selection_marker';
 import styles from '../styles/detail_panel.module.css'
 import { countryNameAppSelector } from '../selectors';
+import { Button } from './ui_utils';
+import { setCurrentColumn, setCurrentRow } from '../store';
 
 interface Props {
 }
@@ -28,7 +30,7 @@ const formatScoreOneDecimal = (s: number) => {
     if (v % 1 >= 0.1) {
         vstring = v.toFixed(1);
     } else {
-        vstring = ''+Math.trunc(v);
+        vstring = '' + Math.trunc(v);
     }
     return `${vstring}/10`;
 }
@@ -59,7 +61,7 @@ const describeObservation = (o: Observation) => {
         if (o[k] != undefined) {
             return (
                 <Fragment key={`just-${k}`}>
-                    {`${ValuesMap[k]}:`}{' '}{formatScore(o[k] as number)}<br/>
+                    {`${ValuesMap[k]}:`}{' '}{formatScore(o[k] as number)}<br />
                 </Fragment>
             );
         } else return null;
@@ -70,14 +72,14 @@ const describeObservation = (o: Observation) => {
     const unsure = sortedValues.filter(a => getColorIndex(o[a]) == 1);
     return (
         <Fragment>
-            <b>Gender:</b> {o.sex == 'M' ? 'male' : 'female'} <br/>
+            <b>Gender:</b> {o.sex == 'M' ? 'male' : 'female'} <br />
             <b>Born:</b> {o.birth_year} <br />
             <b>Education:</b>  {educationLevels[o.education]} <br />
-            <b>Income range:</b> {formatScore0to1(o.income_quantiles/10)} <br />
+            <b>Income range:</b> {formatScore0to1(o.income_quantiles / 10)} <br />
             <b>Religious:</b> {o.is_religious ? 'yes' : 'no'} <br />
             <div>•</div>
             {tolerate.length > 0 ? <Box mb={1}>
-                <b>Tolerates</b><br/>
+                <b>Tolerates</b><br />
                 {tolerate.map(k => renderJustify(k))}
             </Box> : null}
             {oppose.length > 0 ? <Box mb={1}>
@@ -114,12 +116,12 @@ export const SelectedObservation = React.memo((props: Props) => {
 // YOU PANEL
 // -----------
 
-const FlashingPercent = (props: {children: string}) => {
-    const {children} = props;
+const FlashingPercent = (props: { children: string }) => {
+    const { children } = props;
     const oldChild = useRef(null);
     const [uiPaint, setUiPaint] = useState(false);
     const duration = 1000;
-    
+
     useEffect(() => {
         if (children !== oldChild.current) {
             oldChild.current = children;
@@ -171,23 +173,51 @@ const describeYourself = () => {
 
     const entireCountry = !demo1 && !demo2;
 
-    const groupDesc = entireCountry ? 
-        `In ${countryName}` : 
+    const groupDesc = entireCountry ?
+        `In ${countryName}` :
         getReadableGroupDescriptor(currentColumn, currentRow, demo1, demo2) + ', ';
 
     const below = (
         <Fragment> <b><FlashingPercent>{formatPercent(groupStats.nBelow / groupStats.totalObservations)}</FlashingPercent></b>
-         {' '}is more opposed to the topic than you </Fragment>
+            {' '}is more opposed to the topic than you </Fragment>
     );
 
     const above = (
-        <Fragment> <b><FlashingPercent>{formatPercent(groupStats.nAbove / groupStats.totalObservations)}</FlashingPercent></b> 
-         {' '}is more tolerant</Fragment>
+        <Fragment> <b><FlashingPercent>{formatPercent(groupStats.nAbove / groupStats.totalObservations)}</FlashingPercent></b>
+            {' '}is more tolerant</Fragment>
     );
 
     const samePercentText = <FlashingPercent>{formatPercent(groupStats.nLikeYou / groupStats.totalObservations)}</FlashingPercent>;
     const valueText = ValuesMap[selectedValue];
     const youTolerateValueText = <b>{numericValue}/10</b>;
+
+    const moveYourself = (demo: ObservationDemographics) => {
+        const groups = groupsForDemographic(demo);
+        const moveButtons = groups.map((_, i) => {
+            const dispatch = useAppDispatch();
+            let select = false;
+            let handleClick = () => {};
+            if (demo == demo1) {
+                handleClick = () => dispatch(setCurrentColumn({ column: i }));
+                select = i == currentColumn;
+            } else if (demo == demo2) {
+                handleClick = () => dispatch(setCurrentRow({ row: i }));
+                select = i == currentRow;
+            }
+            const label = getReadableDescriptionForGroupValue(demo, i);
+            return <Button small select={select} label={label} onClick={handleClick} mr={1}></Button>
+        });
+        return (
+            <Box mt={2}>
+                {/* <div style={{borderTop: '1px solid white'}}></div> */}
+                <b><u>Change your {getReadableDescriptionForDemographic(demo)}:</u></b>
+                <Box display='flex' flexWrap='wrap'>
+                    {moveButtons}
+                </Box>
+            </Box>
+        )
+    };
+
     return (
         <Fragment>
             <Box display='flex' flexDirection='column'>
@@ -196,15 +226,19 @@ const describeYourself = () => {
                 </Typography>
                 <Box mt={1}>
                     <Typography variant='h6'>
-                        {groupDesc} <b>{samePercentText}</b> has given the same answer than you, and 
+                        {groupDesc} <b>{samePercentText}</b> has given the same answer than you, and
                         the average is <b><FlashingPercent>{formatScoreOneDecimal(groupStats.average)}</FlashingPercent></b>.
                     </Typography>
                 </Box>
                 <Box mt={1}>
                     <Typography variant='h6'>
-                       {below} and {above}.
+                        {below} and {above}.
                     </Typography>
                 </Box>
+
+                {demo1 ? moveYourself(demo1) : null}
+                {demo2 ? moveYourself(demo2) : null}
+
             </Box>
         </Fragment>
     );
@@ -229,7 +263,7 @@ export const YourselfInfo = React.memo((props: Props) => {
 
 // ----
 
-export const SidePanel = (props: {children: any, hide: boolean, title: string, marker?: JSX.Element}) => {
+export const SidePanel = (props: { children: any, hide: boolean, title: string, marker?: JSX.Element }) => {
     const wrapperStyles = {
         width: '100%',
         minHeight: '100px',

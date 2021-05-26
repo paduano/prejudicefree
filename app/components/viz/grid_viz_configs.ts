@@ -209,7 +209,9 @@ export const DotsTestMultiGroup: DotsVizConfiguration<VizPrepareState> = {
 
         // 4. layout variables
         // ------------------
-        const VIZ_WIDTH = 6;
+        const GROUP_PADDING_X = 0.8;
+        const GROUP_PADDING_Y = 3;
+        const VIZ_WIDTH = 5 - GROUP_PADDING_X * (nGroupX-1);
         let VIZ_HEIGHT = 4;
         if (nGroupY == 2) {
             VIZ_HEIGHT = 5;
@@ -220,8 +222,6 @@ export const DotsTestMultiGroup: DotsVizConfiguration<VizPrepareState> = {
         if (nGroupY == 4) {
             VIZ_HEIGHT = 8;
         }
-        const GROUP_PADDING_X = 0.8;
-        const GROUP_PADDING_Y = 3;
         // const SPACE_Y_FOR_OTHER_ROWS = 1.5; 
         const rectWidths: number[][] = new Array(nGroupX).fill(null).map(() => new Array(nGroupY).fill(0)); // init 2 dim with 0
         const rectHeights: number[][] = new Array(nGroupX).fill(null).map(() => new Array(nGroupY).fill(0)); // init 2 dim with 0
@@ -293,7 +293,8 @@ export const DotsTestMultiGroup: DotsVizConfiguration<VizPrepareState> = {
                     const valuesMatch = valuesForObservation(o, valuesQuery);
                     const colorIndex = getColorIndex(valuesMatch);
                     observationsByColorIndex[x][y][colorIndex]++;
-                    const valueInBetween = (yourselfValue >= lastObservationValuesMatch && yourselfValue <= valuesMatch);
+                    // const valueInBetween = (yourselfValue >= lastObservationValuesMatch && yourselfValue <= valuesMatch);
+                    const valueInBetween = (yourselfValue >= lastObservationValuesMatch);
                     if (yourselfPositions[x][y] == null || valueInBetween) {
                         yourselfPositions[x][y] = pos;
                     }

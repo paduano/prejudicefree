@@ -13,6 +13,7 @@ import { Plus } from './plus';
 import { Minus } from './minus';
 import { ChartAnnotationWrapper } from './chart_annotation_wrapper';
 import { getCurrentOnboardingMessageSelector } from '../onboarding';
+import { isLimitedWidthSelector } from '../selectors';
 
 interface Props {
     groupLayoutInfo: GroupLayoutInfo;
@@ -21,6 +22,7 @@ interface Props {
 }
 
 export const AxisY = React.memo((props: Props) => {
+    const limitedWidth = isLimitedWidthSelector();
     const { groupLayoutInfo, getAnnotationPos, getSizeTransform } = props;
     const dispatch = useAppDispatch()
     const demo = useAppSelector(state => {
@@ -33,8 +35,15 @@ export const AxisY = React.memo((props: Props) => {
 
     const demoGroups = groupsForDemographic(demo);
     const getSegmentPos = () => {
-        const y3d = groupLayoutInfo.groupPosY[0][currentRow] + groupLayoutInfo.rectHeights[0][currentRow];
-        return getAnnotationPos(groupLayoutInfo.groupPosX[0][currentRow], y3d);
+        if (limitedWidth) {
+            return {
+                x: 0,
+                y: 48,
+            }
+        } else {
+            const y3d = groupLayoutInfo.groupPosY[0][currentRow] + groupLayoutInfo.rectHeights[0][currentRow];
+            return getAnnotationPos(groupLayoutInfo.groupPosX[0][currentRow], y3d);
+        }
     }
     const getSegmentHeight = () => getSizeTransform(groupLayoutInfo.rectHeights[0][currentRow]);
     const { x, y } = getSegmentPos();
@@ -45,7 +54,7 @@ export const AxisY = React.memo((props: Props) => {
     const legendTitleStyle = {
     };
     const legendTitle = (
-        <Box style={legendTitleStyle}>
+        <Box style={legendTitleStyle} mr={limitedWidth ? 1 : 0}>
             <Typography align='left' variant='h3'>
                 {getReadableDescriptionForDemographic(demo).toUpperCase()}
             </Typography>
@@ -71,6 +80,7 @@ export const AxisY = React.memo((props: Props) => {
     const minusButtonEnabled = currentRow > 0;
 
     const buttonStyle = (enabled: boolean, position: 'top' | 'bottom') => {
+        const buttonTransform = position == 'top' ? 'translateY(-100%)' : 'translateY(100%)';
         return {
             cursor: 'pointer',
             position: 'absolute',
@@ -78,7 +88,7 @@ export const AxisY = React.memo((props: Props) => {
             left: position == 'top' ? 0 : undefined,
             bottom: position == 'bottom' ? 0 : undefined,
             width: '100%',
-            transform: position == 'top' ? 'translateY(-100%)' : 'translateY(100%)',
+            transform: buttonTransform,
         } as any;
     };
 
@@ -124,32 +134,43 @@ export const AxisY = React.memo((props: Props) => {
     // segment
 
     const segmentStyle = {
-        left: x,
+        left: limitedWidth ? undefined : x,
+        right: limitedWidth ? 0 : undefined,
         top: y,
-        transform: 'translateX(-100%)',
-        height: getSegmentHeight(),
+        transform: limitedWidth ? '' : 'translateX(-100%)',
+        height: limitedWidth ? undefined : getSegmentHeight(),
     };
 
-    const ySegment = (
+    let ySegment = (
         <Box pr={2} position='absolute' style={segmentStyle} key={`axis-y-segment`}>
             {/* buttons container */}
             <Box position='relative' display='flex' flexDirection='row' height='100%'>
                 {plusButton}
                 {minusButton}
                 {/* legend */}
-                <Box pr={2} display='flex' flexDirection='column' justifyContent='center' minWidth='100px'>
+                <Box pr={2} display='flex' flexDirection={limitedWidth ? 'row' : 'column'} justifyContent='center' minWidth='100px'>
                     {legendTitle}
-                    <Typography align='left' variant='h5'>
+                    <Typography align='left' variant='h5' noWrap>
                         {getReadableDescriptionForGroupValue(demo, currentRow)}
                     </Typography>
                 </Box>
-                {squareDiv}
+                {limitedWidth ? null : squareDiv}
             </Box>
         </Box>
     );
 
+    // if (limitedWidth) {
+    //     ySegment = (
+    //         <Box display='flex'>
+    //             {legendTitle}:
+    //             <Typography align='left' variant='h5'>
+    //                 {getReadableDescriptionForGroupValue(demo, currentRow)}
+    //             </Typography>
+    //         </Box>
+    //     );
+    // }
     return (
-        <ChartAnnotationWrapper position='absolute' display='flex' flexDirection='column' >
+        <ChartAnnotationWrapper position='absolute' display='flex' flexDirection='column' width='100%' >
             <Box position='relative'>
                 {ySegment}
             </Box>

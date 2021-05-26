@@ -29,7 +29,7 @@
 .selectOverlayContainer {
     display: flex;
     justify-content: center;
-    padding-top: 3rem;
+    /* padding-top: 3rem; */
     /* align-items: center; */
     position: absolute;
     min-height: 100vh;

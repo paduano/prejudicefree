@@ -130,6 +130,12 @@ export const invertedThemeMobile = createMuiTheme(invertedTheme, {
         h2: {
             fontSize: '1.5rem',
         },
+        h3: {
+            fontSize: '0.8rem',
+        },
+        h5: {
+            fontSize: '0.7rem',
+        },
     }
 
 });

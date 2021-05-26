@@ -14,6 +14,7 @@ import { DetailPanel } from '../app/components/detail_panels';
 import { FocusOverlay, isFeatureAvailableSelector } from '../app/onboarding';
 import { color } from '../app/components/colors';
 import { NavBar } from '../app/components/navbar';
+import { throttle } from 'throttle-debounce';
 
 const GridViz = dynamic(() => import('../app/components/viz/grid_viz').then((module) => module.GridViz as any), {
   ssr: false,
@@ -25,6 +26,7 @@ interface MVPProps {
   selectOverlay?: UISelect;
   featureLegendEnabled: boolean,
   limitedWidth: boolean,
+  viewportWidth: number,
 }
 
 interface MVPState {
@@ -49,6 +51,7 @@ export class MVP extends React.Component<MVPProps, MVPState> {
     }).then(() => {
       this.setState({ assetsLoaded: true });
     });
+
   }
 
   loadingComplete() {
@@ -66,12 +69,16 @@ export class MVP extends React.Component<MVPProps, MVPState> {
   }
 
   renderSelectOverlay() {
+    const { limitedWidth } = this.props;
     if (this.props.selectOverlay.current) {
       const Overlay = SelectOverlays[this.props.selectOverlay.current] as any;
       return (
-        <div className={styles.selectOverlayContainer} style={{ background: color.background }}>
+        <Box className={styles.selectOverlayContainer} 
+          pt={limitedWidth ? undefined : '3rem'}
+          p={limitedWidth ? '1rem' : undefined}
+          style={{ background: color.background }}>
           <Overlay {...this.props.selectOverlay.params} />
-        </div>
+        </Box>
       );
     } else {
       return null;
@@ -83,10 +90,11 @@ export class MVP extends React.Component<MVPProps, MVPState> {
   }
 
   renderLegendWithLayout() {
+    const { limitedWidth } = this.props;
     return (
       <Box display='flex' width='100%' justifyContent='center'>
         <Box flex={4} />
-        <Box flex={2} mt={4}>
+        <Box flex={2} mt={limitedWidth ? 2 : 4} pr={4}>
           {this.props.featureLegendEnabled ? <Legend /> : null}
         </Box>
       </Box>
@@ -94,16 +102,17 @@ export class MVP extends React.Component<MVPProps, MVPState> {
   }
 
   renderViz() {
-    const { limitedWidth } = this.props;
+    const { limitedWidth, viewportWidth } = this.props;
     if (limitedWidth) {
       return (
-        <Box style={{ overflowY: 'hidden' }} width={'100%'}>
-          <GridViz width={450} height={300} backgroundColor={color.background} />
+        <Box style={{ overflowX: 'hidden' }} width={'100%'}>
+          <GridViz width={viewportWidth} height={400} backgroundColor={color.background} />
+          {this.renderLegendWithLayout()}
         </Box>
       );
     } else {
       return (
-        <GridViz width={900} height={600} backgroundColor={color.background} />
+        <GridViz width={900} height={600} backgroundColor={color.background} limitedWidth />
       );
     }
   }
@@ -135,15 +144,15 @@ export class MVP extends React.Component<MVPProps, MVPState> {
                 {this.renderViz()}
 
                 {/* right column */}
-                <Box display='flex' flexDirection='column' flexGrow={1} justifyContent='center' zIndex={1 /* force new stacking context */}>
-                  <Box pl={1} width={limitedWidth ? '100%' : '200px'}>
+                <Box display='flex' flexDirection='column' flexGrow={1} justifyContent='center' zIndex={10 /* force new stacking context */}>
+                  <Box pl={1} width={limitedWidth ? '100%' : '240px'} pb={limitedWidth ? 4 : 0} pr={limitedWidth ? 0 : 2}>
                     <DetailPanel />
                   </Box>
                 </Box>
               </Box>
 
               {/* legend */}
-              {this.renderLegendWithLayout()}
+              {limitedWidth ? null : this.renderLegendWithLayout()}
             </Box>
           ) : "Loading"}
         </div>
@@ -158,6 +167,7 @@ function mapStateToProps(state: RootState, ownProps: MVPProps) {
     selectOverlay: state.rawData.uiSelect,
     featureLegendEnabled: isFeatureAvailableSelector('legend')(state),
     limitedWidth: state.rawData.isLimitedWidth,
+    viewportWidth: state.rawData.viewportWidth,
   }
 }
 

@@ -8,11 +8,13 @@ import styles from '../../styles/chart_annotation.module.css'
 import classNames from 'classnames/bind';
 import { ChartAnnotationWrapper } from './chart_annotation_wrapper';
 import { colorGradientList, colorGradientListCSS } from './colors';
+import { isLimitedWidthSelector } from '../selectors';
 
 interface Props {
 }
 
 export const Legend = React.memo((props: Props) => {
+    const limitedWidth = isLimitedWidthSelector();
 
     const colorDivs = colorGradientList.map((c, i) => {
         const color = colorGradientListCSS(i);
@@ -41,7 +43,7 @@ export const Legend = React.memo((props: Props) => {
     })
 
     const wrapperStyles = {
-        width: '200px',
+        width: limitedWidth ? '120px' : '200px',
     } as any;
 
     return (

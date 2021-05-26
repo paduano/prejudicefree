@@ -6,7 +6,7 @@ import { AllEntriesStore, AltObservationQuery, AltStatsAndQuery, filterAndStatOb
 import { OnboardingObjectPositions, ONBOARDING_STEPS_LIST } from './onboarding';
 import { useAppSelector } from './hooks';
 import { countryCodeToName } from './data/countries';
-import { isLimitedWidth } from './components/ui_utils';
+import { isLimitedWidth, viewportWidth } from './components/ui_utils';
 
 // Define a type for the slice state
 export interface StoreState {
@@ -32,6 +32,7 @@ export interface StoreState {
     onboardingObjectPositions: OnboardingObjectPositions,
 
     isLimitedWidth: boolean,
+    viewportWidth: number,
 }
 
 export type SelectTypes = 'country' | 'value' | 'demographic';
@@ -93,6 +94,7 @@ const initialState: StoreState = {
 
     onboardingObjectPositions: {},
     isLimitedWidth: isLimitedWidth(),
+    viewportWidth: viewportWidth(),
 }
 
 // overrides
@@ -100,7 +102,7 @@ const initialState: StoreState = {
 // initialState.primaryFilterDemographic = 'age';
 // initialState.secondaryFilterDemographic = 'education';
 // initialState.valuesQuery.selectedValue = 'justify_abortion';
-// initialState.valuesQuery.value = 8;
+// initialState.valuesQuery.value = 6;
 
 const applyObservationsQueryReducer = (state: StoreState, allEntries: AllEntriesStore, filterQuery: ObservationQuery) => {
     const { filteredEntries, stats, altStatsAndQuery } = filterAndStatObservationsWithVariations(allEntries, filterQuery);

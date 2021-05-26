@@ -1,11 +1,11 @@
-import React, { Fragment } from 'react';
+import React, { Fragment, useState } from 'react';
 import Typography from '@material-ui/core/Typography';
 import { useAccentStyles } from './theme';
 import { Box, useTheme } from '@material-ui/core';
 import { useAppDispatch, useAppSelector } from '../hooks';
 import { nextOnboardingStep, setPrimaryFilterDemographic, setSecondaryFilterDemographic, updateValuesQuery } from '../store';
 import { ObservationDemographics, ValuesMap, ValuesQuery } from '../observation';
-import { FadeGradient, FadeInBoxWithDelay} from './ui_utils';
+import { FadeGradient, FadeInBoxWithDelay } from './ui_utils';
 import { CountrySelect, DemographicSelect, DemographicView, ValuesSelect, ValuesView } from './select';
 import styles from '../../styles/titles.module.css'
 import { getCurrentStep, NextOnboardingStepButton, OnboardingStepTypes } from '../onboarding';
@@ -22,13 +22,13 @@ export function FullTitle() {
         width: '100%',
     } as any;
     return (
-        <Box display='flex' style={containerStyles} flexDirection='column'  zIndex='9'>
+        <Box display='flex' style={containerStyles} flexDirection='column' zIndex='9'>
             <Box>
                 <Typography variant='h1' >
                     What{' '}
                     <CountrySelect ml={1} mr={1} mb={0} height={theme.typography.h1.fontSize} />
                     {' '} thinks about {' '}
-                    <ValuesSelect variant='h1' height={theme.typography.h1.fontSize}/>
+                    <ValuesSelect variant='h1' height={theme.typography.h1.fontSize} />
                 </Typography>
             </Box>
             <Box mt={1}>
@@ -44,8 +44,9 @@ export function FullTitle() {
 }
 
 const NextHeaderPrompt = (props: { children: JSX.Element | JSX.Element[] | string, nextLabel?: string }) => {
+    const limitedWidth = isLimitedWidthSelector();
     return (
-        <Box display='flex' alignItems='center' pr={6} >
+        <Box display='flex' alignItems='center' flexWrap={limitedWidth ? 'wrap' : undefined} pr={!limitedWidth ? 6 : 0} >
             {props.children}
             <Box flexGrow={1} />
             <NextOnboardingStepButton display='inline-block' nextLabel={props.nextLabel} />
@@ -76,13 +77,14 @@ const SimpleHeaderTitle = (props: { children: string }) => {
 
 const TitleSelector = (props: { primaryDemographic?: boolean, secondaryDemographic?}) => {
     const classes = useAccentStyles();
+    const theme = useTheme();
     return (
         <Box mb={1}>
-            <Box display='flex' alignItems='center'>
+            <Box display='flex' alignItems='center' flexWrap='wrap'>
                 <Typography variant='h2' display='inline' className={classes.accentText}> What{' '} </Typography>
-                <CountrySelect ml={1} mr={1} mb={0} />
+                <CountrySelect ml={1} mr={1} mb={0} height={theme.typography.h1.fontSize} />
                 <Typography variant='h2' display='inline' className={classes.accentText}> {' '} thinks about {' '} </Typography>
-                <ValuesSelect variant='h2' ml={1} mr={1} mb={0} accent />
+                <ValuesSelect variant='h2' ml={1} mr={1} mb={0} accent height={theme.typography.h1.fontSize} />
             </Box>
             {props.primaryDemographic || props.secondaryDemographic ? (
                 <Box display='flex' alignItems='center'>
@@ -108,15 +110,18 @@ const TitleSelector = (props: { primaryDemographic?: boolean, secondaryDemograph
 }
 
 export function Header() {
-    const headerBaseHeight = '7rem';
+    const limitedWidth = isLimitedWidthSelector();
+    const onboardingStep = useAppSelector(getCurrentStep);
+
+    const params = HeaderParams[onboardingStep.type] || {};
+
+    const headerBaseHeight = limitedWidth && params.headerMaxHeightForLimitedWidth ? undefined : '7rem';
     const outerContainerStyle = {
     }
     const innerContainerStyle = {
         backgroundColor: color.backgroundWithOpacity,
     }
-    const limitedWidth = isLimitedWidthSelector();
 
-    const onboardingStep = useAppSelector(getCurrentStep);
 
     const HeaderContent = HeaderContents[onboardingStep.type];
     if (!HeaderContent) {
@@ -134,8 +139,8 @@ export function Header() {
             <Box
                 id='title-inner-container'
                 position='relative'
-                margin={limitedWidth ? 0 :  'auto'}
-                p={limitedWidth ? 2 :  0}
+                margin={limitedWidth ? 0 : 'auto'}
+                p={limitedWidth ? 2 : 0}
                 style={innerContainerStyle}
                 minHeight={headerBaseHeight}
                 width={limitedWidth ? '100%' : 900}
@@ -143,11 +148,31 @@ export function Header() {
                 <HeaderContent />
                 {/* <div style={backStyle}></div> */}
             </Box>
-            <FadeGradient width={limitedWidth ? '100%' : 900}  margin='auto' destinationColor={color.backgroundWithOpacity} orientation='top' />
+            { headerBaseHeight == undefined ? null :
+                <FadeGradient width={limitedWidth ? '100%' : 900} margin='auto' destinationColor={color.backgroundWithOpacity} orientation='top' />
+            }
         </Box>
     );
 }
 
+
+const HeaderParams = {
+    [OnboardingStepTypes.VIZ_RANDOM]: {
+        headerMaxHeightForLimitedWidth: true,
+    },
+    [OnboardingStepTypes.VIZ_ONE_GROUP]: {
+        headerMaxHeightForLimitedWidth: true,
+    },
+    [OnboardingStepTypes.VIZ_DEMO_X]: {
+        headerMaxHeightForLimitedWidth: true,
+    },
+    [OnboardingStepTypes.VIZ_DEMO_Y]: {
+        headerMaxHeightForLimitedWidth: true,
+    },
+    [OnboardingStepTypes.COMPLETE_VIZ]: {
+        headerMaxHeightForLimitedWidth: true,
+    }
+}
 
 
 const HeaderContents = {
@@ -200,18 +225,24 @@ const HeaderContents = {
             dispatch(updateValuesQuery(query));
             dispatch(nextOnboardingStep());
         }
+        const limitedWidth = isLimitedWidthSelector();
+        const [uiSelectedValue, setUiSelectedValue] = useState(null);
         return (
             <Fragment>
-                <SimpleHeaderTitle>
-                    Select a topic.
-                </SimpleHeaderTitle>
+                {limitedWidth && uiSelectedValue ? null : (
+                    <Fragment>
+                        <SimpleHeaderTitle>
+                            Select a topic.
+                        </SimpleHeaderTitle>
 
-                <Typography variant='h4'>
-                    I listed below a number of things that people may find divisive or controversial.
-                    Pick the topic you'd like to dive in.
-                </Typography>
-                <Box display='flex' flexDirection='row' width='100%' mt={4}>
-                    <ValuesView onSubmit={onValuesSubmit} />
+                        <Typography variant='h4'>
+                            I listed below a number of things that people may find divisive or controversial.
+                            Pick the topic you'd like to dive in.
+                        </Typography>
+                    </Fragment>
+                )}
+                <Box display='flex' flexDirection={limitedWidth ? 'column' : 'row'} width='100%' mt={4}>
+                    <ValuesView onSubmit={onValuesSubmit} onSelect={(v) => setUiSelectedValue(v)} />
                 </Box>
             </Fragment>
         );
@@ -321,12 +352,13 @@ const HeaderContents = {
     * visualize demo x
     */
     [OnboardingStepTypes.VIZ_DEMO_X]: () => {
+        const limitedWidth = isLimitedWidthSelector();
         const onboardingMessageStep = useAppSelector(state => state.rawData.currentOnboardingMessageStepIndex);
         return (
             <Fragment>
                 <TitleSelector primaryDemographic />
 
-                {onboardingMessageStep == null ?
+                {onboardingMessageStep == null || limitedWidth ?
                     <FadeInBoxWithDelay fadeInAfter={4000}>
                         <NextHeaderPrompt>
                             <Typography variant='h4' display='inline' >
@@ -369,12 +401,13 @@ const HeaderContents = {
     * visualize demo y
     */
     [OnboardingStepTypes.VIZ_DEMO_Y]: () => {
+        const limitedWidth = isLimitedWidthSelector();
         const onboardingMessageStep = useAppSelector(state => state.rawData.currentOnboardingMessageStepIndex);
         // for now, same as full viz
         return (
             <Fragment>
                 <FullTitle />
-                {onboardingMessageStep == null &&
+                {onboardingMessageStep == null || limitedWidth &&
                     <FadeInBoxWithDelay fadeInAfter={4000} mt={2}>
                         <NextHeaderPrompt nextLabel='Got it'>
                             <Typography variant='h4' display='inline' >

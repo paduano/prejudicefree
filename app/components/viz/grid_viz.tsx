@@ -58,6 +58,8 @@ interface GridVizProps extends ThreeCanvasProps {
     isIntro: boolean,
     cameraInFront: boolean,
 
+    limitedWidth: boolean;
+
     featureColoredMenEnabled: boolean;
     featureChartsEnabled: boolean;
     featurePickingEnabled: boolean;
@@ -876,10 +878,11 @@ function mapStateToProps(state: RootState, ownProps: GridVizProps) {
         currentColumn: state.rawData.currentColumn,
         animationInProgress: state.rawData.animationInProgress,
         vizConfig: getCurrentVizConfigSelector(state),
-        disableCameraTrack: !!getCurrentOnboardingMessageSelector(state),
+        disableCameraTrack: !!getCurrentOnboardingMessageSelector(state) || state.rawData.isLimitedWidth,
         currentOnboardingMessage: getCurrentOnboardingMessageSelector(state),
         isIntro: getCurrentStep(state).type < OnboardingStepTypes.VIZ_RANDOM,
         cameraInFront: getCurrentStep(state).type < OnboardingStepTypes.VIZ_ONE_GROUP,
+        limitedWidth: state.rawData.isLimitedWidth,
 
         featureColoredMenEnabled: isFeatureAvailableSelector('colored_men')(state),
         featureChartsEnabled: isFeatureAvailableSelector('charts')(state),

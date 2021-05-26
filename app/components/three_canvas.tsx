@@ -21,7 +21,7 @@ export interface ThreeCanvasProps {
     width: number;
     height: number;
     backgroundColor: string;
-
+    limitedWidth: boolean;
 }
 
 export interface ThreeCanvasState {
@@ -133,10 +133,13 @@ export class ThreeCanvas<T, S> extends React.Component<ThreeCanvasProps & T, Thr
     }
 
     getSizeTransform = (v: number) => {
-        const { width, height } = this.props;
+        const { limitedWidth, width, height } = this.props;
         // return v * width / 10.2;
-        return v * 800 / 10.2;
-        // return v * 450 / 10.2;
+        if (limitedWidth) {
+            return v * 550 / 10.2;
+        } else {
+            return v * 800 / 10.2;
+        }
     }
 
     getPosFromAnnotationPos = (x: number, y: number) => {
@@ -251,7 +254,7 @@ export class ThreeCanvas<T, S> extends React.Component<ThreeCanvasProps & T, Thr
 
 
     render = () => {
-        const { width, height } = this.props;
+        const { width, height, limitedWidth } = this.props;
         const { annotationLayerTransform } = this.state;
         const layerStyle = {
             width,
@@ -315,7 +318,7 @@ export class ThreeCanvas<T, S> extends React.Component<ThreeCanvasProps & T, Thr
                     </div>
                 </div>
 
-                <FadeGradient destinationColor={color.background} position='absolute' orientation='bottom' bottom='0' left='0' />
+                {limitedWidth ? null : <FadeGradient destinationColor={color.background} position='absolute' orientation='bottom' bottom='0' left='0' />}
 
             </div>
         )
