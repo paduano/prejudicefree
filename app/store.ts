@@ -7,6 +7,7 @@ import { OnboardingObjectPositions, ONBOARDING_STEPS_LIST } from './onboarding';
 import { useAppSelector } from './hooks';
 import { countryCodeToName } from './data/countries';
 import { isLimitedWidth, viewportWidth } from './components/ui_utils';
+import { analyticsMiddleware, getAnalytics } from './analytics';
 
 // Define a type for the slice state
 export interface StoreState {
@@ -98,7 +99,7 @@ const initialState: StoreState = {
 }
 
 // overrides
-// initialState.currentOnboardingStepIndex = 2;
+// initialState.currentOnboardingStepIndex = 8;
 // initialState.primaryFilterDemographic = 'age';
 // initialState.secondaryFilterDemographic = 'education';
 // initialState.valuesQuery.selectedValue = 'justify_abortion';
@@ -168,6 +169,7 @@ export const rawDataSlice = createSlice({
             state.primaryFilterDemographic = action.payload.demographic;
             state.currentRow = 0;
             state.currentColumn = 0;
+            getAnalytics().track('event');
             applyFilterCountryAndDemographicsReducer(
                 state,
                 state.allEntries,
@@ -283,15 +285,15 @@ export const {
     nextOnboardingStep,
     setOnboardingObjectPositions,
     nextOnboardingMessage,
-} = rawDataSlice.actions
+} = rawDataSlice.actions;
 
-// store set up
-export const store = configureStore({
-    middleware: [thunk],
-    reducer: {
-        rawData: rawDataSlice.reducer,
-    },
-})
+// store set up in store_definition
+// export const store = configureStore({
+//     middleware: [thunk, analyticsMiddleware],
+//     reducer: {
+//         rawData: rawDataSlice.reducer,
+//     },
+// })
 
-export type RootState = ReturnType<typeof store.getState>
-export type AppDispatch = typeof store.dispatch
+// export type RootState = ReturnType<typeof store.getState>
+// export type AppDispatch = typeof store.dispatch

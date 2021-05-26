@@ -662,16 +662,16 @@ class GridVizView extends ThreeCanvas<GridVizProps, GridVizState> {
         this.instancedMaterial.uniforms.yourselfPosition.value = this.yourselfPosition;
 
         // note the x,y inversion
-        const rotX = !disableCameraTrack ? this.mouseRelPos.x / CAMERA_ROT : 0;
-        const rotY = !disableCameraTrack ? this.mouseRelPos.y / CAMERA_ROT + this.cameraOffsetRotation.rot : 0;
+        const finalRotX = !disableCameraTrack ? this.mouseRelPos.x / CAMERA_ROT : 0;
+        const finalRotY = !disableCameraTrack ? this.mouseRelPos.y / CAMERA_ROT + this.cameraOffsetRotation.rot : 0;
 
         // smooth move of the camera and transform layers
         const maxDegree = dt / 2; // speed
         const currentRot = this.cameraPivot.rotation;
-        const drotX = rotX - currentRot.y;
-        const drotY = rotY - currentRot.x;
-        const destRotX = currentRot.y + Math.sign(drotX) * Math.min(Math.abs(drotX), maxDegree);
-        const destRotY = currentRot.x + Math.sign(drotY) * Math.min(Math.abs(drotY), maxDegree);
+        const deltaRotX = finalRotX - currentRot.y;
+        const deltaRotY = finalRotY - currentRot.x;
+        const destRotX = currentRot.y + Math.sign(deltaRotX) * Math.min(Math.abs(deltaRotX), maxDegree);
+        const destRotY = currentRot.x + Math.sign(deltaRotY) * Math.min(Math.abs(deltaRotY), maxDegree);
 
         this.cameraPivot.rotation.y = destRotX;
         this.cameraPivot.rotation.x = destRotY ;

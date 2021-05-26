@@ -1,17 +1,10 @@
-import React, { Fragment, useMemo } from 'react';
+import React, {  } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
 import Slider from '@material-ui/core/Slider';
-import { ThemeProvider } from '@material-ui/styles';
-import theme from './theme';
-import { FormControl, FormLabel, RadioGroup, FormControlLabel, Radio, Box, InputLabel, MenuItem, Select, Switch, Checkbox } from '@material-ui/core';
-import { countryCodeToName } from '../data/countries';
-import { ageRanges, educationLevels, educationRanges, getIndexFromRange } from '../data/legend';
+import { Box, Checkbox } from '@material-ui/core';
 import { useAppDispatch, useAppSelector } from '../hooks';
-import { RootState, updateObservationsQuery, updateValuesQuery } from '../store';
-import { shallowEqual, useSelector } from 'react-redux';
-import { createSelector } from '@reduxjs/toolkit';
-import { AllEntriesStore, Observation } from '../observation';
+import { updateValuesQuery } from '../store';
 
 const useStyles = makeStyles((theme) => ({
   root: {

@@ -203,19 +203,23 @@
 [√] improve select with hover
 [√] fix education ranges. For italy for istance they are wrong
 [√] about page
-[!] google analytics 
+[ ] google analytics 
+    https://developers.google.com/analytics/devguides/collection/analyticsjs/sending-hits
+    -> or use npm install analytics --save
+    guide: https://mariestarck.com/add-google-analytics-to-your-next-js-application-in-5-easy-steps/
+    use .env.local https://nextjs.org/docs/basic-features/environment-variables
 [!] performance improvements
 [!] copy check
 [!] fix flags in safari
 [!] improve loading experience
-[ ] make buttons actual buttons
+[x] make buttons actual buttons
 [√] fix next css bug
 [!] mobile
 [√] change title
 [√] domenico's bug
-[ ] improve next prompt with different location
-[ ] flashing numbers in the detail pane
-[ ] text appears and fade in with right timing to tell the story
+[x] improve next prompt with different location
+[√] flashing numbers in the detail pane
+[√] text appears and fade in with right timing to tell the story
 [ ] 'i feel lucky' option
 
 [x] diversify 3d model
@@ -223,9 +227,9 @@
 [ ] bigger model, bigger viz
 [ ] (feat) better density for individual rows. I don't need to keep all columns the same density
 
-[ ] handle remove filter option, is a bit confusing
+[x] handle remove filter option, is a bit confusing
 [ ] How to reformat the subtitle if you don't select a X or a Y option?
-[ ] I can select no primary demographic and a secondary demographic -> break
+[√] I can select no primary demographic and a secondary demographic -> break
 [ ] sort demographic and values by most divisive
 
 [√] improve barcharts by moving to the background
@@ -234,7 +238,7 @@
 
 [ ] fix - text selection on annotation should not be possible
 [ ] fix missing flag for netherlan antilles, using flag from NL
-[ ] fix screen resizing
+[√] fix screen resizing
 [ ] experiment disabling z-buffering and rendering a model with a countorur on top
 
 [ ] one group viz should not be horizontal, inconsistent with next one
@@ -268,7 +272,7 @@ http://virostatiq.com/publish-data-visualizations-reach-desired-audience/
 
 # Scripts
 - $> npm run dev
-- push:  git push -u origin mai
+- push:  git push -u origin main
 
 # vscode
 - look at instruction for vim https://github.com/VSCodeVim/Vim

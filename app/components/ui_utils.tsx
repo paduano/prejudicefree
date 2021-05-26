@@ -1,7 +1,7 @@
 import { createSelector } from "@reduxjs/toolkit";
 import { countryCodeTo2, countryCodeToName } from "../data/countries";
 import { AllEntriesStore } from "../observation";
-import { RootState } from "../store";
+import { RootState } from "../store_definition";
 import Flags from 'country-flag-icons/react/3x2'
 import React, { useEffect, useState } from "react";
 import { Box, BoxProps, Typography } from "@material-ui/core";

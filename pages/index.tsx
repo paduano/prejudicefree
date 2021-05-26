@@ -1,7 +1,7 @@
 import styles from '../styles/demo.module.css'
 
 import { connect } from 'react-redux';
-import { fetchAllVizData, RootState, setViewportWidth, UISelect } from '../app/store';
+import { fetchAllVizData, setViewportWidth, UISelect } from '../app/store';
 import React from 'react';
 import { Box, ThemeProvider, Typography } from '@material-ui/core';
 import { invertedTheme, invertedThemeMobile } from '../app/components/theme';
@@ -15,6 +15,7 @@ import { FocusOverlay, isFeatureAvailableSelector } from '../app/onboarding';
 import { color } from '../app/components/colors';
 import { NavBar } from '../app/components/navbar';
 import { throttle } from 'throttle-debounce';
+import { RootState } from '../app/store_definition';
 
 const GridViz = dynamic(() => import('../app/components/viz/grid_viz').then((module) => module.GridViz as any), {
   ssr: false,

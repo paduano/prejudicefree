@@ -3,6 +3,7 @@ import Document, { Html, Head, Main, NextScript } from 'next/document';
 import { ServerStyleSheets } from '@material-ui/core/styles';
 import theme from '../app/components/theme';
 
+
 export default class MyDocument extends Document {
   render() {
     return (
@@ -14,6 +15,29 @@ export default class MyDocument extends Document {
             rel="stylesheet"
             href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap"
           />
+          <script type='module' dangerouslySetInnerHTML={{
+            // __html: `window.initAnalytics()`
+            __html: `
+              import analytics from 'https://unpkg.com/analytics/lib/analytics.browser.es.js?module'
+              import analyticsGa from 'https://unpkg.com/@analytics/google-analytics/lib/analytics-plugin-ga.browser.es.js?module'
+              /* Initialize analytics */
+              const Analytics = analytics({
+                app: 'prejudice-free',
+                debug: true,
+                plugins: [
+                  analyticsGa({
+                    trackingId: '${process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS}',
+                    debug: true,
+                  })
+                ]
+              })
+
+              /* Track a page view */
+              Analytics.page()
+
+              window.Analytics = Analytics;
+            `
+          }} />
         </Head>
         <body>
           <Main />

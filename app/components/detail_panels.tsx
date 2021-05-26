@@ -205,7 +205,7 @@ const describeYourself = () => {
                 select = i == currentRow;
             }
             const label = getReadableDescriptionForGroupValue(demo, i);
-            return <Button small select={select} label={label} onClick={handleClick} mr={1}></Button>
+            return <Button small select={select} label={label} onClick={handleClick} mr={1} key={`button-${i}`}></Button>
         });
         return (
             <Box mt={2}>
