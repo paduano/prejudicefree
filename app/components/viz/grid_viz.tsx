@@ -28,7 +28,7 @@ import { color } from '../colors';
 
 const PI_2 = 1.57079632679489661923;
 const POINT_COUNT = 5000;
-const TWEEN_TRANSITION_TIME = 2000;
+const TWEEN_TRANSITION_TIME = 2400;
 const CAMERA_ROT = 15;
 // const TWEEN_TRANSITION_TIME = 100;
 
@@ -128,12 +128,12 @@ class GridVizView extends ThreeCanvas<GridVizProps, GridVizState> {
     componentDidMount() {
         super.componentDidMount();
 
-        this.annotationCanvasRef.current.onclick = this.onClick;
-        this.annotationCanvasRef.current.onmousedown = this.onMouseDown;
-        this.annotationCanvasRef.current.onmouseup = this.onMouseUp;
-        this.annotationCanvasRef.current.onmouseleave = this.onMouseLeave;
-        this.annotationCanvasRef.current.onmouseenter = this.onMouseEnter;
-        this.annotationCanvasRef.current.onmousemove = this.onMouseMove;
+        this.annotationLayerRef.current.onclick = this.onClick;
+        this.annotationLayerRef.current.onmousedown = this.onMouseDown;
+        this.annotationLayerRef.current.onmouseup = this.onMouseUp;
+        this.annotationLayerRef.current.onmouseleave = this.onMouseLeave;
+        this.annotationLayerRef.current.onmouseenter = this.onMouseEnter;
+        this.annotationLayerRef.current.onmousemove = this.onMouseMove;
     }
 
 
@@ -145,6 +145,11 @@ class GridVizView extends ThreeCanvas<GridVizProps, GridVizState> {
             this.props.secondaryFilterDemographic != prevProp.secondaryFilterDemographic;
         const currentRowChanged = this.props.currentRow != prevProp.currentRow;
         const vizConfigChanged = this.props.vizConfig != prevProp.vizConfig;
+
+        // resize window
+        if (this.props.width != prevProp.width || this.props.height != prevProp.height) {
+            this.resizeWindow();
+        }
 
         if (vizConfigChanged || obsChanged || valuesChanged || demographicFilterChanged || currentRowChanged) {
             this.nextStep(this.props.vizConfig);
@@ -169,7 +174,10 @@ class GridVizView extends ThreeCanvas<GridVizProps, GridVizState> {
 
         if (!this.props.cameraInFront && prevProp.cameraInFront) {
             this.introRotateCamera();
+            this.instancedMaterial.depthWrite = true;
         }
+
+
     }
 
     getCurrentAttributes(current: boolean) {
@@ -396,7 +404,6 @@ class GridVizView extends ThreeCanvas<GridVizProps, GridVizState> {
 
 
     onMouseDown = (evt: MouseEvent) => {
-        console.log('onMouseDown')
         const mousePos = getMousePos(this.canvasRef.current, evt);
         if (this.testPickYourself(mousePos)) {
             this.startDraggingYourself(mousePos)
@@ -409,7 +416,6 @@ class GridVizView extends ThreeCanvas<GridVizProps, GridVizState> {
     }
 
     onMouseUp = (evt: MouseEvent) => {
-        console.log('onMouseUp')
         const mousePos = getMousePos(this.canvasRef.current, evt);
 
         if (this.state.isDraggingYourself) {
@@ -421,7 +427,7 @@ class GridVizView extends ThreeCanvas<GridVizProps, GridVizState> {
     mouseEnterCounter = 0;
     onMouseEnter = (evt: MouseEvent) => {
         this.mouseEnterCounter++;
-        console.log('onMouseEnter ' + this.mouseEnterCounter)
+        // console.log('onMouseEnter ' + this.mouseEnterCounter)
     }
 
     onMouseLeave = (evt: MouseEvent) => {
@@ -453,7 +459,7 @@ class GridVizView extends ThreeCanvas<GridVizProps, GridVizState> {
             const mousePos = getMousePos(this.canvasRef.current, evt);
             this.dragYourselfToPos(mousePos);
         } else if (this.props.featurePickingEnabled) {
-            this.throttledPicAPerson(evt)
+            this.throttledPickAPerson(evt)
         }
     }
 
@@ -552,6 +558,7 @@ class GridVizView extends ThreeCanvas<GridVizProps, GridVizState> {
             fragmentShader: instanceFragShader
         });
         this.instancedMaterial.transparent = true;
+        this.instancedMaterial.depthWrite = !this.props.cameraInFront;
         this.instancedGeometry = (threeAssets.man.children[0] as THREE.Mesh).geometry.clone(); // clone to not break HMR
         this.instancedGeometry.scale(0.05, 0.05, 0.05);
 
@@ -804,7 +811,7 @@ class GridVizView extends ThreeCanvas<GridVizProps, GridVizState> {
         } else return null
     }
 
-    throttledPicAPerson = throttle(200, false /* no trailing */, (evt: MouseEvent) => {
+    throttledPickAPerson = throttle(200, false /* no trailing */, (evt: MouseEvent) => {
         if (!this.state.isDraggingYourself) {
             const mousePos = getMousePos(this.canvasRef.current, evt);
             this.pickAPerson(mousePos);

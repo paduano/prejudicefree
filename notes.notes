@@ -208,11 +208,11 @@
 [!] copy check
 [!] fix flags in safari
 [!] improve loading experience
-[!] make buttons actual buttons
+[ ] make buttons actual buttons
 [√] fix next css bug
 [!] mobile
 [√] change title
-[!] domenico's bug
+[√] domenico's bug
 [ ] improve next prompt with different location
 [ ] flashing numbers in the detail pane
 [ ] text appears and fade in with right timing to tell the story
@@ -274,6 +274,7 @@ http://virostatiq.com/publish-data-visualizations-reach-desired-audience/
 - look at instruction for vim https://github.com/VSCodeVim/Vim
     <leader: \> + w with camel case enabled
 - cmd + ald + down arrow to use multi cursor
+- cmd + u to add edit marked at line
 
 # coding
 - this bug was nasty: a = new Array(2).fill(null).map(() => new Array(2).fill([])); was producing a[0][1] === a[0][0] TRUE!

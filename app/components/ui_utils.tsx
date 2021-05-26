@@ -11,6 +11,7 @@ import { CSSTransition } from "react-transition-group";
 import { useAccentStyles } from "./theme";
 import { colorGradientList } from "./colors";
 import { isLimitedWidthSelector } from "../selectors";
+import { useAppSelector } from "../hooks";
 
 export const MAIN_CONTAINER_ID = 'main-container';
 
@@ -60,14 +61,15 @@ export const FadeGradient = (props: BoxProps & {orientation: 'top' | 'bottom', d
 }
 
 
-export const Button = (props: { label: string, small?: boolean, select: boolean, className?: string, onClick: (evt: any) => void, accent?: boolean } & BoxProps) => {
-    const { label, small, children, className, select, accent, ...rest } = props;
+export const Button = (props: { label: string, medium?: boolean, small?: boolean, select: boolean, className?: string, onClick: (evt: any) => void, accent?: boolean } & BoxProps) => {
+    const { label, small, children, medium, className, select, accent, ...rest } = props;
     const [white, setWhite] = useState(false);
     const accentClasses = useAccentStyles();
     const typographyCls = accent ? accentClasses.accentText : '';
 
     const cls = classNames(styles.buttonContainer, props.className ?? '', {
-        [styles.small]: small
+        [styles.small]: small,
+        [styles.medium]: medium
     });
     const clsWhite = classNames(styles.buttonWhite, { [styles.buttonWhiteVisible]: white || select });
     const onMouseDown = () => {
@@ -125,6 +127,12 @@ export function FadeInBoxWithDelay(props: BoxProps & {children: any, fadeInAfter
         transition: `opacity 1000ms linear`,
     };
     return <Box style={style} {...rest}>{children}</Box>
+}
+
+export function updateWhenViewportChanges() {
+    const vW = useAppSelector(state => {
+        return state.rawData.viewportWidth
+    });
 }
 
 export function isMobile() {

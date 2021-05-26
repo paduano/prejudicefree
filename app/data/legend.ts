@@ -10,7 +10,8 @@ export const educationLevels = [
     'Doctoral or equivalent',
 ];
 
-export const ageRanges = [[1991, 2002], [1982, 1991], [1970, 1981], [1940, 1969]];
+// export const ageRanges = [[1991, 2002], [1980, 2002], [1955, 1980], [1900, 1955]];
+export const ageRanges = [[1981, 2002], [1956, 1980], [1900, 1955]];
 export const incomeRanges = [[1, 4], [5, 7], [8, 10]];
 export const educationRanges = [[0, 2], [3, 5], [6, 8]];
 

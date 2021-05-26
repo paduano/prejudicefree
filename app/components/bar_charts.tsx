@@ -8,6 +8,7 @@ import classNames from 'classnames/bind';
 import { formatPercent } from '../data/format';
 import { ChartAnnotationWrapper } from './chart_annotation_wrapper';
 import { colorGradientList, colorGradientListCSS } from './colors';
+import { updateWhenViewportChanges } from './ui_utils';
 
 interface Props {
     groupLayoutInfo: GroupLayoutInfo;
@@ -74,6 +75,7 @@ function renderBarChart(props: { x: number, y: number, height: number, percentag
 }
 
 export const BarCharts = React.memo((props: Props) => {
+    updateWhenViewportChanges();
     const { groupLayoutInfo, getAnnotationPos, getSizeTransform } = props;
     const demo = useAppSelector(state => {
         return state.rawData.primaryFilterDemographic;

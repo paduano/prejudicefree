@@ -245,7 +245,7 @@ export const ValuesView = (props: {
                     enterActive: styles.enterActiveFadeWidthDelay,
                 }}>
                     <Box 
-                        flexBasis={limitedWidth ? undefined : '200px'}
+                        flexBasis={limitedWidth ? undefined : '160px'}
                         // flex={limitedWidth ? 1 : null}
                         height={limitedWidth ? '50vh' : undefined}
                         width={limitedWidth ? '200px' : undefined}

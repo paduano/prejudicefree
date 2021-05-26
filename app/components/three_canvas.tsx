@@ -42,7 +42,7 @@ export class ThreeCanvas<T, S> extends React.Component<ThreeCanvasProps & T, Thr
     containerRef: React.RefObject<HTMLDivElement> = React.createRef<HTMLDivElement>();
     // backgroundCanvasRef: React.RefObject<HTMLCanvasElement> = React.createRef<HTMLCanvasElement>();
     scene: THREE.Scene;
-    camera: THREE.Camera;
+    camera: THREE.PerspectiveCamera;
     renderer: THREE.WebGLRenderer;
     composer: EffectComposer;
     clock: THREE.Clock;
@@ -169,7 +169,7 @@ export class ThreeCanvas<T, S> extends React.Component<ThreeCanvasProps & T, Thr
 
     annotate() {
         const { width, height } = this.props;
-        const ctx = this.annotationCanvasRef.current.getContext("2d");
+        // const ctx = this.annotationCanvasRef.current.getContext("2d");
         // draw rectangle
         // const sqSize = height * 0.67;
         // ctx.strokeStyle = 'white';
@@ -252,6 +252,14 @@ export class ThreeCanvas<T, S> extends React.Component<ThreeCanvasProps & T, Thr
         return id;
     }
 
+    resizeWindow() {
+        const { width, height, limitedWidth } = this.props;
+        this.camera.aspect = width / height;
+        this.camera.updateProjectionMatrix();
+        this.renderer.setSize(width, height);
+        this.pickingTexture = new THREE.WebGLRenderTarget(width, height);
+    }
+
 
     render = () => {
         const { width, height, limitedWidth } = this.props;
@@ -285,6 +293,8 @@ export class ThreeCanvas<T, S> extends React.Component<ThreeCanvasProps & T, Thr
             height,
             position: 'relative' as any,
             pointerEvents: 'all', // to make mouse enter/leave work
+            overflowX: 'hidden',
+            overflowY: 'hidden',
         } as any;
 
         return (
@@ -313,7 +323,7 @@ export class ThreeCanvas<T, S> extends React.Component<ThreeCanvasProps & T, Thr
                 {/* annotation layer */}
                 <div style={annotationLayerStyle} ref={this.annotationLayerRef} >
                     <div style={annotationLayerTransformStyle}>
-                        <canvas ref={this.annotationCanvasRef} width={width} height={height}></canvas>
+                        {/* <canvas ref={this.annotationCanvasRef} width={width} height={height}></canvas> */}
                         {this.renderAnnotation()}
                     </div>
                 </div>

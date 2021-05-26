@@ -544,12 +544,17 @@ export function getDemographicGroupIndex(o: Observation, demo: ObservationDemogr
 }
 
 export function getReadableDescriptionForGroupValue(demo: ObservationDemographics, index: number): string {
-    const group = groupsForDemographic(demo)[index];
+    const groups = groupsForDemographic(demo)
+    const group = groups[index];
 
     switch (demo) {
         case 'age':
             const year = new Date().getFullYear();
-            return `${year - group[1]} - ${year - group[0]}`;
+            if (index == groups.length - 1) {
+                return `${year - group[1]}+`;
+            } else {
+                return `${year - group[1]} - ${year - group[0]}`;
+            }
         case 'sex':
             if (group == 'M') {
                 return "male";

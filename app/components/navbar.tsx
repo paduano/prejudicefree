@@ -2,11 +2,11 @@ import { Box, Link, Typography } from "@material-ui/core";
 import React from "react";
 import { useAccentStyles } from "./theme";
 
-export function NavBar(props: { current: 'viz' | 'about' }) {
-    const { current } = props;
+export function NavBar(props: { current: 'viz' | 'about', height: string }) {
+    const { current, height } = props;
     const classes = useAccentStyles();
     return (
-        <Box display='flex' height='2rem' pt={2} pr={2}>
+        <Box display='flex' height={height || '2rem'} pt={2} pr={2}>
             <Typography variant='h3'>
             </Typography>
             <Box flexGrow='1'></Box>

@@ -21,7 +21,7 @@ export default function AboutPage() {
   const classes = useAccentStyles();
   return (
     <ThemeProvider theme={invertedTheme}>
-      <NavBar current='about'></NavBar>
+      <NavBar current='about' height='2rem'></NavBar>
       <Box display='flex' flexDirection='column' alignItems='center' justifyContent='center' height='100%'>
         <Box mt='7rem' width='800px'>
 

@@ -62,9 +62,16 @@ export const rand = (min: number, max: number, generator?: Rand) => {
     return min + (max-min) * r;
 }
 
-export const randInCircle = (radius: number, minRadius: number = 0) => {
-    const t = 2 * PI * Math.random()
-    const u = Math.random() + Math.random();
+export const randInCircle = (radius: number, minRadius: number = 0, generator?: Rand) => {
+    let rand = () => {
+        if (generator) {
+            return generator.next();
+        } else {
+            return Math.random();
+        }
+    }
+    const t = 2 * PI * rand()
+    const u = rand() + rand();
     const r = (u > 1 ? 2 - u : u) * (radius - minRadius) + minRadius;
     return {x: r * Math.cos(t), y: r * Math.sin(t)};
 }

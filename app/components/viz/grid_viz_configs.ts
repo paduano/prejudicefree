@@ -81,8 +81,9 @@ export const DotsUniformConfig: DotsVizConfiguration<{ randomGenerator: Rand}> =
     },
     dot: (i: number, ob: Observation, layoutParams: LayoutParams, state: { randomGenerator: Rand }) => {
         const { randomGenerator } = state;
-        let x = rand(-6, 6, randomGenerator);
-        let y = rand(-4, 4, randomGenerator);
+        const { x: cx, y: cy } = randInCircle(8, 3, randomGenerator);
+        let x = cx + rand(0, 1, randomGenerator);
+        let y = Math.abs(cy) - 2 + rand(0, 1, randomGenerator);
         let z = rand(-4, 0, randomGenerator);
         const valuesMatch = valuesForObservation(ob, layoutParams.valuesQuery);
         const colorIndex = getColorIndex(valuesMatch);

@@ -170,6 +170,21 @@
     padding-left: 10px;
 }
 
+/* button medium */
+.buttonContainer.medium h3 {
+    font-size: 1.4rem;
+
+}
+.buttonContainer.medium .buttonInnerContainer  {
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-bottom: 8px;
+}
+.buttonContainer.medium .buttonWhite  {
+    padding-left: 10px;
+}
+
+
 
 
 /* end button */

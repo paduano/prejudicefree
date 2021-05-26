@@ -273,6 +273,7 @@ export const SidePanel = (props: { children: any, hide: boolean, title: string, 
         borderLeft: '1px solid #FFFFFF',
         height: '100%',
         marginLeft: '9px', // for the marker alignment
+        background: color.backgroundWithOpacity
     } as any;
 
     const isOverlayVisible = !!useAppSelector(state => {

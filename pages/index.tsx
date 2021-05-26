@@ -1,13 +1,13 @@
 import styles from '../styles/demo.module.css'
 
 import { connect } from 'react-redux';
-import { fetchAllVizData, RootState, UISelect } from '../app/store';
+import { fetchAllVizData, RootState, setViewportWidth, UISelect } from '../app/store';
 import React from 'react';
 import { Box, ThemeProvider, Typography } from '@material-ui/core';
 import { invertedTheme, invertedThemeMobile } from '../app/components/theme';
 import dynamic from 'next/dynamic';
 import { Header } from '../app/components/header';
-import { MAIN_CONTAINER_ID } from '../app/components/ui_utils';
+import { MAIN_CONTAINER_ID, viewportWidth } from '../app/components/ui_utils';
 import { SelectOverlays } from '../app/components/select';
 import { Legend } from '../app/components/legend';
 import { DetailPanel } from '../app/components/detail_panels';
@@ -22,6 +22,7 @@ const GridViz = dynamic(() => import('../app/components/viz/grid_viz').then((mod
 
 interface MVPProps {
   fetchAllVizData: (params) => {},
+  setViewportWidth: (width) => {},
   loadingState: string;
   selectOverlay?: UISelect;
   featureLegendEnabled: boolean,
@@ -52,7 +53,13 @@ export class MVP extends React.Component<MVPProps, MVPState> {
       this.setState({ assetsLoaded: true });
     });
 
+    window.addEventListener('resize', this.throttledOnWindowResize);
+
   }
+
+  throttledOnWindowResize = throttle(1000, false /* no trailing */, () => {
+    this.props.setViewportWidth(viewportWidth());
+  });
 
   loadingComplete() {
     return this.state.assetsLoaded && this.props.loadingState;
@@ -112,30 +119,40 @@ export class MVP extends React.Component<MVPProps, MVPState> {
       );
     } else {
       return (
-        <GridViz width={900} height={600} backgroundColor={color.background} limitedWidth />
+        <Box flex={1} flexBasis={'900px'}>
+          <Box position='absolute' style={{ left: 0, top: 0 }}>
+            <GridViz width={viewportWidth} height={600} backgroundColor={color.background} limitedWidth />
+          </Box>
+        </Box>
       );
     }
   }
 
   render() {
     const { limitedWidth } = this.props;
-    const width = 900;
+    // const width = 900;
+    const navBarHeight = '2rem';
     return (
       <ThemeProvider theme={limitedWidth ? invertedThemeMobile : invertedTheme}>
         <div id={MAIN_CONTAINER_ID} className={styles.container} style={{ background: color.background }}>
-          <NavBar current='viz'></NavBar>
+          <NavBar height={navBarHeight} current='viz'></NavBar>
 
           {/* modals, full screen selects */}
           {this.renderSelectOverlay()}
           {this.renderFocusOverlay()}
           {this.loadingComplete() ? (
-            <Box display='flex' flexDirection='column' justifyContent={limitedWidth ? '' : 'center'} height='100%'>
+            <Box display='flex' flexDirection='column' justifyContent={limitedWidth ? '' : 'center'} height={`calc(100% - ${navBarHeight})`}>
 
               {/* Header */}
               <Header />
 
               {/* main viz space */}
-              <Box display='flex' flexDirection={limitedWidth ? 'column' : 'row'} width='100%' justifyContent='center'  >
+              <Box display='flex' 
+                  position='relative' 
+                  flexDirection={limitedWidth ? 'column' : 'row'} 
+                  width='100%' 
+                  minHeight={!limitedWidth ? '600px' : null}
+                  justifyContent='center' >
 
                 {/* left column */}
                 {!limitedWidth ? <Box flexGrow={1} flexBasis={'200px'} /> : null}
@@ -173,7 +190,8 @@ function mapStateToProps(state: RootState, ownProps: MVPProps) {
 
 function mapDispatchToProps(dispatch) {
   return {
-    fetchAllVizData: params => dispatch(fetchAllVizData(params))
+    fetchAllVizData: params => dispatch(fetchAllVizData(params)),
+    setViewportWidth: width => dispatch(setViewportWidth({width}))
   }
 }
 

@@ -1,4 +1,4 @@
-import { nextOnboardingStep, RootState, StoreState } from "./store";
+import { nextOnboardingMessage, nextOnboardingStep, RootState, StoreState } from "./store";
 import classNames from 'classnames/bind';
 import { useAppDispatch, useAppSelector } from "./hooks";
 import { Button, FadeInBox } from './components/ui_utils';
@@ -224,11 +224,12 @@ export const NextOnboardingStepButton = (props: BoxProps & { nextLabel?: string}
     const handleOk = (evt) => {
         dispatch(nextOnboardingStep());
     };
-    return <Button accent label={nextLabel || 'Next ›'} select={false} onClick={handleOk} {...rest} />
+    return <Button accent medium label={nextLabel || 'Next ›'} select={false} onClick={handleOk} {...rest} />
 }
 
 
 export const FocusOverlay = () => {
+    const dispatch = useAppDispatch();
     const currentMessage = useAppSelector(getCurrentOnboardingMessageSelector);
     const usedMessageRef = useRef<OnboardingMessage>();
 
@@ -237,8 +238,16 @@ export const FocusOverlay = () => {
     useEffect(() => {
         if (usedMessageRef.current != currentMessage) {
             usedMessageRef.current = currentMessage;
+            // make it visible with delay
             setTimeout(() => {
                 setVisible(true);
+
+                // auto hide if the user takes too long...
+                setTimeout(() => {
+                    setVisible(false);
+                    dispatch(nextOnboardingMessage());
+                }, 14000)
+
             }, 8000);
         }
 
@@ -254,7 +263,7 @@ export const FocusOverlay = () => {
     } as any;
 
     return (
-        <Box position='absolute' width='100%' height='100%' style={containerStyles}>
+        <Box position='absolute' width='100%' style={containerStyles}>
             <FadeInBox visible={isVisible} position='relative' width='100%' height='100%'>
                 {currentMessage ? <FocusOverlayMessage message={currentMessage} /> : null}
             </FadeInBox>

@@ -7,6 +7,7 @@ import { GroupLayoutInfo } from './viz/grid_viz_configs';
 import styles from '../../styles/chart_annotation.module.css'
 import classNames from 'classnames/bind';
 import { ChartAnnotationWrapper } from './chart_annotation_wrapper';
+import { updateWhenViewportChanges } from './ui_utils';
 
 interface Props {
     groupLayoutInfo: GroupLayoutInfo;
@@ -20,7 +21,9 @@ export const AxisX = React.memo((props: Props) => {
         return state.rawData.primaryFilterDemographic;
     });
 
-    console.count('render axis');
+
+    updateWhenViewportChanges();
+    // console.count('render axis');
    
     const currentRow = useAppSelector(state => {
         return state.rawData.currentRow

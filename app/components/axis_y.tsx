@@ -14,6 +14,7 @@ import { Minus } from './minus';
 import { ChartAnnotationWrapper } from './chart_annotation_wrapper';
 import { getCurrentOnboardingMessageSelector } from '../onboarding';
 import { isLimitedWidthSelector } from '../selectors';
+import { updateWhenViewportChanges } from './ui_utils';
 
 interface Props {
     groupLayoutInfo: GroupLayoutInfo;
@@ -22,6 +23,7 @@ interface Props {
 }
 
 export const AxisY = React.memo((props: Props) => {
+    updateWhenViewportChanges();
     const limitedWidth = isLimitedWidthSelector();
     const { groupLayoutInfo, getAnnotationPos, getSizeTransform } = props;
     const dispatch = useAppDispatch()

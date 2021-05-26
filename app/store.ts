@@ -98,7 +98,7 @@ const initialState: StoreState = {
 }
 
 // overrides
-// initialState.currentOnboardingStepIndex = 8;
+// initialState.currentOnboardingStepIndex = 2;
 // initialState.primaryFilterDemographic = 'age';
 // initialState.secondaryFilterDemographic = 'education';
 // initialState.valuesQuery.selectedValue = 'justify_abortion';
@@ -134,6 +134,11 @@ const applyCurrentGroupStats = (state: StoreState) => {
         state.secondaryFilterDemographic,
         state.valuesQuery,
     );
+}
+
+const applyDeselect = (state: StoreState) => {
+    state.selectedObservation = null;
+    state.selectedObservationId = null;
 }
 
 export const rawDataSlice = createSlice({
@@ -193,16 +198,17 @@ export const rawDataSlice = createSlice({
                 state.selectedObservationId = action.payload.o.id;
                 state.selectedObservation = action.payload.o;
             } else {
-                state.selectedObservationId = null;
-                state.selectedObservation = null;
+                applyDeselect(state);
             }
         },
         setCurrentRow: (state, action: PayloadAction<{ row: number }>) => {
             state.currentRow = action.payload.row;
+            applyDeselect(state);
             applyCurrentGroupStats(state);
         },
         setCurrentColumn: (state, action: PayloadAction<{ column: number }>) => {
             state.currentColumn = action.payload.column;
+            applyDeselect(state);
             applyCurrentGroupStats(state);
         },
         setAnimationInProgress: (state, action: PayloadAction<{ value: boolean }>) => {
@@ -229,6 +235,9 @@ export const rawDataSlice = createSlice({
                 state.currentOnboardingMessageStepIndex = null;
                 console.log('no more onboarding steps available');
             }
+        },
+        setViewportWidth: (state, action: PayloadAction<{width: number}>) => {
+            state.viewportWidth = action.payload.width;
         },
     },
     extraReducers: (builder) => {
@@ -260,6 +269,7 @@ export const rawDataSlice = createSlice({
 
 // actions
 export const { 
+    setViewportWidth,
     setCurrentColumn,
     setSelectedObservation,
     setAnimationInProgress,
