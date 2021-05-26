@@ -7,7 +7,7 @@ import instanceFragShader from '../../shaders/instance.frag';
 import TWEEN, { Tween } from '@tweenjs/tween.js';
 import { Observation, ObservationDemographics, ObservationQuery, ValuesQuery } from '../../observation';
 import { connect } from 'react-redux';
-import { nextOnboardingMessage, RootState, setAnimationInProgress, setCurrentColumn, setOnboardingObjectPositions, setSelectedObservation } from '../../store';
+import { nextOnboardingMessage, setAnimationInProgress, setCurrentColumn, setOnboardingObjectPositions, setSelectedObservation } from '../../store';
 import { DotAttributes, DotsVizConfiguration, GroupLayoutInfo, LayoutParams, VizPrepareState } from './grid_viz_configs';
 import { threeAssets } from './assets';
 import { AxisX } from '../axis_x';
