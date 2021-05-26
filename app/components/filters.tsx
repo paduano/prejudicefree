@@ -8,10 +8,11 @@ import { FormControl, FormLabel, RadioGroup, FormControlLabel, Radio, Box, Input
 import { countryCodeToName } from '../data/countries';
 import { ageRanges, educationLevels, educationRanges, getIndexFromRange, incomeRanges } from '../data/legend';
 import { useAppDispatch, useAppSelector } from '../hooks';
-import { RootState, updateObservationsQuery, updateValuesQuery } from '../store';
+import { updateObservationsQuery, updateValuesQuery } from '../store';
 import { shallowEqual, useSelector } from 'react-redux';
 import { createSelector } from '@reduxjs/toolkit';
 import { AllEntriesStore, Observation } from '../observation';
+import { RootState } from '../store_definition';
 
 const useStyles = makeStyles((theme) => ({
   root: {
