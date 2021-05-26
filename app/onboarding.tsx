@@ -1,10 +1,11 @@
-import { nextOnboardingMessage, nextOnboardingStep, RootState, StoreState } from "./store";
+import { nextOnboardingMessage, nextOnboardingStep} from "./store";
 import classNames from 'classnames/bind';
 import { useAppDispatch, useAppSelector } from "./hooks";
 import { Button, FadeInBox } from './components/ui_utils';
 import { Box, BoxProps, Typography } from "@material-ui/core";
 import { DotsUniformConfig, DotsTestMultiGroup } from "./components/viz/grid_viz_configs";
 import React, { useEffect, useRef, useState } from "react";
+import { RootState } from "./store_definition";
 
 export enum OnboardingStepTypes {
     SELECT_COUNTRY = 1,

@@ -1,7 +1,7 @@
 import styles from '../styles/demo.module.css'
 
 import { connect } from 'react-redux';
-import { fetchAllVizData, RootState, UISelect } from '../app/store';
+import { fetchAllVizData, UISelect } from '../app/store';
 import React from 'react';
 import { Box, Link, ThemeProvider, Typography } from '@material-ui/core';
 import { invertedTheme, useAccentStyles } from '../app/components/theme';

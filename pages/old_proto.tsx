@@ -3,7 +3,7 @@ import Image from 'next/image'
 import styles from '../styles/mvp.module.css'
 
 import { useSelector, useDispatch, Provider, connect } from 'react-redux';
-import { fetchAllVizData, store, AppDispatch, RootState } from '../app/store';
+import { fetchAllVizData } from '../app/store';
 import { Filters } from '../app/components/filters';
 import React from 'react';
 import { Results } from '../app/components/results';
@@ -13,6 +13,7 @@ import { ThreeCanvas } from '../app/components/three_canvas';
 import dynamic from 'next/dynamic';
 import { Observation } from '../app/observation';
 import { ValueFilters } from '../app/components/value_filters';
+import { RootState } from '../app/store_definition';
 
 const GridViz = dynamic(() => import('../app/components/viz/grid_viz').then((module) => module.GridViz as any), {
     ssr: false,

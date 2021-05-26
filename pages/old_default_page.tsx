@@ -3,8 +3,9 @@ import Image from 'next/image'
 import styles from '../styles/Home.module.css'
 
 import { useSelector, useDispatch, Provider } from 'react-redux';
-import { fetchAllVizData, store } from '../app/store';
+import { fetchAllVizData} from '../app/store';
 import { useAppSelector } from '../app/hooks';
+import { store } from '../app/store_definition';
 
 // async function fetchData() {
 //   const response = await fetch('http://localhost:3000/out.json');
