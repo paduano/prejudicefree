@@ -23,11 +23,11 @@ export default class MyDocument extends Document {
               /* Initialize analytics */
               const Analytics = analytics({
                 app: 'prejudice-free',
-                debug: true,
+                // debug: true,
                 plugins: [
                   analyticsGa({
                     trackingId: '${process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS}',
-                    debug: true,
+                    // debug: true,
                   })
                 ]
               })
