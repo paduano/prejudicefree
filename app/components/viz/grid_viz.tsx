@@ -24,6 +24,7 @@ import { getCurrentOnboardingMessageSelector, getCurrentStep, getCurrentVizConfi
 import { throttle } from 'throttle-debounce';
 import { SelectionMarker } from '../selection_marker';
 import { color } from '../colors';
+import { RootState } from '../../store_definition';
 
 
 const PI_2 = 1.57079632679489661923;
