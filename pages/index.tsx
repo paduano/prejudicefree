@@ -162,7 +162,13 @@ export class MVP extends React.Component<MVPProps, MVPState> {
                 {this.renderViz()}
 
                 {/* right column */}
-                <Box display='flex' flexDirection='column' flexGrow={1} justifyContent='center' zIndex={10 /* force new stacking context */}>
+                <Box 
+                  display='flex' 
+                  flexDirection='column' 
+                  flexGrow={1} 
+                  justifyContent='center' 
+                  style={{pointerEvents: 'none'}}
+                  zIndex={10 /* force new stacking context */} >
                   <Box pl={1} width={limitedWidth ? '100%' : '240px'} pb={limitedWidth ? 4 : 0} pr={limitedWidth ? 0 : 2}>
                     <DetailPanel />
                   </Box>
