@@ -1,6 +1,7 @@
 
 import { useAppSelector } from './hooks';
 import { countryCodeToName } from './data/countries';
+import { RootState } from './store_definition';
 
 // Selectors
 export const countryNameAppSelector = () => useAppSelector(state => {
@@ -20,3 +21,7 @@ export const countryNameAppSelector = () => useAppSelector(state => {
 export const isLimitedWidthSelector = () => useAppSelector(state => {
     return state.rawData.isLimitedWidth;
 });
+
+export const isHorizontalViz = (state: RootState ) => {
+    return !state.rawData.isLimitedWidth && state.rawData.primaryFilterDemographic == null;
+}

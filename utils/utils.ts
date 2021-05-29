@@ -144,7 +144,14 @@ export function pie(rmin: number, rmax: number, N: number) {
     return positions;
 }
 
-export function dotsInRect(width: number, height: number, i: number, N: number, rand = true, sort: 'w'|'h'='w') {
+export function dotsInRect(width: number, height: number, i: number, N: number, noise = true, sort: 'w' | 'h' = 'w', generator?: Rand) {
+    let rand = () => {
+        if (generator) {
+            return generator.next();
+        } else {
+            return Math.random();
+        }
+    }
     const d = Math.sqrt((width * height) / N);
     let xi: number, yi: number;
 
@@ -157,8 +164,8 @@ export function dotsInRect(width: number, height: number, i: number, N: number, 
         yi = Math.floor(i / nForWidth);
         xi = i - (yi * nForWidth);
     }
-    const xr = d * (rand ? Math.random() / 2 : 0);
-    const yr = d * (rand ? Math.random() / 2 : 0);
+    const xr = d * (noise ? rand() / 2 : 0);
+    const yr = d * (noise ? rand() / 2 : 0);
     return {
         x: xi * d + xr,
         y: yi * d + yr,

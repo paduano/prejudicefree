@@ -26,6 +26,7 @@ export interface ThreeCanvasProps {
 
 export interface ThreeCanvasState {
     annotationLayerTransform: string;
+    cursor: 'zoom-in' | 'zoom-out' | '';
 }
 
 const importDatGui = async () => {
@@ -208,7 +209,7 @@ export class ThreeCanvas<T, S> extends React.Component<ThreeCanvasProps & T, Thr
             this.composer.render();
         } else {
             this.renderer.setRenderTarget(null);
-            this.renderer.render(this.scene, this.camera);
+            this.renderer.render(this.scene, this.camera); // YYY
         }
 
 
@@ -260,6 +261,8 @@ export class ThreeCanvas<T, S> extends React.Component<ThreeCanvasProps & T, Thr
         this.pickingTexture = new THREE.WebGLRenderTarget(width, height);
     }
 
+    onClick(evt: React.MouseEvent) {
+    }
 
     render = () => {
         const { width, height, limitedWidth } = this.props;
@@ -295,6 +298,7 @@ export class ThreeCanvas<T, S> extends React.Component<ThreeCanvasProps & T, Thr
             pointerEvents: 'all', // to make mouse enter/leave work
             overflowX: 'hidden',
             overflowY: 'hidden',
+            cursor: this.state.cursor,
         } as any;
 
         return (
@@ -312,6 +316,9 @@ export class ThreeCanvas<T, S> extends React.Component<ThreeCanvasProps & T, Thr
                     </canvas>
                 </div>
 
+                {limitedWidth ? <FadeGradient destinationColor={color.background} position='absolute' orientation='top' top='0' left='0' /> : null}
+
+                <FadeGradient destinationColor={color.background} position='absolute' orientation='bottom' bottom='0' left='0' />
 
                 {/* annotation layer */}
                 <div style={layerStyle} ref={this.untransformedAnnotationLayerRef} >
@@ -321,14 +328,13 @@ export class ThreeCanvas<T, S> extends React.Component<ThreeCanvasProps & T, Thr
                 </div>
 
                 {/* annotation layer */}
-                <div style={annotationLayerStyle} ref={this.annotationLayerRef} >
+                <div style={annotationLayerStyle} ref={this.annotationLayerRef} onClick={this.onClick} >
                     <div style={annotationLayerTransformStyle}>
                         {/* <canvas ref={this.annotationCanvasRef} width={width} height={height}></canvas> */}
                         {this.renderAnnotation()}
                     </div>
                 </div>
 
-                {limitedWidth ? null : <FadeGradient destinationColor={color.background} position='absolute' orientation='bottom' bottom='0' left='0' />}
 
             </div>
         )

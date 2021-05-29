@@ -94,7 +94,8 @@ export const AxisY = React.memo((props: Props) => {
         } as any;
     };
 
-    const increaseRow = () => {
+    const increaseRow = (evt: React.MouseEvent) => {
+        evt.stopPropagation();
         if (currentOnboardingMessage && currentOnboardingMessage.anchor == 'plusButton') {
             dispatch(nextOnboardingMessage());
         }
@@ -102,7 +103,12 @@ export const AxisY = React.memo((props: Props) => {
             dispatch(setCurrentRow({ row: currentRow + 1 }));
         }
     } 
-    const decreaseRow = minusButtonEnabled ? () => dispatch(setCurrentRow({ row: currentRow - 1 })) : () => {};
+    const decreaseRow = (evt: React.MouseEvent) => {
+        if (minusButtonEnabled) {
+            evt.stopPropagation();
+            dispatch(setCurrentRow({ row: currentRow - 1 })) 
+        }
+    }
 
     // update onboarding position
     const plusRef = useRef(null);
@@ -172,7 +178,7 @@ export const AxisY = React.memo((props: Props) => {
     //     );
     // }
     return (
-        <ChartAnnotationWrapper position='absolute' display='flex' flexDirection='column' width='100%' >
+        <ChartAnnotationWrapper hideDuringAnimation position='absolute' display='flex' flexDirection='column' width='100%' >
             <Box position='relative'>
                 {ySegment}
             </Box>

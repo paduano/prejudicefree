@@ -101,10 +101,11 @@ export class MVP extends React.Component<MVPProps, MVPState> {
     const { limitedWidth } = this.props;
     return (
       <Box display='flex' width='100%' justifyContent='center'>
-        <Box flex={4} />
+        <Box flex-flexBasis={4} />
         <Box flex={2} mt={limitedWidth ? 2 : 4} pr={4}>
           {this.props.featureLegendEnabled ? <Legend /> : null}
         </Box>
+        <Box flex={4} />
       </Box>
     );
   }
@@ -115,7 +116,7 @@ export class MVP extends React.Component<MVPProps, MVPState> {
       return (
         <Box style={{ overflowX: 'hidden' }} width={'100%'}>
           <GridViz width={viewportWidth} height={400} backgroundColor={color.background} />
-          {this.renderLegendWithLayout()}
+          {/* {this.renderLegendWithLayout()} */}
         </Box>
       );
     } else {
@@ -133,9 +134,14 @@ export class MVP extends React.Component<MVPProps, MVPState> {
     const { limitedWidth } = this.props;
     // const width = 900;
     const navBarHeight = '2rem';
+    const containerStyle = {
+      background: color.background,
+      minHeight: limitedWidth ? undefined : '100vh',
+      height: limitedWidth ? undefined : '100vh',
+    }
     return (
       <ThemeProvider theme={limitedWidth ? invertedThemeMobile : invertedTheme}>
-        <div id={MAIN_CONTAINER_ID} className={styles.container} style={{ background: color.background }}>
+        <div id={MAIN_CONTAINER_ID} style={{ background: color.background }}>
           <NavBar height={navBarHeight} current='viz'></NavBar>
 
           {/* modals, full screen selects */}
@@ -146,6 +152,9 @@ export class MVP extends React.Component<MVPProps, MVPState> {
 
               {/* Header */}
               <Header />
+
+              {/* legend */}
+              {/* {limitedWidth ? null : this.renderLegendWithLayout()} */}
 
               {/* main viz space */}
               <Box display='flex' 
@@ -168,15 +177,13 @@ export class MVP extends React.Component<MVPProps, MVPState> {
                   flexGrow={1} 
                   justifyContent='center' 
                   style={{pointerEvents: 'none'}}
+                  mb={limitedWidth ? 4 : 0}
                   zIndex={10 /* force new stacking context */} >
                   <Box pl={1} width={limitedWidth ? '100%' : '240px'} pb={limitedWidth ? 4 : 0} pr={limitedWidth ? 0 : 2}>
                     <DetailPanel />
                   </Box>
                 </Box>
               </Box>
-
-              {/* legend */}
-              {limitedWidth ? null : this.renderLegendWithLayout()}
             </Box>
           ) : "Loading"}
         </div>

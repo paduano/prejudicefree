@@ -13,17 +13,21 @@ import { Legend } from '../app/components/legend';
 import { DetailPanel } from '../app/components/detail_panels';
 import { FocusOverlay, isFeatureAvailableSelector } from '../app/onboarding';
 import { NavBar } from '../app/components/navbar';
+import { isLimitedWidthSelector } from '../app/selectors';
 
 
 
 export default function AboutPage() {
-
+  const limitedWidth = isLimitedWidthSelector();
   const classes = useAccentStyles();
   return (
     <ThemeProvider theme={invertedTheme}>
       <NavBar current='about' height='2rem'></NavBar>
       <Box display='flex' flexDirection='column' alignItems='center' justifyContent='center' height='100%'>
-        <Box mt='7rem' width='800px'>
+        <Box 
+          p={limitedWidth ? '1rem' : 0}
+          mt={limitedWidth ? undefined : '7rem'} 
+          width={limitedWidth ? '100%' : '800px'}>
 
           <Box mb={2}>
             <Typography variant='h2' className={classes.accentText} >

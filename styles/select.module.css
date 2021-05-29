@@ -48,7 +48,7 @@
 
 .openSelectFlag {
     padding-right: 6px;
-
+    flex-basis: 3rem;
 }
 
 .openSelectItem h3{

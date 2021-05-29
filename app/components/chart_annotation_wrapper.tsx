@@ -13,23 +13,30 @@ import { Minus } from './minus';
 
 interface Props {
     hide?: boolean,
+    hideDuringAnimation?: boolean,
+    showWhenZoomedIn?: boolean,
 }
 
 export const ChartAnnotationWrapper = (props: React.PropsWithChildren<BoxProps> & Props) => {
-    const { children, className, style, hide, ...rest} = props;
+    const { hideDuringAnimation, children, className, style, hide, showWhenZoomedIn, ...rest} = props;
     const animationInProgress = useAppSelector(state => {
         return state.rawData.animationInProgress;
     });
+    const isZoomedIn = useAppSelector(state => {
+        return state.rawData.zoomedIn;
+    });
+
+    const hidden = (hideDuringAnimation && animationInProgress) || (!showWhenZoomedIn && isZoomedIn) || hide;
 
     const wrapperStyles = {
         left: 0,
         top: 0,
-        pointerEvents: 'visiblePainted', 
+        pointerEvents: hidden ? 'none' : 'visiblePainted',
     } as any;
 
     const clsWrapper = classNames(styles.axis, className, {
-        [styles.axisHidden]: animationInProgress || hide,
-        [styles.axisTransitionProperties]: !animationInProgress,
+        [styles.axisHidden]: hidden,
+        [styles.axisTransitionProperties]: hideDuringAnimation && !animationInProgress,
     });
 
     return (

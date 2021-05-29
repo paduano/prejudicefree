@@ -203,18 +203,18 @@
 [√] improve select with hover
 [√] fix education ranges. For italy for istance they are wrong
 [√] about page
-[ ] google analytics 
+[√] google analytics 
     https://developers.google.com/analytics/devguides/collection/analyticsjs/sending-hits
     -> or use npm install analytics --save
     guide: https://mariestarck.com/add-google-analytics-to-your-next-js-application-in-5-easy-steps/
     use .env.local https://nextjs.org/docs/basic-features/environment-variables
 [!] performance improvements
 [!] copy check
-[!] fix flags in safari
+[√] fix flags in safari
 [!] improve loading experience
 [x] make buttons actual buttons
 [√] fix next css bug
-[!] mobile
+[√] mobile
 [√] change title
 [√] domenico's bug
 [x] improve next prompt with different location
@@ -241,12 +241,39 @@
 [√] fix screen resizing
 [ ] experiment disabling z-buffering and rendering a model with a countorur on top
 
-[ ] one group viz should not be horizontal, inconsistent with next one
-[ ] fix decimal value for detail panel
+[√] one group viz should not be horizontal, inconsistent with next one
+    done only for mobile for now
+[√] fix decimal value for detail panel
 [ ] adapt school ranges -- maybe remove not highschool if not enough people
 
 - wishlist
 [ ] (opt) allow editing on the legend
+
+## Iteration 2
+[ ] add time data for the U.S.A
+[ ] add simple UI to switch year
+[ ] move text to the bottom
+    [ ] mobile friendly
+    [ ] consistent back/forward button 
+[ ] About you: 
+    [ ] your country -- hide when you're not present? only in some parts of the story?
+[ ] suggestion system
+[√] zoom effect
+
+1. Welcome, what affects people's beliefs?
+Change copy
+Pick your country 
+same
+? pick a value
+	same
+Color people 
+Zoom in on some people 
+Breakdown by age 
+Other countries / values
+Do people get older become more conservative? Let’s change data
+Why younger people are more open minded. “Ladder of freedoms” 
+Break down by income or education
+Role of religion
 
 
 ## backlog
@@ -287,3 +314,7 @@ http://virostatiq.com/publish-data-visualizations-reach-desired-audience/
 - managed to connect iphone to localhost https://mtm.dev/iphone-localhost-mac
 - access previous value with react hook using refs. Refs are not only for dom elements:
 https://blog.logrocket.com/how-to-get-previous-props-state-with-react-hooks/    
+
+- debug ios on chrome
+    https://medium.com/@nikoloza/how-to-debug-remote-ios-device-using-chrome-devtools-f44d697003a7
+    doesn't work -- kept using safari

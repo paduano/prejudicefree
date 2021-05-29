@@ -28,6 +28,7 @@ export interface LayoutParams {
     currentRow: number;
     useColors: boolean;
     hideAll?: boolean;
+    horizontal?: boolean;
 }
 
 export interface GroupLayoutInfo {
@@ -159,8 +160,9 @@ export interface VizPrepareState {
 
 export const DotsTestMultiGroup: DotsVizConfiguration<VizPrepareState> = {
     prepare: (layoutParams: LayoutParams) => {
-        const { currentRow, observations, valuesQuery, primaryFilterDemographic, secondaryFilterDemographic } = layoutParams;
+        const { horizontal, currentRow, observations, valuesQuery, primaryFilterDemographic, secondaryFilterDemographic } = layoutParams;
         const idPosMap: { [id: number]: { x: number, y: number, groupX: number, groupY: number } } = {};
+        const randomGenerator = new Rand('123');
 
         // 1. group definition
         // -------------------
@@ -212,7 +214,7 @@ export const DotsTestMultiGroup: DotsVizConfiguration<VizPrepareState> = {
         // ------------------
         const GROUP_PADDING_X = 0.8;
         const GROUP_PADDING_Y = 3;
-        const VIZ_WIDTH = 5 - GROUP_PADDING_X * (nGroupX-1);
+        const VIZ_WIDTH = 5.8 - GROUP_PADDING_X * (nGroupX-1);
         let VIZ_HEIGHT = 4;
         if (nGroupY == 2) {
             VIZ_HEIGHT = 5;
@@ -272,7 +274,7 @@ export const DotsTestMultiGroup: DotsVizConfiguration<VizPrepareState> = {
         // 5. layout computation
         // ------------------
         let lastObservationValuesMatch = 0;
-        const orientation = nGroupX == 1 ? 'w' : 'h';
+    const orientation = horizontal ? 'w' : 'h';
         for (let x = 0; x < nGroupX; x++) {
             for (let y = 0; y < nGroupY; y++) {
                 const group = groups[x][y];
@@ -282,7 +284,7 @@ export const DotsTestMultiGroup: DotsVizConfiguration<VizPrepareState> = {
                 const posY = groupPosY[x][y];
                 for (let i = 0; i < group.length; i++) {
                     const o = group[i];
-                    const pos = dotsInRect(rectWidth, rectHeight, i, group.length, true /* noise */, orientation);
+                    const pos = dotsInRect(rectWidth, rectHeight, i, group.length, true /* noise */, orientation, randomGenerator);
 
                     // add group position
                     pos.x += posX;
@@ -305,8 +307,8 @@ export const DotsTestMultiGroup: DotsVizConfiguration<VizPrepareState> = {
                     let displaceX = 0;
                     let displaceY = 0;
                     if (currentRow != y) {
-                        displaceY += rand(0, 0.4);
-                        displaceX += rand(0, 0.4);
+                        displaceY += rand(0, 0.4, randomGenerator);
+                        displaceX += rand(0, 0.4, randomGenerator);
                     }
 
                     idPosMap[o.id] = {

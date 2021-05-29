@@ -8,6 +8,7 @@ import styles from '../../styles/chart_annotation.module.css'
 import classNames from 'classnames/bind';
 import { ChartAnnotationWrapper } from './chart_annotation_wrapper';
 import { updateWhenViewportChanges } from './ui_utils';
+import { isLimitedWidthSelector } from '../selectors';
 
 interface Props {
     groupLayoutInfo: GroupLayoutInfo;
@@ -16,6 +17,7 @@ interface Props {
 }
 
 export const AxisX = React.memo((props: Props) => {
+    const limitedWidth = isLimitedWidthSelector();
     const { groupLayoutInfo, getAnnotationPos, getSizeTransform} = props;
     const demo = useAppSelector(state => {
         return state.rawData.primaryFilterDemographic;
@@ -64,19 +66,20 @@ export const AxisX = React.memo((props: Props) => {
     const lastSegmentPos = getSegmentPos(lastGroupIndex);
     const width = getSegmentWidth(lastGroupIndex);
     const legendTitleStyle = {
-        left: lastSegmentPos.x + width + 20, 
-        top: lastSegmentPos.y + 20,
+        left: lastSegmentPos.x + width + (limitedWidth ? 0 : 20),
+        top: lastSegmentPos.y + 20 + (limitedWidth ? 50 : 0),
+        transform: limitedWidth ? 'translateX(-100%)' : undefined,
     }
     const legendTitle = (
         <Box position='absolute' style={legendTitleStyle}>
-            <Typography align='center' variant='h3'>
+            <Typography align='center' variant='h3' noWrap={limitedWidth}>
                 {getReadableDescriptionForDemographic(demo).toUpperCase()}
             </Typography>
         </Box>
     );
 
     return (
-        <ChartAnnotationWrapper position='absolute' display='flex' flexDirection='column' >
+        <ChartAnnotationWrapper hideDuringAnimation position='absolute' display='flex' flexDirection='column' >
             <Box position='relative'>
                 {xSegments}
                 {legendTitle}

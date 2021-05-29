@@ -9,6 +9,7 @@ import { formatPercent } from '../data/format';
 import { ChartAnnotationWrapper } from './chart_annotation_wrapper';
 import { colorGradientList, colorGradientListCSS } from './colors';
 import { updateWhenViewportChanges } from './ui_utils';
+import { isHorizontalViz } from '../selectors';
 
 interface Props {
     groupLayoutInfo: GroupLayoutInfo;
@@ -85,7 +86,7 @@ export const BarCharts = React.memo((props: Props) => {
     });
 
     const demoGroups = demo ? groupsForDemographic(demo) : [0];
-    const isVertical = demoGroups.length > 1;
+    const isVertical = !useAppSelector(isHorizontalViz);
 
     const currentRow = useAppSelector(state => {
         return state.rawData.currentRow
@@ -119,7 +120,7 @@ export const BarCharts = React.memo((props: Props) => {
     } as any;
 
     return (
-        <ChartAnnotationWrapper id='bar-charts' position='absolute' display='flex' flexDirection='column' style={wrapperStyles} >
+        <ChartAnnotationWrapper hideDuringAnimation id='bar-charts' position='absolute' display='flex' flexDirection='column' style={wrapperStyles} >
             <Box position='relative'>
                 {charts}
             </Box>

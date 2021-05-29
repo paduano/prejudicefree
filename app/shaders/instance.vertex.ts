@@ -141,8 +141,9 @@ void main() {
 		pointColor = ACCENT_COLOR;
 		selectScale = 0.4;
 	}
-	// scale if picking to make selection easier
-	vec3 scaling = (transformed - translate_pos) * 1. * max(picking, selectScale);
+	// scale if picking to make selection easier (disabled)
+	// vec3 scaling = (transformed - translate_pos) * 1. * max(picking, selectScale);
+	vec3 scaling = (transformed - translate_pos) * 1. * selectScale;
 	transformed += scaling;
 
 	//

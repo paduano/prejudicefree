@@ -43,7 +43,7 @@ export const Legend = React.memo((props: Props) => {
     })
 
     const wrapperStyles = {
-        width: limitedWidth ? '120px' : '200px',
+        width: limitedWidth ? '120px' : '140px',
     } as any;
 
     return (

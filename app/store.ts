@@ -34,6 +34,8 @@ export interface StoreState {
 
     isLimitedWidth: boolean,
     viewportWidth: number,
+
+    zoomedIn: boolean,
 }
 
 export type SelectTypes = 'country' | 'value' | 'demographic';
@@ -96,14 +98,16 @@ const initialState: StoreState = {
     onboardingObjectPositions: {},
     isLimitedWidth: isLimitedWidth(),
     viewportWidth: viewportWidth(),
+
+    zoomedIn: false,
 }
 
 // overrides
-// initialState.currentOnboardingStepIndex = 8;
-// initialState.primaryFilterDemographic = 'age';
+initialState.currentOnboardingStepIndex = 3;
+initialState.primaryFilterDemographic = 'age';
 // initialState.secondaryFilterDemographic = 'education';
-// initialState.valuesQuery.selectedValue = 'justify_abortion';
-// initialState.valuesQuery.value = 6;
+initialState.valuesQuery.selectedValue = 'justify_abortion';
+initialState.valuesQuery.value = 6;
 
 const applyObservationsQueryReducer = (state: StoreState, allEntries: AllEntriesStore, filterQuery: ObservationQuery) => {
     const { filteredEntries, stats, altStatsAndQuery } = filterAndStatObservationsWithVariations(allEntries, filterQuery);
@@ -241,6 +245,13 @@ export const rawDataSlice = createSlice({
         setViewportWidth: (state, action: PayloadAction<{width: number}>) => {
             state.viewportWidth = action.payload.width;
         },
+        zoomIn: (state, action: PayloadAction<boolean>) => {
+            state.zoomedIn = action.payload;
+            if (!action.payload) {
+                state.selectedObservationId = null;
+                state.selectedObservation = null;
+            }
+        },
     },
     extraReducers: (builder) => {
         builder.addCase(fetchAllVizData.pending, (state, action) => {
@@ -285,6 +296,7 @@ export const {
     nextOnboardingStep,
     setOnboardingObjectPositions,
     nextOnboardingMessage,
+    zoomIn,
 } = rawDataSlice.actions;
 
 // store set up in store_definition

@@ -15,7 +15,8 @@ import { SelectionMarker } from './selection_marker';
 import styles from '../styles/detail_panel.module.css'
 import { countryNameAppSelector } from '../selectors';
 import { Button } from './ui_utils';
-import { setCurrentColumn, setCurrentRow } from '../store';
+import { setCurrentColumn, setCurrentRow, updateValuesQuery } from '../store';
+import { ValueRange } from './value_range';
 
 interface Props {
 }
@@ -104,7 +105,7 @@ export const SelectedObservation = React.memo((props: Props) => {
 
     return (
         <Fragment>
-            <SidePanel hide={!selectedObservation} title='About the selected person' marker={marker}>
+            <SidePanel hide={!selectedObservation} title='About the selected person' marker={marker} showWhenZoomedIn={true}>
                 <Typography variant='h6'>
                     {selectedObservation ? describeObservation(selectedObservation) : null}
                 </Typography>
@@ -145,6 +146,7 @@ const FlashingPercent = (props: { children: string }) => {
 }
 
 const describeYourself = () => {
+    const dispatch = useAppDispatch();
     const selectedValue = useAppSelector(state => {
         return state.rawData.valuesQuery.selectedValue;
     });
@@ -194,7 +196,6 @@ const describeYourself = () => {
     const moveYourself = (demo: ObservationDemographics) => {
         const groups = groupsForDemographic(demo);
         const moveButtons = groups.map((_, i) => {
-            const dispatch = useAppDispatch();
             let select = false;
             let handleClick = () => {};
             if (demo == demo1) {
@@ -218,12 +219,17 @@ const describeYourself = () => {
         )
     };
 
+    const handleChangeValue = value => dispatch(updateValuesQuery({value}));
+
     return (
         <Fragment>
-            <Box display='flex' flexDirection='column'>
+            <Box display='flex' flexDirection='column' >
                 <Typography variant='h6'>
                     You have answered that you tolerate {valueText} {youTolerateValueText}.
                 </Typography>
+                <Box mt={1} mb={2} width='100%' height='40px'>
+                    <ValueRange value={numericValue} onValueSet={handleChangeValue} horizontal />
+                </Box>
                 <Box mt={1}>
                     <Typography variant='h6'>
                         {groupDesc} <b>{samePercentText}</b> has given the same answer than you, and
@@ -263,7 +269,7 @@ export const YourselfInfo = React.memo((props: Props) => {
 
 // ----
 
-export const SidePanel = (props: { children: any, hide: boolean, title: string, marker?: JSX.Element }) => {
+export const SidePanel = (props: { children: any, hide: boolean, title: string, marker?: JSX.Element, showWhenZoomedIn?: boolean }) => {
     const wrapperStyles = {
         width: '100%',
         minHeight: '100px',
@@ -286,7 +292,7 @@ export const SidePanel = (props: { children: any, hide: boolean, title: string, 
     const isFeatureSidePanelAvailable = useAppSelector(isFeatureAvailableSelector('side_panel'));
 
     return (
-        <ChartAnnotationWrapper style={wrapperStyles} hidden={props.hide || isFeatureSidePanelAvailable}>
+        <ChartAnnotationWrapper style={wrapperStyles} hidden={props.hide || isFeatureSidePanelAvailable} showWhenZoomedIn={props.showWhenZoomedIn}>
             <Box>
                 {props.marker}
             </Box>
