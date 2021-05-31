@@ -213,7 +213,7 @@ export const StoryContents: { [id: string]: StoryContent } = {
                     </FadeInBoxWithDelay>
                     <FadeInBoxWithDelay fadeInAfter={2000} mt={1}>
                         <Typography variant='h4'>
-                            {aboutYou} how do you stand compared to the people in the chart.
+                            {aboutYou} where you stand compared to the people in the chart.
                         </Typography>
                     </FadeInBoxWithDelay>
                 </Fragment>
@@ -304,7 +304,7 @@ export const StoryContents: { [id: string]: StoryContent } = {
                     {/* description */}
                     <FadeInBoxWithDelay fadeInAfter={3000}>
                         <Typography variant='h4'>
-                            Let's split the population by age. What is your age group?
+                            What is your age group?
                         </Typography>
                         <Box display='flex' mt={1}>
                             {ageButtons}
@@ -312,7 +312,7 @@ export const StoryContents: { [id: string]: StoryContent } = {
                     </FadeInBoxWithDelay>
                     <FadeInBox visible={currentDemo == 'age'}>
                         <Typography variant='h4'>
-                            Age changes how people answered. Do you expect this pattern to be unique for {countryName} and for {vLabel}?
+                            Age changes how people answered. Do you expect this pattern to be unique for {countryName} and for the opinion on {vLabel}?
                         </Typography>
                     </FadeInBox>
                 </Fragment>
@@ -348,7 +348,9 @@ export const StoryContents: { [id: string]: StoryContent } = {
                         select={v == currentValue}
                         onClick={() => {
                             dispatch(updateValuesQuery({ selectedValue: v }))
-                            setStep(1);
+                            if (step == 0) {
+                                setStep(1);
+                            }
                         }} />
                 );
             }
@@ -396,7 +398,7 @@ export const StoryContents: { [id: string]: StoryContent } = {
 
                         <FadeInBox mt={1} visible={step > 0}>
                             <Typography variant='h4'>
-                                And look at how the results differ by age group:
+                                Look at how the results differ by age group:
                             </Typography>
                             <Box display='flex' mt={1}>
                                 {noSplit}
@@ -406,7 +408,7 @@ export const StoryContents: { [id: string]: StoryContent } = {
 
                         <FadeInBox mt={1} visible={step > 1}>
                             <Typography variant='h4'>
-                                Also, explore how people how different countries think. Do you see the same pattern?
+                                Explore how people think in different countries. Do you see the same pattern?
                             </Typography>
                             <Box display='flex' mt={1} mb={1}>{countries}</Box>
                         </FadeInBox>
@@ -480,15 +482,13 @@ export const StoryContents: { [id: string]: StoryContent } = {
                     <FadeInBoxWithDelay fadeInAfter={1000}>
                         <Box>
                             <Typography variant='h4'> 
-                                You probably have noticed that while different countries might hold drastically different opinions,
-                                when we group people by their age we see a clear pattern. 
+                                You have probably noticed that when we group people by age, we see a clear pattern emerging in most countries:
                             </Typography>
                         </Box>
                         <Box mt={1}>
                             <Typography variant='h4'>
-                                On topics that grant freedom of choice, emancipation and individual liberties, younger people are 
-                                more tolerant and acceptant. <br />
-                                Why is this happening? Are people becoming more conservative as they age? 
+                                Younger people value more individual freedom. <br />
+                                Are people becoming more conservative as they age? 
                             </Typography>
                         </Box>
                     
@@ -535,16 +535,16 @@ export const StoryContents: { [id: string]: StoryContent } = {
                     <FadeInBoxWithDelay fadeInAfter={3000}>
                         <Typography variant='h4'>
                             We can compare today's data with the data from previous interviews.  <br />
-                            The survey has been going on for almost 40 years, which gives us for some countries and for some questions
+                            The survey has been going on for almost 40 years, which gives us 
                             enough data to draw a picture of how opinion changed over time. <br />
                         </Typography>
                     </FadeInBoxWithDelay>
 
-                    <FadeInBoxWithDelay fadeInAfter={3000}>
+                    <FadeInBoxWithDelay fadeInAfter={3000} mt={1}>
                         <Typography variant='h4'>
                             Let's look at the survey results for {countryCodeToName[currentCountryCode]} on {vLabel}.
-                            The chart is now grouping people by the birth year, allowing us to look at how, on average, people
-                            belonging to the same generation did (or did not) answered to the survey differently.
+                            The chart is grouping people by year of birth, which allow us to see the evolution of 
+                            the opinion.
                         </Typography>
                     </FadeInBoxWithDelay>
                     <FadeInBoxWithDelay fadeInAfter={3000}>
@@ -570,9 +570,9 @@ export const StoryContents: { [id: string]: StoryContent } = {
                             {/* Predictably, we have more people born before {ageRanges[2][0]}. */}
                             None of the age groups have become more conservative as they age.
                             <br></br>
-                            The age group born between {ageRanges[1][1]} and {ageRanges[1][0]} has always been more tolerant than those
-                            born before {ageRanges[2][0]}, but the biggest surprise comes from the people born between {ageRanges[0][1]} and {ageRanges[0][0]}{' '}.
-                            As they start being included in the survey, they show to be more acceptant of {vLabel} than older generations.
+                            The age group born between {ageRanges[1][0]} and {ageRanges[1][1]} has always been more tolerant than those
+                            born before {ageRanges[2][1]}. Likewise, the people born between {ageRanges[0][0]} and {ageRanges[0][1]}{' '},
+                            as they start showing up in the data, are even more tolerant than older generations.
                              <br></br>
                             Why is this happening?
                         </Typography>
@@ -597,14 +597,14 @@ export const StoryContents: { [id: string]: StoryContent } = {
                     {/* description */}
                     <FadeInBoxWithDelay fadeInAfter={1000}>
                         <Typography variant='h4'>
-                            One way to explain this trend is to look at the overall economical growth that most of the world has seen post Wold War II.
-                            New generations are growing less worried about economical and political issues, and this feeling of stability and security 
-                            have fueled more open-minded, tolerant opinions.
+                            One way to explain this trend is to consider at the overall economical growth that most of the world has seen post World War II.
+                            New generations are less worried about economical and political issues, and this feeling of stability and security 
+                            fuels open-minded, tolerant opinions.
                         </Typography>
                     </FadeInBoxWithDelay>
                     <FadeInBoxWithDelay fadeInAfter={2000} mt={1}>
                         <Typography variant='h4'>
-                            If we accept this theory as true, how do we expect to see people's opinion change according to education or income?
+                            If we accept this theory as true, how do we expect people's opinion to change according to their education or income?
                         </Typography>
                     </FadeInBoxWithDelay>
 
@@ -650,7 +650,7 @@ export const StoryContents: { [id: string]: StoryContent } = {
                     {/* description */}
                     <FadeInBoxWithDelay fadeInAfter={3000}>
                         <Typography variant='h4'>
-                            Let's look about how the opinion on {vLabel} in {countryName} changes when we group the data by one of these demographics:
+                            Let's look at how the opinion on {vLabel} in {countryName} changes when we group the data by one of these demographics:
                         </Typography>
                         <Box display='flex' mt={1} mb={1}>
                             {filterButtons}
@@ -658,8 +658,8 @@ export const StoryContents: { [id: string]: StoryContent } = {
 
                         <FadeInBox visible={!!uiDemo}>
                             <Typography variant='h4'>
-                                Generally, higher income and higher education generally offers a lifestyle that makes you less worried a about
-                                our survival, to see life as a source of opportunity rather than a source of stress.
+                                Higher income and education is generally associated to a lifestyle that makes you less worried about
+                                your survival, and let you see life as a source of opportunity rather than as a source of stress.
                             </Typography>
                         </FadeInBox>
                     </FadeInBoxWithDelay>
@@ -724,15 +724,23 @@ export const StoryContents: { [id: string]: StoryContent } = {
                 dispatch(setSecondaryFilterDemographic({ demographic }));
             });
 
+            let groupDesc = readableSecondaryDemo;
+            if (currentSecondaryDemo == 'education') {
+                groupDesc = 'with the same level of education'
+            } else if (currentSecondaryDemo == 'age') {
+                groupDesc = 'in the same age group'
+            } else if (currentSecondaryDemo == 'income') {
+                groupDesc = 'from the same income bracket'
+            }
+
 
             return (
                 <Fragment>
                     {/* description */}
-                    <FadeInBoxWithDelay fadeInAfter={3000}>
+                    <FadeInBoxWithDelay fadeInAfter={1000}>
                         <Typography variant='h4'>
                             However, age, income and education are not the only factors affecting our beliefs.
-                            For example, let's dive in religion. <br />
-                            Religion is an aspect of our culture that has a large impact on our personal views. <br/>
+                            For example, religion also has a large impact on our personal views. <br/>
                             Select below if you consider yourself religious or not, and let's see if your opinion on {vLabel} is more or less
                             common among those who have a similar faith.
                         </Typography>
@@ -742,14 +750,14 @@ export const StoryContents: { [id: string]: StoryContent } = {
                     </FadeInBoxWithDelay>
                     <FadeInBox visible={currentPrimaryDemo == 'religiosity'} mt={1}>
                         <Typography variant='h4'>
-                            Now the chart is showing you the data broken down by {readablePrimaryDemo}. <br/>
-                            But this alone is not telling us whether religion affects people's opinion, or religious people are on average just being older, or less educated, 
+                            The chart is showing you the data broken down by {readablePrimaryDemo}. <br/>
+                            But this alone does not tell us if religion makes people's opinion more conservative, or if religious people are on average older, or less educated, 
                             or from lower income families.
                         </Typography>
                     </FadeInBox>
                     <FadeInBox visible={currentPrimaryDemo == 'religiosity'} mt={1}>
                         <Typography variant='h4'>
-                            However, we can control for these variables by filtering on the screen only the people within the same demographic: 
+                            However, we can <i>control</i> for these variables by filtering only the people within the same demographic group:
                         </Typography>
                         <Box display='flex' mt={1}>
                             {filterButtons}
@@ -757,7 +765,7 @@ export const StoryContents: { [id: string]: StoryContent } = {
                     </FadeInBox>
                     <FadeInBox visible={!!currentSecondaryDemo} mt={1}>
                         <Typography variant='h4'>
-                            Now the chart is showing only people with the same {readableSecondaryDemo} {currentSecondaryDemo == 'education' ? '' : 'group'}, 
+                            The chart shows people {groupDesc}. <br />
                             Use the up and down arrow on the left of the chart to move across different groups.
                         </Typography>
                     </FadeInBox>
@@ -815,13 +823,14 @@ export const StoryContents: { [id: string]: StoryContent } = {
                     {/* description */}
                     <FadeInBoxWithDelay fadeInAfter={3000}>
                         <Typography variant='h4'>
-                            That was it! I think you should know be able to navigate through this website and explore the data by yourself.
+                            That was it! <br />
+                            I think you should now be able to navigate through this website and explore the data by yourself.
                             There are more interesting questions such as acceptance of casual sex, suicide, death penalty, and more
-                            criteria to split and filter the population.
+                            criteria to split and filter the population by.
                         </Typography>
                         <Box display='flex' mt={1}>
                             <Typography variant='h4'>
-                                Do you have feedback for this website? Send me an email at hi@prejudicefree.com
+                                Do you have any feedback for this website? Send me an email at hi@prejudicefree.com
                             </Typography>
                         </Box>
                     </FadeInBoxWithDelay>

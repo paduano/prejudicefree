@@ -189,12 +189,17 @@ export function StoryContent() {
     const outerContainerStyle = {
     }
     const innerContainerStyle = {
-        backgroundColor: color.backgroundWithOpacity,
+        backgroundColor: color.storyBackground,
     }
     const content = StoryContents[onboardingStep.type];
 
 
     const Story = content.story as any;
+    const PADDING = 24;
+
+    if (!Story || content.storyPosition == 'top') {
+        return null;
+    }
 
     return (
         <Box
@@ -208,17 +213,21 @@ export function StoryContent() {
                 id='story-inner-container'
                 position='relative'
                 margin={limitedWidth ? 0 : 'auto'}
-                p={limitedWidth ? 2 : 0}
                 style={innerContainerStyle}
-                width={limitedWidth ? '100%' : STORY_WIDTH}
-                mb={4}
+                width={limitedWidth ? '100%' : STORY_WIDTH + PADDING * 2}
+                mb={8}
+                mt={limitedWidth ? 0 : 2}
+                pl={limitedWidth ? 2 : PADDING + 'px'}
+                pr={limitedWidth ? 2 : PADDING + 'px'}
+                pt={limitedWidth ? 0 : PADDING + 'px'}
+                pb={limitedWidth ? 0 : PADDING * 2 + 'px'}
             >
                 {!content.hideNextButton ? <Box display='flex' flexDirection='row'>
                     <PreviousOnboardingStepButton display='inline-block' />
                     <Box flex={1}></Box>
                     <NextOnboardingStepButton display='inline-block' />
                 </Box> : null}
-                {Story && content.storyPosition != 'top' ? <Story /> : null}
+                <Story /> 
             </Box>
         </Box>
     );

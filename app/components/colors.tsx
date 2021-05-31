@@ -6,6 +6,7 @@ export const color = {
     accent: '#fec419', // orangy yellow
     background: '#030622', // dark blue, change me in theme.js
     backgroundWithOpacity: 'rgba(4, 6, 34, 0.6)', // dark blue
+    storyBackground: 'rgba(255, 255, 255, 0.06)', // 
 }
 
 export const colorGradientList = [
