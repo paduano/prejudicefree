@@ -484,12 +484,6 @@ export const StoryContents: { [id: string]: StoryContent } = {
                                 when we group people by their age we see a clear pattern. 
                             </Typography>
                         </Box>
-                        <Box>
-                            <Typography variant='h4'>
-                                You probably have noticed that while different countries might hold drastically different opinions,
-                                when we group people by their age we see a clear pattern.
-                            </Typography>
-                        </Box>
                         <Box mt={1}>
                             <Typography variant='h4'>
                                 On topics that grant freedom of choice, emancipation and individual liberties, younger people are 
@@ -623,6 +617,7 @@ export const StoryContents: { [id: string]: StoryContent } = {
 
     /* other factors */
     [OnboardingStepTypes.OTHER_FACTORS]: {
+        useSelectedCountry: true,
         secondaryDemographic: null,
         useSelectedValue: true,
         header: () => {
@@ -642,6 +637,12 @@ export const StoryContents: { [id: string]: StoryContent } = {
                 dispatch(setPrimaryFilterDemographic({ demographic }));
                 setUIDemo(demographic)
             });
+            const selectedValue = useAppSelector(state => {
+                return state.rawData.valuesQuery.selectedValue;
+            });
+            const vLabel = ValuesMap[selectedValue];
+            const currentCountryCode = countryCodeAppSelector();
+            const countryName = countryCodeToName[currentCountryCode];
 
          
             return (
@@ -649,7 +650,7 @@ export const StoryContents: { [id: string]: StoryContent } = {
                     {/* description */}
                     <FadeInBoxWithDelay fadeInAfter={3000}>
                         <Typography variant='h4'>
-                            Group the data by one of these demographics:
+                            Let's look about how the opinion on {vLabel} in {countryName} changes when we group the data by one of these demographics:
                         </Typography>
                         <Box display='flex' mt={1} mb={1}>
                             {filterButtons}
