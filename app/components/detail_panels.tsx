@@ -4,7 +4,7 @@ import { Box } from '@material-ui/core';
 import { useAppDispatch, useAppSelector } from '../hooks';
 import { getReadableDescriptionForDemographic, getReadableDescriptionForGroupValue, getReadableGroupDescriptor, groupsForDemographic, Observation, ObservationDemographics, ValuesMap } from '../observation';
 import { color, getColorIndex } from './colors';
-import { educationLevels } from '../data/legend';
+import { educationLevels, WAVE_TO_YEAR } from '../data/legend';
 import { countryCodeToName } from '../data/countries';
 import { formatPercent } from '../data/format';
 import { ChartAnnotationWrapper } from './chart_annotation_wrapper';
@@ -13,9 +13,9 @@ import { isFeatureAvailableSelector } from '../onboarding';
 import { useAccentStyles } from './theme';
 import { SelectionMarker } from './selection_marker';
 import styles from '../styles/detail_panel.module.css'
-import { countryNameAppSelector } from '../selectors';
+import { availableWavesForValueAndCountrySelector, countryNameAppSelector, isLimitedWidthSelector } from '../selectors';
 import { Button } from './ui_utils';
-import { setCurrentColumn, setCurrentRow, updateValuesQuery } from '../store';
+import { setCollapseAboutYou, setCurrentColumn, setCurrentRow, setWave, updateValuesQuery } from '../store';
 import { ValueRange } from './value_range';
 
 interface Props {
@@ -177,7 +177,7 @@ const describeYourself = () => {
 
     const groupDesc = entireCountry ?
         `In ${countryName}` :
-        getReadableGroupDescriptor(currentColumn, currentRow, demo1, demo2) + ', ';
+        'Among ' + getReadableGroupDescriptor(currentColumn, currentRow, demo1, demo2) + ', ';
 
     const below = (
         <Fragment> <b><FlashingPercent>{formatPercent(groupStats.nBelow / groupStats.totalObservations)}</FlashingPercent></b>
@@ -197,7 +197,7 @@ const describeYourself = () => {
         const groups = groupsForDemographic(demo);
         const moveButtons = groups.map((_, i) => {
             let select = false;
-            let handleClick = () => {};
+            let handleClick = () => { };
             if (demo == demo1) {
                 handleClick = () => dispatch(setCurrentColumn({ column: i }));
                 select = i == currentColumn;
@@ -212,38 +212,49 @@ const describeYourself = () => {
             <Box mt={2}>
                 {/* <div style={{borderTop: '1px solid white'}}></div> */}
                 <b><u>Change your {getReadableDescriptionForDemographic(demo)}:</u></b>
-                <Box display='flex' flexWrap='wrap'>
+                <Box display='flex' flexWrap='wrap' mt={1}>
                     {moveButtons}
                 </Box>
             </Box>
         )
     };
 
-    const handleChangeValue = value => dispatch(updateValuesQuery({value}));
+    const handleChangeValue = value => dispatch(updateValuesQuery({ value }));
 
     return (
         <Fragment>
             <Box display='flex' flexDirection='column' >
-                <Typography variant='h6'>
-                    You have answered that you tolerate {valueText} {youTolerateValueText}.
-                </Typography>
+                {numericValue ?
+                    <Typography variant='h6'>
+                        You have answered that you tolerate {valueText} {youTolerateValueText}.
+                    </Typography>
+                    :
+                    <Typography variant='h6'>
+                        Answer to the question <i>"how much do you tolerate {valueText} in society"</i> to see details
+                        about how your answer compares to the rest of the population.
+                    </Typography>
+                }
                 <Box mt={1} mb={2} width='100%' height='40px'>
                     <ValueRange value={numericValue} onValueSet={handleChangeValue} horizontal />
                 </Box>
-                <Box mt={1}>
-                    <Typography variant='h6'>
-                        {groupDesc} <b>{samePercentText}</b> has given the same answer than you, and
+
+                {numericValue ?
+                    <Fragment>
+                        <Box mt={1}>
+                            <Typography variant='h6'>
+                                {groupDesc} <b>{samePercentText}</b> has given the same answer than you, and
                         the average is <b><FlashingPercent>{formatScoreOneDecimal(groupStats.average)}</FlashingPercent></b>.
                     </Typography>
-                </Box>
-                <Box mt={1}>
-                    <Typography variant='h6'>
-                        {below} and {above}.
+                        </Box>
+                        <Box mt={1}>
+                            <Typography variant='h6'>
+                                {below} and {above}.
                     </Typography>
-                </Box>
+                        </Box>
 
-                {demo1 ? moveYourself(demo1) : null}
-                {demo2 ? moveYourself(demo2) : null}
+                        {demo1 ? moveYourself(demo1) : null}
+                        {demo2 ? moveYourself(demo2) : null}
+                    </Fragment> : null}
 
             </Box>
         </Fragment>
@@ -261,22 +272,64 @@ export const YourselfInfo = React.memo((props: Props) => {
     const marker = <YouMarker />
 
     return (
-        <SidePanel title='About you' hide={!isVisible} marker={marker}>
+        <SidePanel title='About you' hide={!isVisible} marker={marker} collapseContent={true}>
             {describeYourself()}
         </SidePanel>
     );
 });
 
 // ----
+export const TimeTravel = () => {
+    // const isVisible = useAppSelector(isFeatureAvailableSelector('yourself_info'));
+    const dispatch = useAppDispatch();
+    const selectedValue = useAppSelector(state => {
+        return state.rawData.valuesQuery.selectedValue;
+    });
+    const wave = useAppSelector(state => {
+        return state.rawData.wave;
+    });
+    const availableWaves = availableWavesForValueAndCountrySelector();
 
-export const SidePanel = (props: { children: any, hide: boolean, title: string, marker?: JSX.Element, showWhenZoomedIn?: boolean }) => {
+    const waveButtons = availableWaves.sort((a, b) => b - a).map(w => {
+        const label = w == 7 ? 'latest (2020)' : WAVE_TO_YEAR[w];
+
+        return (
+            <Button
+                small
+                label={label}
+                select={wave == w}
+                key={`button-${w}`}
+                onClick={() => dispatch(setWave({ wave: w }))} />
+        )
+    });
+
+    const isFeatureTimeTravelAvailable = useAppSelector(isFeatureAvailableSelector('time_travel'));
+
+    return (
+        <SidePanel title='Time Travel' hide={waveButtons.length == 1 || !isFeatureTimeTravelAvailable} leftSide>
+            <Typography variant='h5'>We have older data available for previous waves of the survey. </Typography>
+            <Box mt={1}>
+                {waveButtons}
+            </Box>
+        </SidePanel>
+    )
+}
+
+// ----
+
+export const SidePanel = (props: 
+    { children: any, leftSide?: boolean, hide: boolean, title: string, marker?: JSX.Element, showWhenZoomedIn?: boolean, collapseContent?: boolean }
+) => {
+    const limitedWidth = isLimitedWidthSelector();
+    const dispatch = useAppDispatch();
+    const collapsed = useAppSelector(state => state.rawData.collapseAboutYou) && limitedWidth && props.collapseContent;
     const wrapperStyles = {
         width: '100%',
-        minHeight: '100px',
+        minHeight: limitedWidth ? undefined : '100px',
     } as any;
 
     const innerContainerStyle = {
-        borderLeft: '1px solid #FFFFFF',
+        borderLeft: props.leftSide ? undefined : '1px solid #FFFFFF',
         height: '100%',
         marginLeft: '9px', // for the marker alignment
         background: color.backgroundWithOpacity
@@ -291,19 +344,34 @@ export const SidePanel = (props: { children: any, hide: boolean, title: string, 
 
     const isFeatureSidePanelAvailable = useAppSelector(isFeatureAvailableSelector('side_panel'));
 
+    const collapseButton = limitedWidth && props.collapseContent ? (
+        <Box  ml={1} style={{paddingTop: '10px', marginTop: '-10px'}}>
+            <Typography variant='h3' noWrap>
+                {collapsed ? 'show stats about you ▸' : 'hide ▼'}
+            </Typography>
+        </Box>
+    ) : null;
+    const onHandleCollapseClick = limitedWidth ? () => dispatch(setCollapseAboutYou(!collapsed)) : () => {};
+
+    const title = <Typography variant='h4' className={typoCls}>
+        {props.title}
+    </Typography>;
+
     return (
-        <ChartAnnotationWrapper style={wrapperStyles} hidden={props.hide || isFeatureSidePanelAvailable} showWhenZoomedIn={props.showWhenZoomedIn}>
-            <Box>
+        <ChartAnnotationWrapper style={wrapperStyles} hidden={props.hide || !isFeatureSidePanelAvailable} showWhenZoomedIn={props.showWhenZoomedIn}>
+            <Box position='relative' display='flex' mb={'3px'} onClick={onHandleCollapseClick} >
                 {props.marker}
-            </Box>
-            <Box pl={1} display='flex' flexDirection='column' style={innerContainerStyle}>
-                <Box mb={1}>
-                    <Typography variant='h4' className={typoCls}>
-                        {props.title}
-                    </Typography>
+                <Box position='relative'>
+                    {collapseButton}
                 </Box>
-                {props.children}
             </Box>
+            {collapsed ? null : (
+                <Box pl={1} display='flex' flexDirection='column' style={innerContainerStyle}>
+                    <Box mb={1}>
+                        {title}
+                    </Box>
+                    {props.children}
+                </Box>)}
         </ChartAnnotationWrapper>
     );
 };

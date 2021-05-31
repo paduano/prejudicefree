@@ -250,14 +250,17 @@
 [ ] (opt) allow editing on the legend
 
 ## Iteration 2
-[ ] add time data for the U.S.A
-[ ] add simple UI to switch year
-[ ] move text to the bottom
+[√] add time data for the U.S.A
+[√] add simple UI to switch year
+[√] move text to the bottom
     [ ] mobile friendly
     [ ] consistent back/forward button 
+[ ] header title collapse when scrolling
 [ ] About you: 
     [ ] your country -- hide when you're not present? only in some parts of the story?
+    [ ] store your answer for different values
 [ ] suggestion system
+[ ] fix education varible
 [√] zoom effect
 
 1. Welcome, what affects people's beliefs?

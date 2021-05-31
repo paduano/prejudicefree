@@ -125,10 +125,11 @@ export const invertedThemeMobile = createMuiTheme(invertedTheme, {
 
     typography: {
         h1: {
-            fontSize: '2rem',
+            fontSize: '1.5rem',
+            fontWeight: 700,
         },
         h2: {
-            fontSize: '1.5rem',
+            fontSize: '1.8rem',
         },
         h3: {
             fontSize: '0.8rem',

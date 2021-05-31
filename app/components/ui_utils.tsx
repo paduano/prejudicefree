@@ -61,13 +61,14 @@ export const FadeGradient = (props: BoxProps & {orientation: 'top' | 'bottom', d
 }
 
 
-export const Button = (props: { label: string, medium?: boolean, small?: boolean, select: boolean, className?: string, onClick: (evt: any) => void, accent?: boolean } & BoxProps) => {
-    const { label, small, children, medium, className, select, accent, ...rest } = props;
+export const Button = (props: { frame?: boolean, label: string, medium?: boolean, small?: boolean, select: boolean, className?: string, onClick: (evt: any) => void, accent?: boolean } & BoxProps) => {
+    const { frame, label, small, children, medium, className, select, accent, ...rest } = props;
     const [white, setWhite] = useState(false);
     const accentClasses = useAccentStyles();
     const typographyCls = accent ? accentClasses.accentText : '';
 
     const cls = classNames(styles.buttonContainer, props.className ?? '', {
+        [styles.frame]: frame,
         [styles.small]: small,
         [styles.medium]: medium
     });
@@ -118,8 +119,8 @@ export function FadeInBoxWithDelay(props: BoxProps & {children: any, fadeInAfter
     useEffect(() => {
         setTimeout(() => {
             setUiVisible(true);
-        }, fadeInAfter); // YYYY
-        // }, fadeInAfter / 10); // YYYY
+        // }, fadeInAfter); // YYYY
+        }, fadeInAfter / 10); // YYYY
     })
 
     const style = {

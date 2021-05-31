@@ -2,6 +2,8 @@
 import { useAppSelector } from './hooks';
 import { countryCodeToName } from './data/countries';
 import { RootState } from './store_definition';
+import { VALUES_WITH_LIMITED_AVAILABLE_YEARS } from './data/legend';
+import { StoreState } from './store';
 
 // Selectors
 export const countryNameAppSelector = () => useAppSelector(state => {
@@ -18,10 +20,44 @@ export const countryNameAppSelector = () => useAppSelector(state => {
     }
 });
 
+export const countryCodeAppSelector = () => useAppSelector(state => getCountryCode(state.rawData));
+
+export const isCountryPreferred = (state: RootState) => {
+    return getCountryCode(state.rawData) == state.rawData.userPreferences.userCountry;
+}
+
+export const getCountryCode = (state: StoreState) => {
+    if (state.filterQuery.country_codes && state.filterQuery.country_codes.length > 0) {
+        return state.filterQuery.country_codes[0];
+    } else {
+        return '';
+    }
+}
+
+
 export const isLimitedWidthSelector = () => useAppSelector(state => {
     return state.rawData.isLimitedWidth;
 });
 
 export const isHorizontalViz = (state: RootState ) => {
-    return !state.rawData.isLimitedWidth && state.rawData.primaryFilterDemographic == null;
+    return false;
+    // return !state.rawData.isLimitedWidth && state.rawData.primaryFilterDemographic == null;
+}
+
+export const availableWavesForValueAndCountrySelector = () => useAppSelector(s => availableWavesForValueAndCountry(s.rawData));
+
+export function availableWavesForValueAndCountry(state: StoreState) : number[] {
+    if (state.filterQuery.country_codes && state.filterQuery.country_codes.length > 0) {
+        const code = state.filterQuery.country_codes[0];
+        const value = state.valuesQuery.selectedValue;
+        const waves = Object.keys(state.allEntries[code]).map(Number);
+        if (VALUES_WITH_LIMITED_AVAILABLE_YEARS[value]) {
+            return waves.filter((v) => VALUES_WITH_LIMITED_AVAILABLE_YEARS[value].indexOf(v) != -1);
+        } else {
+            return waves;
+        }
+
+    } else {
+        return [7];
+    }
 }

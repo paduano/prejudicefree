@@ -1,17 +1,7 @@
-import styles from '../styles/demo.module.css'
 
-import { connect } from 'react-redux';
-import { fetchAllVizData, UISelect } from '../app/store';
 import React from 'react';
 import { Box, Link, ThemeProvider, Typography } from '@material-ui/core';
 import { invertedTheme, useAccentStyles } from '../app/components/theme';
-import dynamic from 'next/dynamic';
-import { Header } from '../app/components/header';
-import { MAIN_CONTAINER_ID } from '../app/components/ui_utils';
-import { SelectOverlays } from '../app/components/select';
-import { Legend } from '../app/components/legend';
-import { DetailPanel } from '../app/components/detail_panels';
-import { FocusOverlay, isFeatureAvailableSelector } from '../app/onboarding';
 import { NavBar } from '../app/components/navbar';
 import { isLimitedWidthSelector } from '../app/selectors';
 

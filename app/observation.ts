@@ -2,9 +2,12 @@ import { normalize_1_10_to_0_1 } from "../utils/utils";
 import { ageRanges, educationLevels, educationRanges, getIndexFromRange, incomeRanges } from "./data/legend";
 
 type Sex = 'M' | 'F';
+export const LATEST_WAVE = 7;
 
 export interface AllEntriesStore {
-    [countryCode: string]: Observation[]
+    [countryCode: string]: {
+        [wave: number]: Observation[]
+    }
 }
 
 export interface RawValues {
@@ -59,6 +62,8 @@ export interface ObservationQuery {
     max_income_quantiles?: number,
     is_religious?: boolean,
 }
+
+export type Value = keyof typeof ValuesMap;
 
 export interface ValuesQuery {
     selectedValue?: keyof typeof ValuesMap;
@@ -194,8 +199,10 @@ export function getGroupStats(
     return stats;
 }
 
-export function filterByCountryAndAvailableDemographics(allEntries: AllEntriesStore, country: string, demos: ObservationDemographics[]) {
-    return allEntries[country].filter(o => {
+export function filterByCountryAndAvailableDemographics(allEntries: AllEntriesStore, country: string, wave: number, demos: ObservationDemographics[]) {
+    const countryData = allEntries[country];
+    const obs = countryData[wave] || [];
+    return obs.filter(o => {
         for (let i = 0; i < demos.length; i++) {
             if (demos[i] == null) {
                 return true;
@@ -242,48 +249,70 @@ export function filterAndStatsObservations(observations: Observation[], query: O
     }
 }
 
-export function formatAllEntriesStore(observations: Observation[]): AllEntriesStore {
-    const store: AllEntriesStore = {};
+export function populateEntriesStoreWithLatestWave(store: AllEntriesStore, observations: Observation[]): AllEntriesStore {
     let id = 0;
     for (let i = 0; i < observations.length; i++) {
         const o = observations[i];
         o.id = id++;
         const code = o.country_code;
         if (!store[code]) {
-            store[code] = [];
+            store[code] = {};
         }
-        store[code].push(o);
+        if (!store[code][LATEST_WAVE]) {
+            store[code][LATEST_WAVE] = [];
+        }
+        store[code][LATEST_WAVE].push(o);
     }
     return store;
 }
 
-export function filterAndStatObservationsWithVariations(observStore: AllEntriesStore, query: ObservationQuery) {
-    if (!query.country_codes) {
-        console.warn('query does not specify a country');
-    }
-
-    const observations: Observation[] = [];
-    query.country_codes.forEach(code => {
-        if (observStore[code]) {
-            observations.push(...observStore[code]);
+export function populateEntriesStoreWithTimeData(store: AllEntriesStore, rData: { wave: number, country_code: string, data: Observation[] }[]): AllEntriesStore {
+    // let id = 0;
+    for (let i = 0; i < rData.length; i++) {
+        const rEntry = rData[i];
+        const wave = rEntry.wave;
+        const code = rEntry.country_code;
+        // o.id = id++;
+        if (wave != LATEST_WAVE) {
+            if (!store[code]) {
+                store[code] = {};
+            }
+            if (!store[code][wave]) {
+                store[code][wave] = [];
+            }
+            store[code][wave].push(...rEntry.data);
         }
-    });
-
-    const { stats, filteredEntries } = filterAndStatsObservations(observations, query);
-    const altQueries = generateAlternativeQueries(query);
-    const altStatsAndQuery = altQueries.map(query => {
-        return {
-            stats: filterAndStatsObservations(observations, query).stats,
-            query,
-        }
-    });
-
-    return {
-        filteredEntries,
-        stats,
-        altStatsAndQuery,
     }
+    return store;
 }
+
+// export function filterAndStatObservationsWithVariations(observStore: AllEntriesStore, query: ObservationQuery) {
+//     if (!query.country_codes) {
+//         console.warn('query does not specify a country');
+//     }
+
+//     const observations: Observation[] = [];
+//     query.country_codes.forEach(code => {
+//         if (observStore[code]) {
+//             observations.push(...observStore[code]);
+//         }
+//     });
+
+//     const { stats, filteredEntries } = filterAndStatsObservations(observations, query);
+//     const altQueries = generateAlternativeQueries(query);
+//     const altStatsAndQuery = altQueries.map(query => {
+//         return {
+//             stats: filterAndStatsObservations(observations, query).stats,
+//             query,
+//         }
+//     });
+
+//     return {
+//         filteredEntries,
+//         stats,
+//         altStatsAndQuery,
+//     }
+// }
 
 function generateAlternativeQueries(original: ObservationQuery): AltObservationQuery[] {
     const queries: AltObservationQuery[] = []
@@ -543,17 +572,25 @@ export function getDemographicGroupIndex(o: Observation, demo: ObservationDemogr
     throw `wasn't able to find the demographic group for ob: ${o.id} and demo: ${demo}`;
 }
 
-export function getReadableDescriptionForGroupValue(demo: ObservationDemographics, index: number): string {
+export function getReadableDescriptionForGroupValue(demo: ObservationDemographics, index: number, past?: boolean): string {
     const groups = groupsForDemographic(demo)
     const group = groups[index];
 
     switch (demo) {
         case 'age':
-            const year = new Date().getFullYear();
-            if (index == groups.length - 1) {
-                return `${year - group[1]}+`;
+            if (!past) {
+                const year = new Date().getFullYear();
+                if (index == groups.length - 1) {
+                    return `${year - group[1]}+`;
+                } else {
+                    return `${year - group[1]} - ${year - group[0]}`;
+                }
             } else {
-                return `${year - group[1]} - ${year - group[0]}`;
+                if (index == groups.length - 1) {
+                    return `before ${group[1]}`;
+                } else {
+                    return `${group[1]} - ${group[0]}`;
+                }
             }
         case 'sex':
             if (group == 'M') {
@@ -588,10 +625,12 @@ export function getReadableDescriptionForGroupValue(demo: ObservationDemographic
 
 }
 
-export function getReadableDescriptionForDemographic(demo: ObservationDemographics): string {
+export function getReadableDescriptionForDemographic(demo: ObservationDemographics, past?: boolean): string {
     switch (demo) {
         case 'age':
-            return 'age';
+            if (past) {
+                return 'birth year';
+            } else return 'age';
         case 'sex':
             return 'gender';
         case 'education':
@@ -653,7 +692,7 @@ export function getReadableGroupDescriptor(
     }
 
     // compose sentence
-    let sentence = 'Among ' + desc(firstDemo, groupX, 'first');
+    let sentence = desc(firstDemo, groupX, 'first');
     if (demoY) {
         const conjunction = firstDemo == 'sex' ? '' : ' and ';
         sentence += conjunction + desc(secondDemo, groupY, 'second');

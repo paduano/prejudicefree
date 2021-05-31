@@ -5,7 +5,7 @@ import styles from '../../styles/select.module.css'
 import { countryCodeToName } from '../data/countries';
 import { useAppDispatch, useAppSelector } from '../hooks';
 import { getReadableDescriptionForDemographic, ObservationDemographics, ObservationDemographicsList, ValuesMap, ValuesQuery } from '../observation';
-import { setPrimaryFilterDemographic, setSecondaryFilterDemographic, uiSetSelect, updateObservationsQuery, updateValuesQuery } from '../store';
+import { setPrimaryFilterDemographic, setSecondaryFilterDemographic, uiSetSelect, updateObservationsQuery, updateUserPreferences, updateValuesQuery } from '../store';
 import { Chevron } from './chevron'
 import { selectAvailableCountries, getFlagFromCountryCode, Button, FadeInBox } from './ui_utils';
 import classNames from 'classnames/bind';
@@ -67,13 +67,13 @@ function getCountryValueSelector() {
     });
 }
 
-export function CountrySelect(props: BoxProps) {
-    const { height, ...rest } = props;
+export function CountrySelect(props: BoxProps & {setPreferences?: boolean}) {
+    const { height, setPreferences, ...rest } = props;
     const dispatch = useAppDispatch()
     const countryValue = getCountryValueSelector();
 
     const handleClick = () => {
-        dispatch(uiSetSelect({ current: 'country' }));
+        dispatch(uiSetSelect({ current: 'country', params: { setPreferences: setPreferences} }));
     };
     const flag = countryValue ? (
         <div style={{ 'height': '100%', display: 'inline-block' }}>
@@ -85,12 +85,15 @@ export function CountrySelect(props: BoxProps) {
     );
 }
 
-const countryOverlay = () => {
+const countryOverlay = (props: {setPreferences: boolean}) => {
     const dispatch = useAppDispatch()
     const countries = useAppSelector(selectAvailableCountries)
 
     const handleCountryChange = (code) => {
         dispatch(uiSetSelect({ current: null }));
+        if (props.setPreferences) {
+            dispatch(updateUserPreferences({ userCountry: code }));
+        }
         dispatch(updateObservationsQuery({ country_codes: [code] }))
     };
     function countryMenuItems(codes: string[]) {
@@ -144,7 +147,7 @@ export function ValuesSelect(props: BoxProps & { variant: 'h1' | 'h2' | 'h3', ac
 
     const label = selectedValue ?
         <Typography variant={variant} className={typoCls}>
-            {ValuesMap[selectedValue]}
+            <b>{ValuesMap[selectedValue]}</b>
         </Typography>
         : '...';
 
@@ -157,6 +160,7 @@ export function ValuesSelect(props: BoxProps & { variant: 'h1' | 'h2' | 'h3', ac
 }
 
 export const ValuesView = (props: {
+    visibleValues?: (keyof typeof ValuesMap)[],
     onSelect?: (v: keyof typeof ValuesMap) => void, 
     onSubmit: (valuesQuery: ValuesQuery) => void }
 ) => {
@@ -213,7 +217,9 @@ export const ValuesView = (props: {
         </Box>
     );
 
-    const valueButtons = values.map(v => {
+    const valueButtons = values
+        .filter(v => !props.visibleValues || props.visibleValues.indexOf(v) != -1)
+        .map(v => {
         const value = ValuesMap[v];
         const select = uiSelectedValue == v;
         const fadeOut = !select && !!uiSelectedValue;
@@ -308,7 +314,7 @@ export function DemographicSelect(props: BoxProps & { axis: Axis, variant: 'h1' 
     const typoCls = accent ? useAccentStyles().accentText : '';
     const label = selectedDemographic ?
         <Typography variant={variant} className={typoCls}>
-            {getReadableDescriptionForDemographic(selectedDemographic)}
+            <b>{getReadableDescriptionForDemographic(selectedDemographic)}</b>
         </Typography>
         : '...';
 

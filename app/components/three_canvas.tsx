@@ -211,8 +211,6 @@ export class ThreeCanvas<T, S> extends React.Component<ThreeCanvasProps & T, Thr
             this.renderer.setRenderTarget(null);
             this.renderer.render(this.scene, this.camera); // YYY
         }
-
-
         requestAnimationFrame(this.renderLoop);
     };
 
@@ -316,7 +314,7 @@ export class ThreeCanvas<T, S> extends React.Component<ThreeCanvasProps & T, Thr
                     </canvas>
                 </div>
 
-                {limitedWidth ? <FadeGradient destinationColor={color.background} position='absolute' orientation='top' top='0' left='0' /> : null}
+                <FadeGradient destinationColor={color.background} position='absolute' orientation='top' top='0' left='0' />
 
                 <FadeGradient destinationColor={color.background} position='absolute' orientation='bottom' bottom='0' left='0' />
 

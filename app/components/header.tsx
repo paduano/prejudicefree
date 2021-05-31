@@ -4,19 +4,23 @@ import { useAccentStyles } from './theme';
 import { Box, useTheme } from '@material-ui/core';
 import { useAppDispatch, useAppSelector } from '../hooks';
 import { nextOnboardingStep, setPrimaryFilterDemographic, setSecondaryFilterDemographic, updateValuesQuery } from '../store';
-import { ObservationDemographics, ValuesMap, ValuesQuery } from '../observation';
-import { FadeGradient, FadeInBoxWithDelay } from './ui_utils';
+import { getReadableDescriptionForDemographic, LATEST_WAVE, ObservationDemographics, ObservationDemographicsList, ValuesMap, ValuesQuery } from '../observation';
+import { Button, FadeGradient, FadeInBoxWithDelay } from './ui_utils';
 import { CountrySelect, DemographicSelect, DemographicView, ValuesSelect, ValuesView } from './select';
 import styles from '../../styles/titles.module.css'
-import { getCurrentStep, NextOnboardingStepButton, OnboardingStepTypes } from '../onboarding';
+import { getCurrentStep, NextOnboardingStepButton, OnboardingStepTypes, PreviousOnboardingStepButton } from '../onboarding';
 import YouMarker from './you_marker';
 import { color, colorGradientListCSS } from './colors';
 import { countryNameAppSelector, isLimitedWidthSelector } from '../selectors';
+import { StoryContents } from './story';
+import { WAVE_TO_YEAR } from '../data/legend';
 
 
 export function FullTitle() {
     const theme = useTheme();
     const limitedWidth = isLimitedWidthSelector();
+    const wave = useAppSelector(state => state.rawData.wave);
+
     const containerStyles = {
         textAlign: limitedWidth ? 'left' : 'center',
         width: '100%',
@@ -27,15 +31,16 @@ export function FullTitle() {
                 <Typography variant='h1' >
                     What{' '}
                     <CountrySelect ml={1} mr={1} mb={0} height={theme.typography.h1.fontSize} />
-                    {' '} thinks about {' '}
-                    <ValuesSelect variant='h1' height={theme.typography.h1.fontSize} />
+                    {wave != LATEST_WAVE ? 'thought about' : 'thinks about'}
+                    <ValuesSelect ml={1} variant='h1' height={theme.typography.h1.fontSize} />
+                    {wave != LATEST_WAVE ? `(in ${WAVE_TO_YEAR[wave]})` : null}
                 </Typography>
             </Box>
             <Box mt={1}>
                 <Typography variant='h2' >
                     Broken down by{' '}
                     <DemographicSelect variant='h2' height={theme.typography.h2.fontSize} axis='x' />
-                    {' '} and {' '}
+                    {' '} and filtered by {' '}
                     <DemographicSelect variant='h2' height={theme.typography.h2.fontSize} axis='y' />
                 </Typography>
             </Box>
@@ -43,25 +48,25 @@ export function FullTitle() {
     );
 }
 
-const NextHeaderPrompt = (props: { children: JSX.Element | JSX.Element[] | string, nextLabel?: string }) => {
+export const NextHeaderPrompt = (props: { children: JSX.Element | JSX.Element[] | string, nextLabel?: string, onNext?: () => void }) => {
     const limitedWidth = isLimitedWidthSelector();
     return (
         <Box display='flex' alignItems='center' flexWrap={limitedWidth ? 'wrap' : undefined} pr={!limitedWidth ? 6 : 0} >
             {props.children}
             <Box flexGrow={1} />
-            <NextOnboardingStepButton display='inline-block' nextLabel={props.nextLabel} />
+            <NextOnboardingStepButton display='inline-block' nextLabel={props.nextLabel} onNext={props.onNext} />
         </Box>
     )
 }
 
-const SimpleHeaderTitle = (props: { children: string }) => {
+export const SimpleHeaderTitle = (props: { children: string }) => {
     const classes = useAccentStyles();
     const style = {
         marginBottom: '0.25rem',
     }
     return (
         <Typography variant='h2' className={classes.accentText} style={style}>
-            {props.children}
+            <b>{props.children}</b>
         </Typography>
     )
 }
@@ -75,55 +80,74 @@ const SimpleHeaderTitle = (props: { children: string }) => {
 //     )
 // }
 
-const TitleSelector = (props: { primaryDemographic?: boolean, secondaryDemographic?}) => {
+export const TitleSelector = (props: { primaryDemographic?: boolean, secondaryDemographic?, center?: boolean}) => {
     const classes = useAccentStyles();
+    const limitedWidth = isLimitedWidthSelector();
+    const wave = useAppSelector(state => state.rawData.wave);
     const theme = useTheme();
     return (
         <Box mb={1}>
-            <Box display='flex' alignItems='center' flexWrap='wrap'>
-                <Typography variant='h2' display='inline' className={classes.accentText}> What{' '} </Typography>
-                <CountrySelect ml={1} mr={1} mb={0} height={theme.typography.h1.fontSize} />
-                <Typography variant='h2' display='inline' className={classes.accentText}> {' '} thinks about {' '} </Typography>
-                <ValuesSelect variant='h2' ml={1} mr={1} mb={0} accent height={theme.typography.h1.fontSize} />
+            <Box display='flex' 
+                alignItems='center' 
+                flexWrap='wrap' 
+                justifyContent={props.center && !limitedWidth ? 'center' : undefined}>
+                <Typography variant='h2' display='inline' className={classes.accentText}> <b>What{' '}</b> </Typography>
+                <CountrySelect ml={1} mr={1} mb={0} height={theme.typography.h2.fontSize} />
+                <Typography variant='h2' display='inline' className={classes.accentText}>
+                    <b>{wave != LATEST_WAVE ? 'thought about' : 'thinks about'}{'\u00A0'}</b>
+                </Typography>
+                <ValuesSelect variant='h2' mr={1} mb={0} accent height={theme.typography.h2.fontSize} />
+                <Typography variant='h2' display='inline' className={classes.accentText}>
+                    {wave != LATEST_WAVE ? `in ${WAVE_TO_YEAR[wave]}` : null}
+                </Typography>
             </Box>
             {props.primaryDemographic || props.secondaryDemographic ? (
-                <Box display='flex' alignItems='center'>
-                    {/* primary */}
-                    <Typography variant='h4' >
-                        <b>Broken down by{' '}</b>
-                    </Typography>
-                    <DemographicSelect variant='h4' axis='x' ml={1} />
+                <Box mt={1} display='flex' flexDirection={limitedWidth ? 'column' : 'row'} 
+                    justifyContent={props.center && !limitedWidth ? 'center' : undefined}>
+                    <Box display='flex' alignItems='center'>
+                        {/* primary */}
+                        <Typography variant='h4' >
+                            <b>Broken down by{' '}</b>
+                        </Typography>
+                        <DemographicSelect variant='h4' axis='x' ml={1} mr={1} height={theme.typography.h2.fontSize} />
+                    </Box>
 
-                    {/* secondary */}
-                    {props.secondaryDemographic ? (
-                        <Fragment>
-                            <Typography variant='h2' >
-                                and
-                            </Typography>
-                            <DemographicSelect variant='h2' axis='y' ml={1} />
-                        </Fragment>
-                    ) : null}
+
+                    <Box display='flex' alignItems='center'>
+                        {/* secondary */}
+                        {props.secondaryDemographic ? (
+                            <Fragment>
+                                <Typography variant='h4' >
+                                    <b>and filtered by</b>
+                                </Typography>
+                                <DemographicSelect variant='h4' axis='y' ml={1} height={theme.typography.h2.fontSize} />
+                            </Fragment>
+                        ) : null}
+                    </Box>
                 </Box>
             ) : null}
         </Box>
     )
 }
 
+export const STORY_WIDTH = 800;
 export function Header() {
     const limitedWidth = isLimitedWidthSelector();
     const onboardingStep = useAppSelector(getCurrentStep);
 
     const params = HeaderParams[onboardingStep.type] || {};
 
-    const headerBaseHeight = limitedWidth && params.headerMaxHeightForLimitedWidth ? undefined : '7rem';
+    // const headerBaseHeight = limitedWidth && params.headerMaxHeightForLimitedWidth ? undefined : '7rem';
+    const headerBaseHeight = '4rem';
     const outerContainerStyle = {
     }
     const innerContainerStyle = {
         backgroundColor: color.backgroundWithOpacity,
     }
+    const content = StoryContents[onboardingStep.type];
 
-
-    const HeaderContent = HeaderContents[onboardingStep.type];
+    const HeaderContent = content.header as any;
+    const Story = content.story as any;
     if (!HeaderContent) {
         throw `no header defined for step ${onboardingStep.type}`;
     }
@@ -143,14 +167,59 @@ export function Header() {
                 p={limitedWidth ? 2 : 0}
                 style={innerContainerStyle}
                 minHeight={headerBaseHeight}
-                width={limitedWidth ? '100%' : 900}
+                width={limitedWidth ? '100%' : STORY_WIDTH}
             >
                 <HeaderContent />
+                {content.storyPosition == 'top' ? <Story /> : null}
                 {/* <div style={backStyle}></div> */}
             </Box>
-            { headerBaseHeight == undefined ? null :
-                <FadeGradient width={limitedWidth ? '100%' : 900} margin='auto' destinationColor={color.backgroundWithOpacity} orientation='top' />
-            }
+            {/* { headerBaseHeight == undefined ? null :
+                <FadeGradient width={limitedWidth ? '100%' : STORY_WIDTH} margin='auto' destinationColor={color.backgroundWithOpacity} orientation='top' />
+            } */}
+        </Box>
+    );
+}
+
+
+export function StoryContent() {
+    const limitedWidth = isLimitedWidthSelector();
+    const onboardingStep = useAppSelector(getCurrentStep);
+    const params = HeaderParams[onboardingStep.type] || {};
+
+    const outerContainerStyle = {
+    }
+    const innerContainerStyle = {
+        backgroundColor: color.backgroundWithOpacity,
+    }
+    const content = StoryContents[onboardingStep.type];
+
+
+    const Story = content.story as any;
+
+    return (
+        <Box
+            id='story-outer-container'
+            zIndex={10}
+            style={outerContainerStyle}
+            alignItems={limitedWidth ? 'flex-start' : 'center'}
+        >
+
+            <Box
+                id='story-inner-container'
+                position='relative'
+                margin={limitedWidth ? 0 : 'auto'}
+                p={limitedWidth ? 2 : 0}
+                style={innerContainerStyle}
+                width={limitedWidth ? '100%' : STORY_WIDTH}
+                mb={4}
+            >
+                {!content.hideNextButton ? <Box display='flex' flexDirection='row'>
+                    <PreviousOnboardingStepButton display='inline-block' />
+                    <Box flex={1}></Box>
+                    <NextOnboardingStepButton display='inline-block' />
+                </Box> : null}
+                {Story && content.storyPosition != 'top' ? <Story /> : null}
+            </Box>
         </Box>
     );
 }
@@ -163,270 +232,14 @@ const HeaderParams = {
     [OnboardingStepTypes.VIZ_ONE_GROUP]: {
         headerMaxHeightForLimitedWidth: true,
     },
-    [OnboardingStepTypes.VIZ_DEMO_X]: {
-        headerMaxHeightForLimitedWidth: true,
-    },
-    [OnboardingStepTypes.VIZ_DEMO_Y]: {
-        headerMaxHeightForLimitedWidth: true,
-    },
+    // [OnboardingStepTypes.VIZ_DEMO_X]: {
+    //     headerMaxHeightForLimitedWidth: true,
+    // },
+    // [OnboardingStepTypes.VIZ_DEMO_Y]: {
+    //     headerMaxHeightForLimitedWidth: true,
+    // },
     [OnboardingStepTypes.COMPLETE_VIZ]: {
         headerMaxHeightForLimitedWidth: true,
     }
-}
-
-
-const HeaderContents = {
-    /**
-     * select country
-     */
-    [OnboardingStepTypes.SELECT_COUNTRY]: () => {
-        return (
-            <Box>
-                <SimpleHeaderTitle>
-                    Prejudice Free.
-                </SimpleHeaderTitle>
-                <FadeInBoxWithDelay fadeInAfter={500}>
-                    <Typography variant='h4'>
-                        Are you free to form your own beliefs?
-                    </Typography>
-                </FadeInBoxWithDelay>
-
-                <FadeInBoxWithDelay fadeInAfter={4000} mt={2}>
-                    <Typography variant='h4'>
-                        Over the past 5 years 120,000 people were interviewed around the world about their opinions and values as part of the <i>World Values Survey</i>.
-                    </Typography>
-                </FadeInBoxWithDelay>
-
-                <FadeInBoxWithDelay fadeInAfter={8000} mt={2}>
-                    <Typography variant='h4'>
-                        This website will take you through a short data-driven journey to show you how some socio-demographic factors,
-                        often outside our control, might affect how people around you think.
-                    </Typography>
-                </FadeInBoxWithDelay>
-
-                <FadeInBoxWithDelay fadeInAfter={14000}>
-                    <NextHeaderPrompt>
-                        <Typography variant='h4' display='inline'> Select your country{' '} </Typography>
-                        <CountrySelect ml={1} mr={1} mb={1} height={'2.7rem'} />
-                        <Typography variant='h4' display='inline'>  {' '}and click next.{' '} </Typography>
-                    </NextHeaderPrompt>
-                </FadeInBoxWithDelay>
-            </Box>
-        );
-
-    },
-
-    /**
-     * select value
-     */
-    [OnboardingStepTypes.SELECT_VALUE]: () => {
-        const dispatch = useAppDispatch();
-        const onValuesSubmit = (query: ValuesQuery) => {
-            dispatch(updateValuesQuery(query));
-            dispatch(nextOnboardingStep());
-        }
-        const limitedWidth = isLimitedWidthSelector();
-        const [uiSelectedValue, setUiSelectedValue] = useState(null);
-        return (
-            <Fragment>
-                {limitedWidth && uiSelectedValue ? null : (
-                    <Fragment>
-                        <SimpleHeaderTitle>
-                            Select a topic.
-                        </SimpleHeaderTitle>
-
-                        <Typography variant='h4'>
-                            I listed below a number of things that people may find divisive or controversial.
-                            Pick the topic you'd like to dive in.
-                        </Typography>
-                    </Fragment>
-                )}
-                <Box display='flex' flexDirection={limitedWidth ? 'column' : 'row'} width='100%' mt={4}>
-                    <ValuesView onSubmit={onValuesSubmit} onSelect={(v) => setUiSelectedValue(v)} />
-                </Box>
-            </Fragment>
-        );
-    },
-
-    /*
-     * Viz random
-     */
-    [OnboardingStepTypes.VIZ_RANDOM]: () => {
-        const selectedValue = useAppSelector(state => {
-            return state.rawData.valuesQuery.selectedValue;
-        });
-        const vLabel = ValuesMap[selectedValue];
-        const countryName = countryNameAppSelector();
-        return (
-            <Fragment>
-                <TitleSelector />
-
-                {/* description */}
-                <FadeInBoxWithDelay fadeInAfter={500}>
-                    <Typography variant='h4'>
-                        People around you in {countryName} hold different opinions on {vLabel}. <br />
-                        I colored them <span style={{ color: colorGradientListCSS(2) }}>{' '}●{' '}</span>blue if they answered that
-                        they tolerate {vLabel} 7 or more, <span style={{ color: colorGradientListCSS(0) }}>{' '}●{' '}</span>red if they answered 4 or less,
-                        <span style={{ color: colorGradientListCSS(1) }}>{' '}●{' '}</span>gray the rest. <br />
-                    </Typography>
-                </FadeInBoxWithDelay>
-
-                <FadeInBoxWithDelay fadeInAfter={4000} mt={2}>
-                    <Typography variant='h4'>
-                        The figures you see on the screen are all people the answered the survey in {countryName}.
-                        You can hover over them with the mouse cursor and read a bit about them on the right.
-                    </Typography>
-                </FadeInBoxWithDelay>
-
-                <FadeInBoxWithDelay fadeInAfter={12000}>
-                    <NextHeaderPrompt>
-                        <Typography variant='h4' display='inline' >
-                            When you’re done fiddling around, click next and I'll try to bring some order on the screen!
-                    </Typography>
-                    </NextHeaderPrompt>
-                </FadeInBoxWithDelay>
-            </Fragment>
-        );
-    },
-
-    /*
-    * Viz one group
-    */
-    [OnboardingStepTypes.VIZ_ONE_GROUP]: () => {
-        return (
-            <Fragment>
-                <TitleSelector />
-
-                {/* description */}
-                <FadeInBoxWithDelay fadeInAfter={3000}>
-                    <Typography variant='h4'>
-                        The people are sorted according to their answer. <br />
-                        Where do you stand? You are marked with "<YouMarker />", and placed close to people that thinks similarly to you.
-                    </Typography>
-                </FadeInBoxWithDelay>
-
-                <FadeInBoxWithDelay fadeInAfter={8000}>
-                    <NextHeaderPrompt>
-                        <Typography variant='h4' display='inline' >
-                            But we're not done yet. What makes people's opinion change within the same country?
-                        </Typography>
-                    </NextHeaderPrompt>
-                </FadeInBoxWithDelay>
-            </Fragment>
-        );
-    },
-
-    /*
-    * select demo x
-    */
-    [OnboardingStepTypes.SELECT_DEMO_X]: () => {
-        const dispatch = useAppDispatch();
-        const onDemoSubmit = (demographic: ObservationDemographics) => {
-            dispatch(setPrimaryFilterDemographic({ demographic }));
-            dispatch(nextOnboardingStep());
-        }
-        return (
-            <Fragment>
-                <SimpleHeaderTitle>
-                    Select a demographic.
-                </SimpleHeaderTitle>
-
-                <FadeInBoxWithDelay fadeInAfter={500}>
-                    <Typography variant='h4'>
-                        Now let’s make things more interesting.
-                        I listed below some characteristics we can split the population by. Select one of them
-                        and see how people's opinions change within each group.
-                    </Typography>
-                </FadeInBoxWithDelay>
-
-                <FadeInBoxWithDelay fadeInAfter={4000}>
-                    <Box display='flex' flexDirection='row' width='100%' mt={4}>
-                        <DemographicView axis='x' onSubmit={onDemoSubmit} />
-                    </Box>
-                </FadeInBoxWithDelay>
-            </Fragment>
-        );
-    },
-
-    /*
-    * visualize demo x
-    */
-    [OnboardingStepTypes.VIZ_DEMO_X]: () => {
-        const limitedWidth = isLimitedWidthSelector();
-        const onboardingMessageStep = useAppSelector(state => state.rawData.currentOnboardingMessageStepIndex);
-        return (
-            <Fragment>
-                <TitleSelector primaryDemographic />
-
-                {onboardingMessageStep == null || limitedWidth ?
-                    <FadeInBoxWithDelay fadeInAfter={4000}>
-                        <NextHeaderPrompt>
-                            <Typography variant='h4' display='inline' >
-                                Feel free to play with the filters above.
-                                When you’re ready to take it to the next level, click next.
-                    </Typography>
-                        </NextHeaderPrompt>
-                    </FadeInBoxWithDelay> : null}
-            </Fragment>
-        );
-    },
-
-    /*
-    * select demo y
-    */
-    [OnboardingStepTypes.SELECT_DEMO_Y]: () => {
-        const dispatch = useAppDispatch();
-        const onDemoSubmit = (demographic: ObservationDemographics) => {
-            dispatch(setSecondaryFilterDemographic({ demographic }));
-            dispatch(nextOnboardingStep());
-        }
-        return (
-            <Fragment>
-                <SimpleHeaderTitle>
-                    One more thing.
-                </SimpleHeaderTitle>
-                <Typography variant='h4'>
-                    Let’s make things a bit more complicated. Pick one more characteristic to break down the population by.
-                </Typography>
-
-                <Box display='flex' flexDirection='row' width='100%' mt={4}>
-                    <DemographicView axis='y' onSubmit={onDemoSubmit} />
-                </Box>
-            </Fragment>
-        );
-    },
-
-
-    /*
-    * visualize demo y
-    */
-    [OnboardingStepTypes.VIZ_DEMO_Y]: () => {
-        const limitedWidth = isLimitedWidthSelector();
-        const onboardingMessageStep = useAppSelector(state => state.rawData.currentOnboardingMessageStepIndex);
-        // for now, same as full viz
-        return (
-            <Fragment>
-                <FullTitle />
-                {onboardingMessageStep == null || limitedWidth &&
-                    <FadeInBoxWithDelay fadeInAfter={4000} mt={2}>
-                        <NextHeaderPrompt nextLabel='Got it'>
-                            <Typography variant='h4' display='inline' >
-                                You made it to the end. Try to change country, topic, demographics and understand how your opinion compares to others.
-                    </Typography>
-                        </NextHeaderPrompt>
-                    </FadeInBoxWithDelay>
-                }
-            </Fragment>
-        );
-    },
-
-    /**
-     * Full Viz 
-     */
-    [OnboardingStepTypes.COMPLETE_VIZ]: () => {
-        return (
-            <FullTitle />
-        );
-    },
 }
 

@@ -214,7 +214,7 @@ export const DotsTestMultiGroup: DotsVizConfiguration<VizPrepareState> = {
         // ------------------
         const GROUP_PADDING_X = 0.8;
         const GROUP_PADDING_Y = 3;
-        const VIZ_WIDTH = 5.8 - GROUP_PADDING_X * (nGroupX-1);
+        const VIZ_WIDTH = 5.8 - GROUP_PADDING_X * (nGroupX);
         let VIZ_HEIGHT = 4;
         if (nGroupY == 2) {
             VIZ_HEIGHT = 5;
@@ -243,7 +243,7 @@ export const DotsTestMultiGroup: DotsVizConfiguration<VizPrepareState> = {
         }
         // compute widths and pos
         let acc_x = 0;
-        const MIN_WIDTH = 0.5;
+        const MIN_WIDTH = 0.77
         const MIN_HEIGHT = 2;
         for (let x = 0; x < nGroupX; x++) {
             let acc_y = 0;

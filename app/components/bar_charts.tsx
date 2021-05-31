@@ -10,6 +10,7 @@ import { ChartAnnotationWrapper } from './chart_annotation_wrapper';
 import { colorGradientList, colorGradientListCSS } from './colors';
 import { updateWhenViewportChanges } from './ui_utils';
 import { isHorizontalViz } from '../selectors';
+import { debug } from '../../utils/utils';
 
 interface Props {
     groupLayoutInfo: GroupLayoutInfo;
@@ -80,9 +81,6 @@ export const BarCharts = React.memo((props: Props) => {
     const { groupLayoutInfo, getAnnotationPos, getSizeTransform } = props;
     const demo = useAppSelector(state => {
         return state.rawData.primaryFilterDemographic;
-    });
-    const animationInProgress = useAppSelector(state => {
-        return state.rawData.animationInProgress;
     });
 
     const demoGroups = demo ? groupsForDemographic(demo) : [0];

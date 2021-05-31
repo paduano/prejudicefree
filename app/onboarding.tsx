@@ -1,4 +1,4 @@
-import { nextOnboardingMessage, nextOnboardingStep} from "./store";
+import { nextOnboardingMessage, nextOnboardingStep, previousOnboardingStep} from "./store";
 import classNames from 'classnames/bind';
 import { useAppDispatch, useAppSelector } from "./hooks";
 import { Button, FadeInBox } from './components/ui_utils';
@@ -12,10 +12,16 @@ export enum OnboardingStepTypes {
     SELECT_VALUE = 2,
     VIZ_RANDOM = 3,
     VIZ_ONE_GROUP = 4,
-    SELECT_DEMO_X = 5,
-    VIZ_DEMO_X = 6,
-    SELECT_DEMO_Y = 7,
-    VIZ_DEMO_Y = 8,
+    ZOOM_IN = 5,
+    VIZ_AGE_SPLIT = 6,
+    OTHER_COUNTRIES_AND_VALUES = 7,
+    COMMENT_ON_FREEDOMS = 8,
+    TIME_TRAVEL = 9,
+    THE_LADDER_OF_FREEDOM = 10,
+    OTHER_FACTORS = 11,
+    RELIGION = 12,
+    END_MESSAGE = 13,
+
     COMPLETE_VIZ = 100,
 }
 
@@ -40,10 +46,12 @@ type Features =
     'yourself_info' | 
     'side_panel' |
     'legend' | 
+    'time_travel' | 
     'colored_men' |
     'remove_demographic_button' |
     'picking' |
-    'picking_marker' 
+    'picking_marker' |
+    'show_birth_year'
     ;
 
 export interface Step {
@@ -56,7 +64,7 @@ type OnboardingStep = {
 }
 
 export const ONBOARDING_STEPS_LIST: OnboardingStep[] = [
-    // intro and select country
+    // // intro and select country
     {
         type: OnboardingStepTypes.SELECT_COUNTRY,
     },
@@ -76,44 +84,84 @@ export const ONBOARDING_STEPS_LIST: OnboardingStep[] = [
         type: OnboardingStepTypes.VIZ_ONE_GROUP,
     },
 
-    // select demographic X
     {
-        type: OnboardingStepTypes.SELECT_DEMO_X,
+        type: OnboardingStepTypes.ZOOM_IN,
     },
 
-    // 5. select demographic X
+    // age split
     {
-        type: OnboardingStepTypes.VIZ_DEMO_X,
-        messages: [
-            {
-                type: 'DRAG_AND_DROP_YOURSELF',
-                text: `
-                    Remember, this is you! You can drag yourself in different groups on the chart, 
-                    and the "about you" section will update.
-                    `,
-                anchor: 'yourself', 
-            }
-        ],
+        type: OnboardingStepTypes.VIZ_AGE_SPLIT,
     },
 
-    // 6. select demographic Y
     {
-        type: OnboardingStepTypes.SELECT_DEMO_Y,
+        type: OnboardingStepTypes.OTHER_COUNTRIES_AND_VALUES,
     },
 
-    // 7. visualize demographic Y
+    // 7
     {
-        type: OnboardingStepTypes.VIZ_DEMO_Y,
-        messages: [
-            {
-                type: 'CHANGE_SECONDARY_DEMOGRAPHIC',
-                text: `
-                    Click on the arrow to change category
-                    `,
-                anchor: 'plusButton', 
-            }
-        ],
+        type: OnboardingStepTypes.COMMENT_ON_FREEDOMS,
     },
+
+    // 8
+    {
+        type: OnboardingStepTypes.TIME_TRAVEL,
+    },
+
+    {
+        type: OnboardingStepTypes.THE_LADDER_OF_FREEDOM,   
+    },
+
+    {
+        type: OnboardingStepTypes.OTHER_FACTORS,
+    },
+
+
+    {
+        type: OnboardingStepTypes.RELIGION,
+    },
+
+    {
+        type: OnboardingStepTypes.END_MESSAGE,
+    },
+
+    // // select demographic X
+    // {
+    //     type: OnboardingStepTypes.SELECT_DEMO_X,
+    // },
+
+    // // 5. select demographic X
+    // {
+    //     type: OnboardingStepTypes.VIZ_DEMO_X,
+    //     messages: [
+    //         {
+    //             type: 'DRAG_AND_DROP_YOURSELF',
+    //             text: `
+    //                 Remember, this is you! You can drag yourself in different groups on the chart, 
+    //                 and the "about you" section will update.
+    //                 `,
+    //             anchor: 'yourself', 
+    //         }
+    //     ],
+    // },
+
+    // // 6. select demographic Y
+    // {
+    //     type: OnboardingStepTypes.SELECT_DEMO_Y,
+    // },
+
+    // // 7. visualize demographic Y
+    // {
+    //     type: OnboardingStepTypes.VIZ_DEMO_Y,
+    //     messages: [
+    //         {
+    //             type: 'CHANGE_SECONDARY_DEMOGRAPHIC',
+    //             text: `
+    //                 Click on the arrow to change category
+    //                 `,
+    //             anchor: 'plusButton', 
+    //         }
+    //     ],
+    // },
 
     // 8. full viz is available to the user
     {
@@ -166,6 +214,7 @@ export function getCurrentOnboardingMessageSelector(state: RootState): null|Onbo
 export function isFeatureAvailableAtStep(onboardingStepType: OnboardingStepTypes, feature: Features) {
     switch (feature) {
         case 'yourself_info':
+            return true;
             if (onboardingStepType < OnboardingStepTypes.VIZ_ONE_GROUP) {
                 return false;
             } else {
@@ -185,19 +234,23 @@ export function isFeatureAvailableAtStep(onboardingStepType: OnboardingStepTypes
                 return true;
             }
         case 'remove_demographic_button':
-            if (onboardingStepType < OnboardingStepTypes.VIZ_DEMO_Y) {
+            // if (onboardingStepType < OnboardingStepTypes.VIZ_DEMO_Y) {
+            if (onboardingStepType < OnboardingStepTypes.COMPLETE_VIZ) {
                 return false;
             } else {
-                return true;
+                return true
             }
         case 'side_panel':
-            if ([OnboardingStepTypes.SELECT_DEMO_X, OnboardingStepTypes.SELECT_DEMO_Y].indexOf(onboardingStepType) == -1) {
-                return false;
-            } else {
-                return true;
-            }
+            return onboardingStepType >= OnboardingStepTypes.VIZ_ONE_GROUP;
+            // if ([OnboardingStepTypes.SELECT_DEMO_X, OnboardingStepTypes.SELECT_DEMO_Y].indexOf(onboardingStepType) == -1) {
+            //     return false;
+            // } else {
+            //     return true;
+            // }
+        case 'time_travel':
+            return onboardingStepType >= OnboardingStepTypes.TIME_TRAVEL;
         case 'picking':
-            if (onboardingStepType < OnboardingStepTypes.VIZ_RANDOM) {
+            if (onboardingStepType < OnboardingStepTypes.ZOOM_IN) {
                 return false;
             } else {
                 return true;
@@ -208,6 +261,8 @@ export function isFeatureAvailableAtStep(onboardingStepType: OnboardingStepTypes
             } else {
                 return true;
             }
+        case 'show_birth_year':
+            return onboardingStepType == OnboardingStepTypes.TIME_TRAVEL;
 
         default:
             return true;
@@ -219,14 +274,27 @@ export function isFeatureAvailableAtStep(onboardingStepType: OnboardingStepTypes
 // helper components
 // ----------------
 
-export const NextOnboardingStepButton = (props: BoxProps & { nextLabel?: string}) => {
-    const { nextLabel, ...rest} = props;
+export const NextOnboardingStepButton = (props: BoxProps & { nextLabel?: string, onNext?: () => void}) => {
+    const { nextLabel, onNext, ...rest} = props;
     const dispatch = useAppDispatch();
     const handleOk = (evt) => {
+        if (onNext) {
+            onNext();
+        }
         dispatch(nextOnboardingStep());
     };
     return <Button accent medium label={nextLabel || 'Next ›'} select={false} onClick={handleOk} {...rest} />
 }
+
+export const PreviousOnboardingStepButton = (props: BoxProps & { label?: string }) => {
+    const { label: nextLabel, ...rest } = props;
+    const dispatch = useAppDispatch();
+    const handleOk = (evt) => {
+        dispatch(previousOnboardingStep());
+    };
+    return <Button medium label={nextLabel || '‹ Back'} select={false} onClick={handleOk} {...rest} />
+}
+
 
 
 export const FocusOverlay = () => {
