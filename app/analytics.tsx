@@ -1,6 +1,6 @@
 import type { AnalyticsInstance } from 'analytics'
 import { countryCodeToName } from './data/countries';
-import { nextOnboardingStep, setCurrentColumn, setCurrentRow, setPrimaryFilterDemographic, setSecondaryFilterDemographic, setSelectedObservation, updateObservationsQuery, updateValuesQuery } from './store';
+import { nextOnboardingStep, restartOnboarding, setCurrentColumn, setCurrentRow, setPrimaryFilterDemographic, setSecondaryFilterDemographic, setSelectedObservation, setWave, skipOnboarding, updateObservationsQuery, updateValuesQuery } from './store';
 
 export const getAnalytics = () => {
     if (typeof window !== 'undefined' && typeof (window as any).Analytics !== 'undefined') {
@@ -71,6 +71,19 @@ export const analyticsMiddleware = storeAPI => next => (action: { type: any, pay
             case setSecondaryFilterDemographic.type:
                 category = 'set-primary-demographic';
                 label = action.payload.demographic;
+                break;
+            
+            case setWave.type:
+                category = 'set-wave';
+                label = action.payload.wave;
+                break;
+
+            case skipOnboarding.type:
+                category = 'skip-onboarding';
+                break;
+            
+            case restartOnboarding.type:
+                category = 'restart-onboarding';
                 break;
 
             // case setSelectedObservation.type:
