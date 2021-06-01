@@ -63,7 +63,7 @@ export type DotsVizConfiguration<T> = {
     dot?: (index: number, observation: Observation, layoutParams: LayoutParams, state: T) => DotAttributes;
 }
 
-export const DotsUniformConfig: DotsVizConfiguration<{ randomGenerator: Rand}> = {
+export const DotsUniformConfig: DotsVizConfiguration<{ randomGenerator: Rand }> = {
     prepare: (layoutParams: LayoutParams) => {
         const { country_codes } = layoutParams.filterQuery;
         const seed = country_codes ? country_codes[0] : '123';
@@ -274,7 +274,7 @@ export const DotsTestMultiGroup: DotsVizConfiguration<VizPrepareState> = {
         // 5. layout computation
         // ------------------
         let lastObservationValuesMatch = 0;
-    const orientation = horizontal ? 'w' : 'h';
+        const orientation = horizontal ? 'w' : 'h';
         for (let x = 0; x < nGroupX; x++) {
             for (let y = 0; y < nGroupY; y++) {
                 const group = groups[x][y];
@@ -282,6 +282,13 @@ export const DotsTestMultiGroup: DotsVizConfiguration<VizPrepareState> = {
                 const rectHeight = rectHeights[x][y];
                 const posX = groupPosX[x][y];
                 const posY = groupPosY[x][y];
+
+                // default position at the center of the group
+                yourselfPositions[x][y] = {
+                    x: posX + rectWidths[x][y]/2,
+                    y: posY + rectHeights[x][y]/2 + 0.4,
+                }
+
                 for (let i = 0; i < group.length; i++) {
                     const o = group[i];
                     const pos = dotsInRect(rectWidth, rectHeight, i, group.length, true /* noise */, orientation, randomGenerator);

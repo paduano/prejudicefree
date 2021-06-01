@@ -2,7 +2,7 @@ import React, { Fragment, useEffect } from 'react';
 import Typography from '@material-ui/core/Typography';
 import { Box } from '@material-ui/core';
 import { useAppDispatch, useAppSelector } from '../hooks';
-import { getReadableDescriptionForDemographic, getReadableDescriptionForGroupValue, groupsForDemographic, LATEST_WAVE } from '../observation';
+import { getReadableDescriptionForDemographic, getReadableDescriptionForGroupValue, groupsForDemographic } from '../observation';
 import { GroupLayoutInfo } from './viz/grid_viz_configs';
 import styles from '../../styles/chart_annotation.module.css'
 import classNames from 'classnames/bind';
@@ -10,6 +10,7 @@ import { ChartAnnotationWrapper } from './chart_annotation_wrapper';
 import { updateWhenViewportChanges } from './ui_utils';
 import { isLimitedWidthSelector } from '../selectors';
 import { isFeatureAvailableSelector } from '../onboarding';
+import { LATEST_WAVE } from '../data/legend';
 
 interface Props {
     groupLayoutInfo: GroupLayoutInfo;

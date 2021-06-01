@@ -20,7 +20,8 @@ export enum OnboardingStepTypes {
     THE_LADDER_OF_FREEDOM = 10,
     OTHER_FACTORS = 11,
     RELIGION = 12,
-    END_MESSAGE = 13,
+    RELIGION_CONTROL_VARIABLES = 13,
+    END_MESSAGE = 14,
 
     COMPLETE_VIZ = 100,
 }
@@ -118,6 +119,10 @@ export const ONBOARDING_STEPS_LIST: OnboardingStep[] = [
 
     {
         type: OnboardingStepTypes.RELIGION,
+    },
+
+    {
+        type: OnboardingStepTypes.RELIGION_CONTROL_VARIABLES,
     },
 
     {
@@ -235,7 +240,7 @@ export function isFeatureAvailableAtStep(onboardingStepType: OnboardingStepTypes
             }
         case 'remove_demographic_button':
             // if (onboardingStepType < OnboardingStepTypes.VIZ_DEMO_Y) {
-            if (onboardingStepType < OnboardingStepTypes.COMPLETE_VIZ) {
+            if (onboardingStepType < OnboardingStepTypes.END_MESSAGE) {
                 return false;
             } else {
                 return true

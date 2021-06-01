@@ -1,12 +1,11 @@
 import { normalize_1_10_to_0_1 } from "../utils/utils";
-import { ageRanges, educationLevels, educationRanges, getIndexFromRange, incomeRanges } from "./data/legend";
+import { ageRanges, educationLevels, educationRanges, getIndexFromRange, incomeRanges, LATEST_WAVE } from "./data/legend";
 
 type Sex = 'M' | 'F';
-export const LATEST_WAVE = 7;
 
 export interface AllEntriesStore {
     [countryCode: string]: {
-        [wave: number]: Observation[]
+        [wave: string]: Observation[]
     }
 }
 
@@ -199,7 +198,7 @@ export function getGroupStats(
     return stats;
 }
 
-export function filterByCountryAndAvailableDemographics(allEntries: AllEntriesStore, country: string, wave: number, demos: ObservationDemographics[]) {
+export function filterByCountryAndAvailableDemographics(allEntries: AllEntriesStore, country: string, wave: string, demos: ObservationDemographics[]) {
     const countryData = allEntries[country];
     const obs = countryData[wave] || [];
     return obs.filter(o => {
@@ -266,14 +265,14 @@ export function populateEntriesStoreWithLatestWave(store: AllEntriesStore, obser
     return store;
 }
 
-export function populateEntriesStoreWithTimeData(store: AllEntriesStore, rData: { wave: number, country_code: string, data: Observation[] }[]): AllEntriesStore {
+export function populateEntriesStoreWithTimeData(store: AllEntriesStore, rData: { wave: string, country_code: string, data: Observation[] }[]): AllEntriesStore {
     // let id = 0;
     for (let i = 0; i < rData.length; i++) {
         const rEntry = rData[i];
         const wave = rEntry.wave;
         const code = rEntry.country_code;
         // o.id = id++;
-        if (wave != LATEST_WAVE) {
+        if (wave != "wvs_7") {
             if (!store[code]) {
                 store[code] = {};
             }

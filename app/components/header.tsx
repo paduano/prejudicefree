@@ -4,7 +4,7 @@ import { useAccentStyles } from './theme';
 import { Box, useTheme } from '@material-ui/core';
 import { useAppDispatch, useAppSelector } from '../hooks';
 import { nextOnboardingStep, setPrimaryFilterDemographic, setSecondaryFilterDemographic, updateValuesQuery } from '../store';
-import { getReadableDescriptionForDemographic, LATEST_WAVE, ObservationDemographics, ObservationDemographicsList, ValuesMap, ValuesQuery } from '../observation';
+import { getReadableDescriptionForDemographic, ObservationDemographics, ObservationDemographicsList, ValuesMap, ValuesQuery } from '../observation';
 import { Button, FadeGradient, FadeInBoxWithDelay } from './ui_utils';
 import { CountrySelect, DemographicSelect, DemographicView, ValuesSelect, ValuesView } from './select';
 import styles from '../../styles/titles.module.css'
@@ -13,7 +13,7 @@ import YouMarker from './you_marker';
 import { color, colorGradientListCSS } from './colors';
 import { countryNameAppSelector, isLimitedWidthSelector } from '../selectors';
 import { StoryContents } from './story';
-import { WAVE_TO_YEAR } from '../data/legend';
+import { LATEST_WAVE, WAVE_TO_YEAR } from '../data/legend';
 
 
 export function FullTitle() {
@@ -137,8 +137,8 @@ export function Header() {
 
     const params = HeaderParams[onboardingStep.type] || {};
 
-    // const headerBaseHeight = limitedWidth && params.headerMaxHeightForLimitedWidth ? undefined : '7rem';
-    const headerBaseHeight = '4rem';
+    const headerBaseHeight = limitedWidth && params.headerMaxHeightForLimitedWidth ? undefined : '4rem';
+    // const headerBaseHeight = '4rem';
     const outerContainerStyle = {
     }
     const innerContainerStyle = {
@@ -216,11 +216,11 @@ export function StoryContent() {
                 style={innerContainerStyle}
                 width={limitedWidth ? '100%' : STORY_WIDTH + PADDING * 2}
                 mb={8}
-                mt={limitedWidth ? 0 : 2}
+                mt={limitedWidth ? 1 : 2}
                 pl={limitedWidth ? 2 : PADDING + 'px'}
                 pr={limitedWidth ? 2 : PADDING + 'px'}
                 pt={limitedWidth ? 0 : PADDING + 'px'}
-                pb={limitedWidth ? 0 : PADDING * 2 + 'px'}
+                pb={limitedWidth ? PADDING + 'px' : PADDING * 2 + 'px'}
             >
                 {!content.hideNextButton ? <Box display='flex' flexDirection='row'>
                     <PreviousOnboardingStepButton display='inline-block' />
@@ -235,18 +235,21 @@ export function StoryContent() {
 
 
 const HeaderParams = {
-    [OnboardingStepTypes.VIZ_RANDOM]: {
-        headerMaxHeightForLimitedWidth: true,
-    },
-    [OnboardingStepTypes.VIZ_ONE_GROUP]: {
-        headerMaxHeightForLimitedWidth: true,
-    },
-    // [OnboardingStepTypes.VIZ_DEMO_X]: {
+    // [OnboardingStepTypes.VIZ_RANDOM]: {
     //     headerMaxHeightForLimitedWidth: true,
     // },
-    // [OnboardingStepTypes.VIZ_DEMO_Y]: {
+    // [OnboardingStepTypes.VIZ_ONE_GROUP]: {
     //     headerMaxHeightForLimitedWidth: true,
     // },
+    // // [OnboardingStepTypes.VIZ_DEMO_X]: {
+    // //     headerMaxHeightForLimitedWidth: true,
+    // // },
+    [OnboardingStepTypes.RELIGION_CONTROL_VARIABLES]: {
+        headerMaxHeightForLimitedWidth: true,
+    },
+    [OnboardingStepTypes.END_MESSAGE]: {
+        headerMaxHeightForLimitedWidth: true,
+    },
     [OnboardingStepTypes.COMPLETE_VIZ]: {
         headerMaxHeightForLimitedWidth: true,
     }

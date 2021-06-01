@@ -33,7 +33,7 @@ export const getFlagFromCountryCode = (code: string, className: string = 'countr
     let name = countryCodeTo2[code];
     const C = Flags[name] as any;
     if (!C) {
-        debugger
+        console.warn('no flag available for ' + code)
     }
     return (
         <C title={countryCodeToName[code]} className={className} />
@@ -66,11 +66,13 @@ export const Button = (props: { frame?: boolean, label: string, medium?: boolean
     const [white, setWhite] = useState(false);
     const accentClasses = useAccentStyles();
     const typographyCls = accent ? accentClasses.accentText : '';
+    const limitedWidth = isLimitedWidthSelector();
 
     const cls = classNames(styles.buttonContainer, props.className ?? '', {
         [styles.frame]: frame,
+        [styles.hasHover]: !limitedWidth,
         [styles.small]: small,
-        [styles.medium]: medium
+        [styles.medium]: medium,
     });
     const clsWhite = classNames(styles.buttonWhite, { [styles.buttonWhiteVisible]: white || select });
     const onMouseDown = () => {
@@ -81,7 +83,9 @@ export const Button = (props: { frame?: boolean, label: string, medium?: boolean
     }
 
     return (
-        <Box className={cls} onClick={props.onClick} {...rest} onMouseDown={onMouseDown} onMouseUp={dismissHover} onMouseLeave={dismissHover} >
+        <Box className={cls} onClick={props.onClick} {...rest} 
+            onTouchStart={onMouseDown} onTouchEnd={dismissHover} onTouchCancel={dismissHover}
+            onMouseDown={onMouseDown} onMouseUp={dismissHover} onMouseLeave={dismissHover} >
             <div className={styles.buttonInnerContainer}>
                 <div className={styles.buttonUnderlineContainer} />
                 <div className={clsWhite}>
@@ -154,4 +158,14 @@ export function viewportWidth() {
         const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0)
         return vw;
     } else return 0;
+}
+
+export function Loading() {
+    return (
+        <Box width='100vw' height='100vh' display='flex' justifyContent='center' alignItems='center'>
+            <Typography variant='h5' className={styles.load}>
+                Loading
+            </Typography>
+        </Box>
+    )
 }

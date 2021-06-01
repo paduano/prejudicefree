@@ -2,7 +2,7 @@ import { configureStore, createAsyncThunk, PayloadAction } from '@reduxjs/toolki
 import thunk from 'redux-thunk';
 
 import { createSlice } from '@reduxjs/toolkit'
-import { AllEntriesStore, AltObservationQuery, AltStatsAndQuery, filterAndStatsObservations, filterByCountryAndAvailableDemographics, populateEntriesStoreWithLatestWave, getEmptyStats, getGroupStats, GroupStats, Observation, ObservationDemographics, ObservationQuery, StatsAccumulator, ValuesQuery, populateEntriesStoreWithTimeData, LATEST_WAVE, ValuesMap } from './observation';
+import { AllEntriesStore, AltObservationQuery, AltStatsAndQuery, filterAndStatsObservations, filterByCountryAndAvailableDemographics, populateEntriesStoreWithLatestWave, getEmptyStats, getGroupStats, GroupStats, Observation, ObservationDemographics, ObservationQuery, StatsAccumulator, ValuesQuery, populateEntriesStoreWithTimeData, ValuesMap } from './observation';
 import { OnboardingObjectPositions, ONBOARDING_STEPS_LIST } from './onboarding';
 import { useAppSelector } from './hooks';
 import { countryCodeToName } from './data/countries';
@@ -10,6 +10,7 @@ import { isLimitedWidth, viewportWidth } from './components/ui_utils';
 import { analyticsMiddleware, getAnalytics } from './analytics';
 import { StoryContents } from './components/story';
 import { availableWavesForValueAndCountry, getCountryCode } from './selectors';
+import { LATEST_WAVE } from './data/legend';
 
 interface UserPreferences {
     userCountry: string,
@@ -36,7 +37,7 @@ export interface StoreState {
     secondaryFilterDemographic?: ObservationDemographics,
     selectedObservationId: number | null;
     selectedObservation: Observation | null;
-    wave: number,
+    wave: string,
 
     currentRow: number,
     currentColumn: number,
@@ -106,7 +107,7 @@ const initialState: StoreState = {
 
     primaryFilterDemographic: undefined,
     secondaryFilterDemographic: undefined,
-    wave: 7,
+    wave: LATEST_WAVE,
 
     filterStats: getEmptyStats(),
     altStatsAndQueries: [],
@@ -144,7 +145,7 @@ const initialState: StoreState = {
 }
 
 // overrides
-// initialState.currentOnboardingStepIndex = 10;
+// initialState.currentOnboardingStepIndex = 12;
 // initialState.primaryFilterDemographic = 'age';
 // initialState.secondaryFilterDemographic = 'education';
 // initialState.valuesQuery.selectedValue = 'justify_abortion';
@@ -192,11 +193,9 @@ const applyOnboardingStep = (state: StoreState, step: number) => {
     if (typeof window !== 'undefined') {
         window.location.hash = ''+step;
     }
+    state.currentOnboardingStepIndex = step;
     const currentType = ONBOARDING_STEPS_LIST[step];
     const c = StoryContents[currentType.type];
-    if (c.beforeReducer !== undefined) {
-        c.beforeReducer(state);
-    }
 
     if (c.primaryDemographic !== undefined) {
         state.primaryFilterDemographic = c.primaryDemographic;
@@ -223,9 +222,15 @@ const applyOnboardingStep = (state: StoreState, step: number) => {
         newObservationQuery.country_codes = [country];
     }
     state.zoomedIn = c.zoomedIn;
+    state.collapseAboutYou = true;
+    state.selectedObservation = null;
     state.selectedObservationId = null;
     state.currentOnboardingMessageStepIndex = 0;
     state.wave = LATEST_WAVE;
+
+    if (c.beforeReducer !== undefined) {
+        c.beforeReducer(state);
+    }
 
     applyUpdateObservationsQuery(state, newObservationQuery);
 }
@@ -241,8 +246,9 @@ const applyBeforeLeaveOnboardingStep = (state: StoreState, step: number) => {
 
 const applyPrimaryFilterDemographic = (state: StoreState, demographic: ObservationDemographics | null) => {
     state.primaryFilterDemographic = demographic;
-    state.currentRow = 0;
-    state.currentColumn = state.userPreferences.demographicGroup[state.primaryFilterDemographic] || 0;
+    // fallback to defaults
+    state.currentRow = state.userPreferences.demographicGroup[state.secondaryFilterDemographic] || 0;
+    state.currentColumn = state.userPreferences.demographicGroup[state.primaryFilterDemographic] || 0;;
     applyFilterCountryAndDemographicsReducer(
         state,
         state.allEntries,
@@ -255,7 +261,8 @@ const applyPrimaryFilterDemographic = (state: StoreState, demographic: Observati
 
 const applySecondaryFilterDemographic = (state: StoreState, demographic: ObservationDemographics | null) => {
     state.secondaryFilterDemographic = demographic;
-    state.currentRow = 0;
+    // fallback to defaults
+    state.currentRow = state.userPreferences.demographicGroup[state.secondaryFilterDemographic] || 0;
     state.currentColumn = state.userPreferences.demographicGroup[state.primaryFilterDemographic] || 0;;
     applyFilterCountryAndDemographicsReducer(
         state,
@@ -281,7 +288,7 @@ const applyUpdateObservationsQuery = (state: StoreState, query: Partial<Observat
     applyCurrentGroupStats(state);
 }
 
-function validWaveOrLatest(state: StoreState, wave: number) {
+function validWaveOrLatest(state: StoreState, wave: string) {
     const available = availableWavesForValueAndCountry(state);
     if (available.indexOf(wave) == -1) {
         return LATEST_WAVE;
@@ -329,7 +336,7 @@ export const rawDataSlice = createSlice({
         setSecondaryFilterDemographic: (state, action: PayloadAction<{ demographic: ObservationDemographics | null }>) => {
             applySecondaryFilterDemographic(state, action.payload.demographic);
         },
-        setWave: (state, action: PayloadAction<{ wave: number }>) => {
+        setWave: (state, action: PayloadAction<{ wave: string}>) => {
             state.wave = action.payload.wave;
             applyFilterCountryAndDemographicsReducer(
                 state,
@@ -371,8 +378,7 @@ export const rawDataSlice = createSlice({
         nextOnboardingStep: (state, action: PayloadAction<void>) => {
             if (state.currentOnboardingStepIndex < ONBOARDING_STEPS_LIST.length - 1) {
                 applyBeforeLeaveOnboardingStep(state, state.currentOnboardingStepIndex);
-                state.currentOnboardingStepIndex += 1;
-                applyOnboardingStep(state, state.currentOnboardingStepIndex)
+                applyOnboardingStep(state, state.currentOnboardingStepIndex + 1)
             } else {
                 console.warn('no more onboarding steps available');
             }
@@ -380,11 +386,19 @@ export const rawDataSlice = createSlice({
         previousOnboardingStep: (state, action: PayloadAction<void>) => {
             if (state.currentOnboardingStepIndex > 0) {
                 applyBeforeLeaveOnboardingStep(state, state.currentOnboardingStepIndex);
-                state.currentOnboardingStepIndex -= 1;
-                applyOnboardingStep(state, state.currentOnboardingStepIndex)
+                applyOnboardingStep(state, state.currentOnboardingStepIndex - 1)
             } else {
                 console.warn('no more onboarding steps available');
             }
+        },
+        skipOnboarding: (state, action: PayloadAction<void>) => {
+            if (!state.valuesQuery.selectedValue) {
+                state.valuesQuery.selectedValue = 'justify_homosexuality';
+            }
+            applyOnboardingStep(state, ONBOARDING_STEPS_LIST.length - 1);
+        },
+        restartOnboarding: (state, action: PayloadAction<void>) => {
+            applyOnboardingStep(state, 0);
         },
         setOnboardingObjectPositions: (state, action: PayloadAction<Partial<OnboardingObjectPositions>>) => {
             state.onboardingObjectPositions = Object.assign({}, state.onboardingObjectPositions, action.payload);
@@ -463,6 +477,8 @@ export const {
     nextOnboardingStep,
     setOnboardingObjectPositions,
     nextOnboardingMessage,
+    skipOnboarding,
+    restartOnboarding,
     previousOnboardingStep,
     zoomIn,
     setCollapseAboutYou,

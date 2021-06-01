@@ -4,7 +4,7 @@ import { Box } from '@material-ui/core';
 import { useAppDispatch, useAppSelector } from '../hooks';
 import { getReadableDescriptionForDemographic, getReadableDescriptionForGroupValue, getReadableGroupDescriptor, groupsForDemographic, Observation, ObservationDemographics, ValuesMap } from '../observation';
 import { color, getColorIndex } from './colors';
-import { educationLevels, WAVE_TO_YEAR } from '../data/legend';
+import { educationLevels, LATEST_WAVE, WAVE_TO_YEAR } from '../data/legend';
 import { countryCodeToName } from '../data/countries';
 import { formatPercent } from '../data/format';
 import { ChartAnnotationWrapper } from './chart_annotation_wrapper';
@@ -221,6 +221,22 @@ const describeYourself = () => {
 
     const handleChangeValue = value => dispatch(updateValuesQuery({ value }));
 
+    const whereYouStandText = (
+        <Fragment>
+            <Box mt={1}>
+                <Typography variant='h6'>
+                    {groupDesc} <b>{samePercentText}</b> has given the same answer than you, and
+                                the average is <b><FlashingPercent>{formatScoreOneDecimal(groupStats.average)}</FlashingPercent></b>.
+                            </Typography>
+            </Box>
+            <Box mt={1}>
+                <Typography variant='h6'>
+                    {below} and {above}.
+                            </Typography>
+            </Box>
+        </Fragment>
+    )
+
     return (
         <Fragment>
             <Box display='flex' flexDirection='column' >
@@ -230,7 +246,7 @@ const describeYourself = () => {
                     </Typography>
                     :
                     <Typography variant='h6'>
-                        Answer to the question <i>"how much do you tolerate {valueText} in society"</i> to see details
+                        Answer to the question <i>"Do you always justify {valueText}"</i> to see details
                         about how your answer compares to the rest of the population.
                     </Typography>
                 }
@@ -240,18 +256,7 @@ const describeYourself = () => {
 
                 {numericValue ?
                     <Fragment>
-                        <Box mt={1}>
-                            <Typography variant='h6'>
-                                {groupDesc} <b>{samePercentText}</b> has given the same answer than you, and
-                        the average is <b><FlashingPercent>{formatScoreOneDecimal(groupStats.average)}</FlashingPercent></b>.
-                    </Typography>
-                        </Box>
-                        <Box mt={1}>
-                            <Typography variant='h6'>
-                                {below} and {above}.
-                    </Typography>
-                        </Box>
-
+                        {groupStats.totalObservations > 0 ?  whereYouStandText : null}
                         {demo1 ? moveYourself(demo1) : null}
                         {demo2 ? moveYourself(demo2) : null}
                     </Fragment> : null}
@@ -279,6 +284,7 @@ export const YourselfInfo = React.memo((props: Props) => {
 });
 
 // ----
+
 export const TimeTravel = () => {
     // const isVisible = useAppSelector(isFeatureAvailableSelector('yourself_info'));
     const dispatch = useAppDispatch();
@@ -290,8 +296,8 @@ export const TimeTravel = () => {
     });
     const availableWaves = availableWavesForValueAndCountrySelector();
 
-    const waveButtons = availableWaves.sort((a, b) => b - a).map(w => {
-        const label = w == 7 ? 'latest (2020)' : WAVE_TO_YEAR[w];
+    const waveButtons = availableWaves.map(w => {
+        const label = w == LATEST_WAVE ? 'latest (2020)' : WAVE_TO_YEAR[w];
 
         return (
             <Button
@@ -317,7 +323,7 @@ export const TimeTravel = () => {
 
 // ----
 
-export const SidePanel = (props: 
+export const SidePanel = (props:
     { children: any, leftSide?: boolean, hide: boolean, title: string, marker?: JSX.Element, showWhenZoomedIn?: boolean, collapseContent?: boolean }
 ) => {
     const limitedWidth = isLimitedWidthSelector();
@@ -345,13 +351,13 @@ export const SidePanel = (props:
     const isFeatureSidePanelAvailable = useAppSelector(isFeatureAvailableSelector('side_panel'));
 
     const collapseButton = limitedWidth && props.collapseContent ? (
-        <Box  ml={1} style={{paddingTop: '10px', marginTop: '-10px'}}>
+        <Box ml={1} style={{ paddingTop: '10px', marginTop: '-10px' }}>
             <Typography variant='h3' noWrap>
                 {collapsed ? 'show stats about you ▸' : 'hide ▼'}
             </Typography>
         </Box>
     ) : null;
-    const onHandleCollapseClick = limitedWidth ? () => dispatch(setCollapseAboutYou(!collapsed)) : () => {};
+    const onHandleCollapseClick = limitedWidth ? () => dispatch(setCollapseAboutYou(!collapsed)) : () => { };
 
     const title = <Typography variant='h4' className={typoCls}>
         {props.title}

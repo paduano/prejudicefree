@@ -2,12 +2,12 @@ import styles from '../styles/demo.module.css'
 
 import { connect } from 'react-redux';
 import { fetchAllVizData, fetchTimeData, setViewportWidth, UISelect } from '../app/store';
-import React from 'react';
+import React, { Fragment } from 'react';
 import { Box, ThemeProvider, Typography } from '@material-ui/core';
 import { invertedTheme, invertedThemeMobile } from '../app/components/theme';
 import dynamic from 'next/dynamic';
 import { Header, StoryContent, STORY_WIDTH } from '../app/components/header';
-import { MAIN_CONTAINER_ID, viewportWidth } from '../app/components/ui_utils';
+import { Loading, MAIN_CONTAINER_ID, viewportWidth } from '../app/components/ui_utils';
 import { SelectOverlays } from '../app/components/select';
 import { Legend } from '../app/components/legend';
 import { DetailPanel, TimeTravel } from '../app/components/detail_panels';
@@ -102,7 +102,7 @@ export class MVP extends React.Component<MVPProps, MVPState> {
     const { limitedWidth } = this.props;
     return (
       <Box display='flex' width={'100%'} height='0px' justifyContent='center' zIndex={10}>
-        <Box width={limitedWidth ? '100%' : STORY_WIDTH} mt={3} pl={limitedWidth ? 2 : 0}>
+        <Box width={limitedWidth ? '100%' : STORY_WIDTH} mt={limitedWidth ? 4 : 3} pl={limitedWidth ? 2 : 0}>
           {this.props.featureLegendEnabled ? <Legend vertical={!limitedWidth} /> : null}
         </Box>
       </Box>
@@ -142,67 +142,71 @@ export class MVP extends React.Component<MVPProps, MVPState> {
     return (
       <ThemeProvider theme={limitedWidth ? invertedThemeMobile : invertedTheme}>
         <div id={MAIN_CONTAINER_ID} style={{ background: color.background }}>
-          <NavBar height={navBarHeight} current='viz'></NavBar>
-
-          {/* modals, full screen selects */}
-          {this.renderSelectOverlay()}
-          {this.renderFocusOverlay()}
           {this.loadingComplete() ? (
-            <Box display='flex' flexDirection='column' justifyContent={limitedWidth ? '' : 'center'} height={`calc(100% - ${navBarHeight})`}>
+            <Fragment>
+              <NavBar height={navBarHeight} current='viz'></NavBar>
+              {/* modals, full screen selects */}
+              {this.renderSelectOverlay()}
+              {this.renderFocusOverlay()}
+              <Box display='flex' flexDirection='column' justifyContent={limitedWidth ? '' : 'center'} height={`calc(100% - ${navBarHeight})`}>
 
-              {/* Header */}
-              <Header />
+                {/* Header */}
+                <Header />
 
-              {/* legend */}
-              {this.renderLegendWithLayout()}
+                {/* legend */}
+                {this.renderLegendWithLayout()}
 
-              {/* main viz space */}
-              <Box display='flex'
-                position='relative'
-                flexDirection={limitedWidth ? 'column' : 'row'}
-                width='100%'
-                minHeight={!limitedWidth ? '530px' : null}
-                justifyContent='center' >
+                {/* main viz space */}
+                <Box display='flex'
+                  position='relative'
+                  flexDirection={limitedWidth ? 'column' : 'row'}
+                  width='100%'
+                  minHeight={!limitedWidth ? '530px' : null}
+                  justifyContent='center' >
 
-                {/* left column */}
-                {!limitedWidth ?
+                  {/* left column */}
+                  {!limitedWidth ?
+                    <Box
+                      display='flex'
+                      flexGrow={1}
+                      flexDirection='column'
+                      alignItems='flex-end'
+                      zIndex={10}
+                      flexBasis={'200px'}>
+                      {columnSpacer()}
+                      <Box pr={1} width={'160px'}>
+                        <TimeTravel />
+                      </Box>
+                    </Box>
+                    : null}
+
+                  {/* 3d */}
+                  {this.renderViz()}
+
+                  {/* right column */}
                   <Box
                     display='flex'
-                    flexGrow={1}
                     flexDirection='column'
-                    alignItems='flex-end'
-                    zIndex={10}
-                    flexBasis={'200px'}>
+                    flexGrow={1}
+                    style={{ pointerEvents: 'none' }}
+                    zIndex={10 /* force new stacking context */} >
                     {columnSpacer()}
-                    <Box pr={1} width={'160px'}>
-                      <TimeTravel />
+                    <Box pl={1} width={limitedWidth ? '100%' : '240px'} pr={limitedWidth ? 0 : 2} pb={limitedWidth ? 2 : 0}>
+                      <DetailPanel />
                     </Box>
                   </Box>
-                  : null}
+                </Box>
 
-                {/* 3d */}
-                {this.renderViz()}
-
-                {/* right column */}
-                <Box
-                  display='flex'
-                  flexDirection='column'
-                  flexGrow={1}
-                  style={{ pointerEvents: 'none' }}
-                  zIndex={10 /* force new stacking context */} >
-                  {columnSpacer()}
-                  <Box pl={1} width={limitedWidth ? '100%' : '240px'} pr={limitedWidth ? 0 : 2}>
-                    <DetailPanel />
-                  </Box>
+                {/* story content */}
+                <Box>
+                  <StoryContent />
                 </Box>
               </Box>
-
-              {/* story content */}
-              <Box>
-                <StoryContent />
-              </Box>
-            </Box>
-          ) : "Loading"}
+            </Fragment>
+          ) :
+            // Loading page
+            <Loading></Loading>
+          }
         </div>
       </ThemeProvider>
     )

@@ -2,7 +2,7 @@
 import { useAppSelector } from './hooks';
 import { countryCodeToName } from './data/countries';
 import { RootState } from './store_definition';
-import { VALUES_WITH_LIMITED_AVAILABLE_YEARS } from './data/legend';
+import { LATEST_WAVE, VALUES_WITH_LIMITED_AVAILABLE_YEARS, WAVE_TO_YEAR } from './data/legend';
 import { StoreState } from './store';
 
 // Selectors
@@ -46,18 +46,16 @@ export const isHorizontalViz = (state: RootState ) => {
 
 export const availableWavesForValueAndCountrySelector = () => useAppSelector(s => availableWavesForValueAndCountry(s.rawData));
 
-export function availableWavesForValueAndCountry(state: StoreState) : number[] {
+export function availableWavesForValueAndCountry(state: StoreState) : string[] {
     if (state.filterQuery.country_codes && state.filterQuery.country_codes.length > 0) {
         const code = state.filterQuery.country_codes[0];
         const value = state.valuesQuery.selectedValue;
-        const waves = Object.keys(state.allEntries[code]).map(Number);
-        if (VALUES_WITH_LIMITED_AVAILABLE_YEARS[value]) {
-            return waves.filter((v) => VALUES_WITH_LIMITED_AVAILABLE_YEARS[value].indexOf(v) != -1);
-        } else {
-            return waves;
-        }
+        const waves = Object.keys(state.allEntries[code]);
+        return waves
+            .filter((v) => !VALUES_WITH_LIMITED_AVAILABLE_YEARS[value] || VALUES_WITH_LIMITED_AVAILABLE_YEARS[value].indexOf(v) != -1)
+            .sort((a, b) => WAVE_TO_YEAR[b] - WAVE_TO_YEAR[a]);
 
     } else {
-        return [7];
+        return [LATEST_WAVE];
     }
 }

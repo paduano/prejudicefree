@@ -334,7 +334,7 @@ class GridVizView extends ThreeCanvas<GridVizProps, GridVizState> {
 
     private updateYourselfPositionInCurrentGroup(groupLayoutInfo: GroupLayoutInfo) {
         const { currentColumn, currentRow } = this.props;
-        const yourselfPosition = this.groupLayoutInfo.yourselfPositions[currentColumn][currentRow] ?? { x: 0, y: 0, z: 0 };
+        let yourselfPosition = this.groupLayoutInfo.yourselfPositions[currentColumn][currentRow];
         this.setYourselfPosition(new THREE.Vector3(yourselfPosition.x, yourselfPosition.y, 0));
     }
 
@@ -345,6 +345,10 @@ class GridVizView extends ThreeCanvas<GridVizProps, GridVizState> {
                 dotAttributes.position.y,
                 dotAttributes.position.z,
             );
+
+            // attributes.position.setXYZ(i,
+            //     0,0,0
+            // );
         }
         if (dotAttributes.opacity != undefined) {
             attributes.vertexOpacity.setX(i, dotAttributes.opacity);
@@ -355,6 +359,9 @@ class GridVizView extends ThreeCanvas<GridVizProps, GridVizState> {
                 dotAttributes.color.g,
                 dotAttributes.color.b,
             );
+            // attributes.color.setXYZ(i,
+            //     1,0,1
+            // );
         }
     }
 
@@ -451,9 +458,9 @@ class GridVizView extends ThreeCanvas<GridVizProps, GridVizState> {
         //     );
         // }
 
-        if (limitedWidth && isZoomedIn) {
+        if (isZoomedIn) {
             zoomOutButton = (
-                <Box position='absolute' top={60} right={0} zIndex={10}>
+                <Box position='absolute' top={60} right={limitedWidth ? 2 : (this.props.width - 800) / 2} zIndex={10}>
                     <Button frame label='zoom out' select={false} small onClick={() => zoomInAction(false)}></Button>
                 </Box>
             );
@@ -1018,8 +1025,8 @@ class GridVizView extends ThreeCanvas<GridVizProps, GridVizState> {
     zoomIn = () => {
         const {limitedWidth} = this.props;
         const destRot = limitedWidth ? 0.3 : 0.2;
-        const destZ = limitedWidth ? -2.5 : -2;
-        const destY = limitedWidth ? 1 : 0;
+        const destZ = limitedWidth ? -2.5 : -1.5;
+        const destY = limitedWidth ? 1 : 0.5;
         this.updateSelectionMaterial();
         this.introRotationTween = new Tween(this.cameraOffset);
         this.introRotationTween

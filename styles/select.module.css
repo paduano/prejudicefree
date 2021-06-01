@@ -73,6 +73,7 @@
 .buttonContainer {
     padding: 0px 0px;
     cursor: pointer;
+    user-select: none; 
 }
 
 .buttonContainer h3 {
@@ -102,7 +103,7 @@
     transition-timing-function: cubic-bezier(.1,.49,.28,.96);
 }
 
-.buttonContainer:hover .buttonUnderlineContainer {
+.buttonContainer.hasHover:hover .buttonUnderlineContainer {
     clip-path: polygon(0% 0%, 0% 100%, 100% 100%, 100% 0%);
 }
 /* 
@@ -219,4 +220,22 @@
 }
 .fadeHidden {
     /* opacity: 0; */
+}
+
+/* pulsing loading message */
+@keyframes animationLoad {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.load {
+  animation-duration: 2s;
+  animation-name: animationLoad;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
 }

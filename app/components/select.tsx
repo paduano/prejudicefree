@@ -197,23 +197,38 @@ export const ValuesView = (props: {
         props.onSelect?.(null);
     };
 
-    const NextButton = <Button accent label='ok' select={false} onClick={handleOk} />
-    const PrevButton = <Button label='< back' select={false} onClick={handlePrev} />
+    const NextButton = <Button small={limitedWidth} accent label='Next >' select={false} onClick={handleOk} />
+    const PrevButton = <Button small={limitedWidth} label='< Back' select={false} onClick={handlePrev} />
+    const navButtons = <Box mt={2} display='flex' flexDirection='row'>
+        {limitedWidth ? PrevButton : null}
+        {limitedWidth ? <Box flex={1}></Box> : null /*spacer*/}
+        {uiSelectedNumericValue > 0 ? NextButton : null}
+    </Box>;
 
     const rangeText = (
         <Box display='flex' alignItems='middle' flexDirection='column' p={4}>
-            <Typography variant='h4'>
-                Choose a value from 1 to 10 on the scale, answering the question:
-            </Typography>
-            <Box mt={2}>
+            {/* <Box mt={2}>
                 <Typography variant='h2'>
-                    <i>"How much do you tolerate <b>{ValuesMap[uiSelectedValue]}</b> in society?"</i>
+                    <i>"Do you accept* <b>{ValuesMap[uiSelectedValue]}</b>?"</i>
+                </Typography>
+            </Box> */}
+            {limitedWidth ? navButtons : null}
+            <Box mt={2}>
+                <Typography variant='h4'>
+                    Choose a value from 1 to 10 on the scale, representing if you think {ValuesMap[uiSelectedValue]} <i>can
+                    always be justified, never be justified, or something in between?*.</i>
                 </Typography>
             </Box>
-            <Box mt={2} display='flex' flexDirection='row'>
-                {limitedWidth ? PrevButton : null}
-                {uiSelectedNumericValue > 0 ? NextButton : null}
+
+            <Box mt={2}>
+                <Typography variant='h6'>
+                    * This is the original wording from the survey.
+                </Typography>
             </Box>
+
+            {!limitedWidth ? navButtons : null}
+            
+            
         </Box>
     );
 

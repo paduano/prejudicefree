@@ -1,16 +1,16 @@
 import { Box, Typography } from "@material-ui/core";
 import React, { Fragment, useState } from "react";
 import { countryCodeToName } from "../data/countries";
-import { ageRanges } from "../data/legend";
+import { ageRanges, LATEST_WAVE, WAVE_TO_YEAR } from "../data/legend";
 import { useAppDispatch, useAppSelector } from "../hooks";
-import { ValuesQuery, ValuesMap, ObservationDemographics, getReadableDescriptionForDemographic, getReadableDescriptionForGroupValue, groupsForDemographic, Value, LATEST_WAVE, ObservationDemographicsList, getReadableGroupDescriptor } from "../observation";
+import { ValuesQuery, ValuesMap, ObservationDemographics, getReadableDescriptionForDemographic, getReadableDescriptionForGroupValue, groupsForDemographic, Value, ObservationDemographicsList, getReadableGroupDescriptor } from "../observation";
 import { OnboardingStepTypes } from "../onboarding";
-import { isLimitedWidthSelector, countryNameAppSelector, countryCodeAppSelector, getCountryCode } from "../selectors";
+import { isLimitedWidthSelector, countryNameAppSelector, countryCodeAppSelector, getCountryCode, availableWavesForValueAndCountrySelector, availableWavesForValueAndCountry } from "../selectors";
 import { updateValuesQuery, nextOnboardingStep, setPrimaryFilterDemographic, setCurrentColumn, setCurrentRow, updateObservationsQuery, setWave, setSecondaryFilterDemographic, updateUserPreferences, StoreState } from "../store";
 import { colorGradientListCSS } from "./colors";
 import { SimpleHeaderTitle, NextHeaderPrompt, FullTitle, TitleSelector } from "./header";
 import { CountrySelect, ValuesView } from "./select";
-import { Button, FadeInBox, FadeInBoxWithDelay } from "./ui_utils";
+import { Button, FadeInBox, FadeInBoxWithDelay, isLimitedWidth } from "./ui_utils";
 import YouMarker from "./you_marker";
 
 // utils
@@ -66,7 +66,7 @@ export const StoryContents: { [id: string]: StoryContent } = {
 
                     <FadeInBoxWithDelay fadeInAfter={4000} mt={2}>
                         <Typography variant='h4'>
-                            Over the past 5 years 120,000 people were interviewed around the world about their opinions and values as part of the <i>World Values Survey</i>.
+                            Over the past 5 years, 120,000 people were interviewed around the world about their opinions and values as part of the <i>World Values Survey</i>.
                     </Typography>
                     </FadeInBoxWithDelay>
 
@@ -122,7 +122,7 @@ export const StoryContents: { [id: string]: StoryContent } = {
                         <Fragment>
                             <Typography variant='h4'>
                                 For now, let's focus on how your country accepts homosexuality or abortion.
-                                They are both divisive or controversial topics in most countries around the world.
+                                Both are divisive or controversial topics in most countries around the world.
                                 Pick which one you'd like to dive in.
                         </Typography>
                         </Fragment>
@@ -161,26 +161,11 @@ export const StoryContents: { [id: string]: StoryContent } = {
                     <FadeInBoxWithDelay fadeInAfter={500}>
                         <Typography variant='h4'>
                             People that answered the survey in {countryName} hold different opinions on {vLabel}. <br />
-                            I colored them <span style={{ color: colorGradientListCSS(2) }}>{' '}●{' '}</span>blue if they answered that
-                            they tolerate {vLabel} 7 or more, <span style={{ color: colorGradientListCSS(0) }}>{' '}●{' '}</span>red if they answered 4 or less,
+                            They are colored <span style={{ color: colorGradientListCSS(2) }}>{' '}●{' '}</span>blue if they answered that
+                            they justify {vLabel} 7 or more, <span style={{ color: colorGradientListCSS(0) }}>{' '}●{' '}</span>red if they answered 4 or less,
                             <span style={{ color: colorGradientListCSS(1) }}>{' '}●{' '}</span>gray the rest. <br />
                         </Typography>
                     </FadeInBoxWithDelay>
-
-                    {/* <FadeInBoxWithDelay fadeInAfter={4000} mt={2}>
-                        <Typography variant='h4'>
-                            The figures you see on the screen are all people the answered the survey in {countryName}.
-                        You can hover over them with the mouse cursor and read a bit about them on the right.
-                    </Typography>
-                    </FadeInBoxWithDelay>
-
-                    <FadeInBoxWithDelay fadeInAfter={12000}>
-                        <NextHeaderPrompt>
-                            <Typography variant='h4' display='inline' >
-                                When you’re done fiddling around, click next and I'll try to bring some order on the screen!
-                    </Typography>
-                        </NextHeaderPrompt>
-                    </FadeInBoxWithDelay> */}
                 </Fragment>
             );
         }
@@ -207,8 +192,9 @@ export const StoryContents: { [id: string]: StoryContent } = {
                     {/* description */}
                     <FadeInBoxWithDelay fadeInAfter={1000}>
                         <Typography variant='h4'>
-                            The people are sorted according to their answer. <br />
-                            Where do you stand? You are marked with "<YouMarker />", and placed close to people that thinks similarly to you.
+                            The chart shows people are now sorted according to their answers. <br />
+                            {/* Where do you stand? You are marked with "<YouMarker />", and placed close to people that thinks similarly to you. */}
+                            Where do you stand? You are the figure painted in yellow, and you are close to people that think similarly to you..
                     </Typography>
                     </FadeInBoxWithDelay>
                     <FadeInBoxWithDelay fadeInAfter={2000} mt={1}>
@@ -247,7 +233,7 @@ export const StoryContents: { [id: string]: StoryContent } = {
                     {/* description */}
                     <FadeInBoxWithDelay fadeInAfter={3000}>
                         <Typography variant='h4'>
-                            The figures you see on the screen are all people the answered the survey in {countryName}.
+                            The figures you see on the screen are all people the answered the survey in {countryName}
                         </Typography>
                         <Box mt={1}>
                             <Typography variant='h4'>
@@ -304,7 +290,7 @@ export const StoryContents: { [id: string]: StoryContent } = {
                     {/* description */}
                     <FadeInBoxWithDelay fadeInAfter={3000}>
                         <Typography variant='h4'>
-                            What is your age group?
+                            What's your age?
                         </Typography>
                         <Box display='flex' mt={1}>
                             {ageButtons}
@@ -312,7 +298,8 @@ export const StoryContents: { [id: string]: StoryContent } = {
                     </FadeInBoxWithDelay>
                     <FadeInBox visible={currentDemo == 'age'}>
                         <Typography variant='h4'>
-                            Age changes how people answered. Do you expect this pattern to be unique for {countryName} and for the opinion on {vLabel}?
+                            You might be surprised to see that younger have expressed more tolerant views on {vLabel}.
+                            But is this trend widespread around the world? And is it present in other topics?
                         </Typography>
                     </FadeInBox>
                 </Fragment>
@@ -398,7 +385,7 @@ export const StoryContents: { [id: string]: StoryContent } = {
 
                         <FadeInBox mt={1} visible={step > 0}>
                             <Typography variant='h4'>
-                                Look at how the results differ by age group:
+                                Look at how the results differ by age:
                             </Typography>
                             <Box display='flex' mt={1}>
                                 {noSplit}
@@ -482,13 +469,16 @@ export const StoryContents: { [id: string]: StoryContent } = {
                     <FadeInBoxWithDelay fadeInAfter={1000}>
                         <Box>
                             <Typography variant='h4'> 
-                                You have probably noticed that when we group people by age, we see a clear pattern emerging in most countries:
+                                We see a clear pattern emerging in most countries: younger people are more likely to be support homosexuality,
+                                abortion, having casual sex, divorce, more than older generations.
+                                
                             </Typography>
                         </Box>
                         <Box mt={1}>
                             <Typography variant='h4'>
-                                Younger people value more individual freedom. <br />
-                                Are people becoming more conservative as they age? 
+                                {/* Another way to say it is that younger people value more individual freedom. <br /> */}
+                                What can the data of this survey tell us about when did this trend start? 
+                                And, is it true that people become more conservative as they age? 
                             </Typography>
                         </Box>
                     
@@ -502,8 +492,14 @@ export const StoryContents: { [id: string]: StoryContent } = {
     [OnboardingStepTypes.TIME_TRAVEL]: {
         primaryDemographic: 'age',
         secondaryDemographic: null,
-        countryCode: '840',
         useSelectedValue: true,
+        useSelectedCountry: true,
+        beforeReducer: (state) => {
+            // fallback on the USA if no previous data is available
+            if (availableWavesForValueAndCountry(state).length < 3) {
+                state.filterQuery.country_codes = ['840'];
+            }
+        },
         header: () => {
             return (
                 <Fragment>
@@ -521,11 +517,37 @@ export const StoryContents: { [id: string]: StoryContent } = {
                 return state.rawData.wave
             });
             const currentCountryCode = countryCodeAppSelector();
+            const countryName = countryNameAppSelector();
             const selectedValue = useAppSelector(state => {
                 return state.rawData.valuesQuery.selectedValue;
             });
+            const availableWaves = availableWavesForValueAndCountrySelector();
+            const wavesToDisplay = [];
+            wavesToDisplay.push(LATEST_WAVE);
+            if (availableWaves.indexOf('wvs_3') != -1) {
+                wavesToDisplay.push('wvs_3');
+            }
+            if (availableWaves.indexOf('evs_3') != -1) {
+                wavesToDisplay.push('evs_3');
+            }
+            if (availableWaves.indexOf('wvs_1') != -1) {
+                wavesToDisplay.push('wvs_1');
+            }
+            if (availableWaves.indexOf('evs_1') != -1) {
+                wavesToDisplay.push('evs_1');
+            }
+
+            const waveButtons = wavesToDisplay.map(w => {
+                const label = w == LATEST_WAVE ? 'Now' : (new Date().getFullYear() - WAVE_TO_YEAR[w]) + ' years ago';
+                return <Button 
+                    mr={1}
+                    label={label} small
+                    select={currentWave == w}
+                    key={`wave-button-${w}`}
+                    onClick={() => handleSetWave(w)} />;
+            })
             const vLabel = ValuesMap[selectedValue];
-            const handleSetWave = (wave: number) => {
+            const handleSetWave = (wave: string) => {
                 dispatch(setWave({ wave }))
                 setUIWave(wave);
             }
@@ -542,37 +564,26 @@ export const StoryContents: { [id: string]: StoryContent } = {
 
                     <FadeInBoxWithDelay fadeInAfter={3000} mt={1}>
                         <Typography variant='h4'>
-                            Let's look at the survey results for {countryCodeToName[currentCountryCode]} on {vLabel}.
-                            The chart is grouping people by year of birth, which allow us to see the evolution of 
+                            Let's look at the survey results for {countryName} on {vLabel}.
+                            The chart is grouping people by year of birth, which allows us to see the evolution of 
                             the opinion.
                         </Typography>
                     </FadeInBoxWithDelay>
                     <FadeInBoxWithDelay fadeInAfter={3000}>
 
                         <Box display='flex' mt={1} mb={1}>
-                            <Button mr={1}
-                                label="Now" small
-                                select={currentWave == 7}
-                                onClick={() => handleSetWave(7)} />
-                            <Button mr={1}
-                                label="20 years ago" small
-                                select={currentWave == 4}
-                                onClick={() => handleSetWave(4)} />
-                            <Button mr={1}
-                                label="40 years ago" small
-                                select={currentWave == 1}
-                                onClick={() => handleSetWave(1)} />
+                            {waveButtons}
                         </Box>
                     </FadeInBoxWithDelay>
-                    <FadeInBox visible={!!uiWave}>
+                    <FadeInBox visible={!!uiWave || currentWave != LATEST_WAVE}>
                         <Typography variant='h4'>
 
                             {/* Predictably, we have more people born before {ageRanges[2][0]}. */}
                             None of the age groups have become more conservative as they age.
                             <br></br>
                             The age group born between {ageRanges[1][0]} and {ageRanges[1][1]} has always been more tolerant than those
-                            born before {ageRanges[2][1]}. Likewise, the people born between {ageRanges[0][0]} and {ageRanges[0][1]}{' '},
-                            as they start showing up in the data, are even more tolerant than older generations.
+                            born before {ageRanges[2][1]}. Likewise, the people born between {ageRanges[0][0]} and {ageRanges[0][1]},
+                            as they start showing up in the data, are more tolerant than older generations.
                              <br></br>
                             Why is this happening?
                         </Typography>
@@ -602,9 +613,17 @@ export const StoryContents: { [id: string]: StoryContent } = {
                             fuels open-minded, tolerant opinions.
                         </Typography>
                     </FadeInBoxWithDelay>
-                    <FadeInBoxWithDelay fadeInAfter={2000} mt={1}>
+                    <FadeInBoxWithDelay fadeInAfter={1500} mt={1}>
                         <Typography variant='h4'>
-                            If we accept this theory as true, how do we expect people's opinion to change according to their education or income?
+                            But older people tend to be slower to adapt their views to the current times. 
+                            The socio-economical conditions you experienced while living through the last years of your adolescence 
+                            are crucial in forming views on political and social issues. 
+                            Once you become an adult, you are not likely to significantly change your opinion for the rest of your life.
+                        </Typography>
+                    </FadeInBoxWithDelay>
+                    <FadeInBoxWithDelay fadeInAfter={2500} mt={1}>
+                        <Typography variant='h4'>
+                            If we accept this theory as true, how do we expect people's opinion to differ according to their education or income?
                         </Typography>
                     </FadeInBoxWithDelay>
 
@@ -658,8 +677,9 @@ export const StoryContents: { [id: string]: StoryContent } = {
 
                         <FadeInBox visible={!!uiDemo}>
                             <Typography variant='h4'>
-                                Higher income and education is generally associated to a lifestyle that makes you less worried about
-                                your survival, and let you see life as a source of opportunity rather than as a source of stress.
+                                High income and education are generally associated with a lifestyle that makes you less worried about your "survival", 
+                                and lets you see life as a source of opportunity rather than as a source of stress.
+                                Consequently, higher income and education groups are more often associated with more open-minded views.
                             </Typography>
                         </FadeInBox>
                     </FadeInBoxWithDelay>
@@ -719,28 +739,15 @@ export const StoryContents: { [id: string]: StoryContent } = {
                 return state.rawData.valuesQuery.selectedValue;
             });
             const vLabel = ValuesMap[selectedValue];
-
-            const filterButtons = createDemoButtons(['age', 'income', 'education'], currentSecondaryDemo, (demographic: ObservationDemographics) => {
-                dispatch(setSecondaryFilterDemographic({ demographic }));
-            });
-
-            let groupDesc = readableSecondaryDemo;
-            if (currentSecondaryDemo == 'education') {
-                groupDesc = 'with the same level of education'
-            } else if (currentSecondaryDemo == 'age') {
-                groupDesc = 'in the same age group'
-            } else if (currentSecondaryDemo == 'income') {
-                groupDesc = 'from the same income bracket'
-            }
-
+;
 
             return (
                 <Fragment>
                     {/* description */}
                     <FadeInBoxWithDelay fadeInAfter={1000}>
                         <Typography variant='h4'>
-                            However, age, income and education are not the only factors affecting our beliefs.
-                            For example, religion also has a large impact on our personal views. <br/>
+                            However, age, income, and education are not the only factors affecting our beliefs.
+                            For example, religion also has an impact on our personal views. <br/>
                             Select below if you consider yourself religious or not, and let's see if your opinion on {vLabel} is more or less
                             common among those who have a similar faith.
                         </Typography>
@@ -751,10 +758,63 @@ export const StoryContents: { [id: string]: StoryContent } = {
                     <FadeInBox visible={currentPrimaryDemo == 'religiosity'} mt={1}>
                         <Typography variant='h4'>
                             The chart is showing you the data broken down by {readablePrimaryDemo}. <br/>
-                            But this alone does not tell us if religion makes people's opinion more conservative, or if religious people are on average older, or less educated, 
+                            But this alone does not tell us if religion makes people's opinions more conservative, or if religious people are on average older, or less educated, 
                             or from lower income families.
                         </Typography>
                     </FadeInBox>
+                </Fragment>
+            );
+        },
+    },
+
+    /*
+  * Religion
+  */
+    [OnboardingStepTypes.RELIGION_CONTROL_VARIABLES]: {
+        useSelectedCountry: true,
+        primaryDemographic: 'religiosity',
+        secondaryDemographic: null,
+        useSelectedValue: true,
+        header: () => {
+            return (
+                <Fragment>
+                    <TitleSelector />
+                </Fragment>
+            );
+        },
+        story: () => {
+            const dispatch = useAppDispatch();
+            const currentPrimaryDemo = useAppSelector(state => {
+                return state.rawData.primaryFilterDemographic;
+            });
+            const currentSecondaryDemo = useAppSelector(state => {
+                return state.rawData.secondaryFilterDemographic;
+            });
+            const readableSecondaryDemo = getReadableDescriptionForDemographic(currentSecondaryDemo);
+
+            const selectedValue = useAppSelector(state => {
+                return state.rawData.valuesQuery.selectedValue;
+            });
+            const vLabel = ValuesMap[selectedValue];
+
+            const filterButtons = createDemoButtons(['age', 'income', 'education'], currentSecondaryDemo, (demographic: ObservationDemographics) => {
+                dispatch(setSecondaryFilterDemographic({ demographic }));
+            });
+
+            const limitedWidth = isLimitedWidthSelector();
+            const arrowPlacementDesc = limitedWidth ? 'on top of' : 'on the left of';
+
+            let groupDesc = readableSecondaryDemo;
+            if (currentSecondaryDemo == 'education') {
+                groupDesc = 'with the same level of education'
+            } else if (currentSecondaryDemo == 'age') {
+                groupDesc = 'in the same age group'
+            } else if (currentSecondaryDemo == 'income') {
+                groupDesc = 'from the same income bracket'
+            }
+
+            return (
+                <Fragment>
                     <FadeInBox visible={currentPrimaryDemo == 'religiosity'} mt={1}>
                         <Typography variant='h4'>
                             However, we can <i>control</i> for these variables by filtering only the people within the same demographic group:
@@ -765,8 +825,8 @@ export const StoryContents: { [id: string]: StoryContent } = {
                     </FadeInBox>
                     <FadeInBox visible={!!currentSecondaryDemo} mt={1}>
                         <Typography variant='h4'>
-                            The chart shows people {groupDesc}. <br />
-                            Use the up and down arrow on the left of the chart to move across different groups.
+                            The chart shows people {groupDesc}, split by their religiosity. <br />
+                            Use the up and down arrow {arrowPlacementDesc} the chart to move across different groups. <br />
                         </Typography>
                     </FadeInBox>
                 </Fragment>
@@ -824,7 +884,7 @@ export const StoryContents: { [id: string]: StoryContent } = {
                     <FadeInBoxWithDelay fadeInAfter={3000}>
                         <Typography variant='h4'>
                             That was it! <br />
-                            I think you should now be able to navigate through this website and explore the data by yourself.
+                            You should now be able to navigate through this website and explore the data by yourself.
                             There are more interesting questions such as acceptance of casual sex, suicide, death penalty, and more
                             criteria to split and filter the population by.
                         </Typography>
@@ -1005,8 +1065,11 @@ export const StoryContents: { [id: string]: StoryContent } = {
     [OnboardingStepTypes.COMPLETE_VIZ]: {
         hideNextButton: true,
         header: () => {
+            const currentPrimaryDemo = useAppSelector(state => {
+                return state.rawData.primaryFilterDemographic;
+            });
             return (
-                <TitleSelector primaryDemographic secondaryDemographic center />
+                <TitleSelector primaryDemographic secondaryDemographic={!!currentPrimaryDemo} center />
             );
         },
     }

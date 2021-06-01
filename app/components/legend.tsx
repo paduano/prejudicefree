@@ -30,12 +30,14 @@ export const Legend = React.memo((props: Props) => {
             fontWeight: 700,
             textAlign: 'left',
             paddingLeft: vertical? '4px' : undefined,
+            marginTop: vertical? '1px' : undefined,
+            marginBottom: vertical? '1px': undefined,
         } as any;
         let text;
         if (i == 0) {
             text = 'OPPOSE';
         } else if (i == colorGradientList.length - 1) {
-            text = 'TOLERATE';
+            text = 'SUPPORT';
             if (!vertical) {
                 style.textAlign = 'right';
             }
@@ -50,7 +52,7 @@ export const Legend = React.memo((props: Props) => {
 
     const wrapperStyles = {
         width: limitedWidth ? '120px' : '120px',
-        height: vertical ? '100px' : undefined,
+        height: vertical ? '82px' : undefined,
         pointerEvents: 'none',
     } as any;
 
