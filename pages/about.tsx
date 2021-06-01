@@ -38,9 +38,9 @@ export default function AboutPage() {
               </Typography>
             </Box>
 
-            <Typography variant='h4'>
+            {/* <Typography variant='h4'>
               The source code for this website is available <Link color="inherit" underline='always' target="_blank" href="https://github.com/paduano/prejudicefree">here</Link>.
-            </Typography>
+            </Typography> */}
 
             <Box mt={4}>
               <Box mb={2}>

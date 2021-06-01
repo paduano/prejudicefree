@@ -299,7 +299,7 @@ const valueOverlay = () => {
     }
 
     return (
-        <SelectDialog title={'Select a value from the list'} subtitle='list is ordered by....'>
+        <SelectDialog title={'Select a topic from the list'} subtitle='list is ordered by....'>
             <Box display='flex' flexDirection='row' width={limitedWidth ? '100%' : '700px'} height={limitedWidth ? '100%' : null} mt={2}>
                 <ValuesView onSubmit={onSubmit} />
             </Box>
