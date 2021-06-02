@@ -53,7 +53,7 @@ export const analyticsMiddleware: Middleware = storeAPI => next => (action: { ty
 
             case nextOnboardingStep.type:
                 category = 'next-onboarding-step';
-                value = (storeAPI.getState() as RootState).rawData.currentOnboardingStepIndex;
+                label = (storeAPI.getState() as RootState).rawData.currentOnboardingStepIndex;
                 break;
 
             case updateObservationsQuery.type:
