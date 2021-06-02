@@ -11,13 +11,19 @@ export default class MyDocument extends Document {
         <Head>
           {/* PWA primary color */}
           <meta name="theme-color" content={theme.palette.primary.main} />
-          <link
-            rel="stylesheet"
-            href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap"
-          />
-          <script type='module' dangerouslySetInnerHTML={{
-            // __html: `window.initAnalytics()`
-            __html: `
+          <meta property="og:title" content="Prejudice free" />
+          <meta property="og:description" content="Where do you stand?" />
+          <meta property="og:image" content="https://prejudicefree.com/thumb01.jpg" />
+          <meta property="og:url" content="https://prejudicefree.com" />
+          <meta name="twitter:card" content="summary_large_image" />
+
+            <link
+              rel="stylesheet"
+              href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap"
+            />
+            <script type='module' dangerouslySetInnerHTML={{
+              // __html: `window.initAnalytics()`
+              __html: `
               import analytics from 'https://unpkg.com/analytics/lib/analytics.browser.es.js?module'
               import analyticsGa from 'https://unpkg.com/@analytics/google-analytics/lib/analytics-plugin-ga.browser.es.js?module'
               /* Initialize analytics */
@@ -37,12 +43,12 @@ export default class MyDocument extends Document {
 
               window.Analytics = Analytics;
             `
-          }} />
+            }} />
         </Head>
-        <body>
-          <Main />
-          <NextScript />
-        </body>
+          <body>
+            <Main />
+            <NextScript />
+          </body>
       </Html>
     );
   }
@@ -79,14 +85,14 @@ MyDocument.getInitialProps = async (ctx) => {
 
   ctx.renderPage = () =>
     originalRenderPage({
-      enhanceApp: (App) => (props) => sheets.collect(<App {...props} />),
+          enhanceApp: (App) => (props) => sheets.collect(<App {...props} />),
     });
 
   const initialProps = await Document.getInitialProps(ctx);
 
   return {
-    ...initialProps,
-    // Styles fragment is rendered after the app and page rendering finish.
-    styles: [...React.Children.toArray(initialProps.styles), sheets.getStyleElement()],
+          ...initialProps,
+          // Styles fragment is rendered after the app and page rendering finish.
+          styles: [...React.Children.toArray(initialProps.styles), sheets.getStyleElement()],
   };
 };
