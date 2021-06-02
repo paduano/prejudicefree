@@ -1,6 +1,8 @@
 import type { AnalyticsInstance } from 'analytics'
+import { Middleware } from 'redux';
 import { countryCodeToName } from './data/countries';
-import { nextOnboardingStep, restartOnboarding, setCurrentColumn, setCurrentRow, setPrimaryFilterDemographic, setSecondaryFilterDemographic, setSelectedObservation, setWave, skipOnboarding, updateObservationsQuery, updateValuesQuery } from './store';
+import { nextOnboardingStep, restartOnboarding, setCurrentColumn, setCurrentRow, setPrimaryFilterDemographic, setSecondaryFilterDemographic, setSelectedObservation, setWave, skipOnboarding, StoreState, updateObservationsQuery, updateValuesQuery } from './store';
+import { RootState } from './store_definition';
 
 export const getAnalytics = () => {
     if (typeof window !== 'undefined' && typeof (window as any).Analytics !== 'undefined') {
@@ -32,7 +34,7 @@ export const getAnalytics = () => {
 //     }
 // }
 
-export const analyticsMiddleware = storeAPI => next => (action: { type: any, payload: any }) => {
+export const analyticsMiddleware: Middleware = storeAPI => next => (action: { type: any, payload: any }) => {
 
     try {
         let category = undefined;
@@ -51,6 +53,7 @@ export const analyticsMiddleware = storeAPI => next => (action: { type: any, pay
 
             case nextOnboardingStep.type:
                 category = 'next-onboarding-step';
+                value = (storeAPI.getState() as RootState).rawData.currentOnboardingStepIndex;
                 break;
 
             case updateObservationsQuery.type:
