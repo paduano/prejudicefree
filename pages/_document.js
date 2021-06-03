@@ -13,7 +13,7 @@ export default class MyDocument extends Document {
           <meta name="theme-color" content={theme.palette.primary.main} />
           <meta property="og:title" content="Prejudice free" />
           <meta property="og:description" content="Where do you stand?" />
-          <meta property="og:image" content="https://prejudicefree.com/thumb01.jpg" />
+          <meta property="og:image" content="https://prejudicefree.com/thumb03.jpg" />
           <meta property="og:url" content="https://prejudicefree.com" />
           <meta name="twitter:card" content="summary_large_image" />
 
