@@ -173,7 +173,7 @@ export const ONBOARDING_STEPS_LIST: OnboardingStep[] = [
     //     ],
     // },
 
-    // 8. full viz is available to the user
+    // 13. full viz is available to the user
     {
         type: OnboardingStepTypes.COMPLETE_VIZ,
     },

@@ -22,10 +22,9 @@ export function NavBar(props: { current: 'viz' | 'about', height: string }) {
     }
 
     return (
-        <Box display='flex' height={height || '2rem'} pt={2} pr={2}>
+        <Box display='flex' height={height || '2rem'} pt={2} pr={2} pl={2}>
             <Typography variant='h3'>
             </Typography>
-            <Box flexGrow='1'></Box>
 
             {current != 'viz' ? (
             <Box mr={2}>
@@ -51,8 +50,30 @@ export function NavBar(props: { current: 'viz' | 'about', height: string }) {
                 </Box>
             ) : null}
 
-            <Box>
-                <Typography variant='h3' className={current == 'about' ? classes.accentText : ''}>
+            <Box flexGrow='1'></Box>
+        
+            <Box mr={2}>
+                <Typography variant='h3'>
+                    <Link color='inherit' href='https://twitter.com/null_js'> Twitter </Link>
+                </Typography>
+            </Box>
+
+            <Typography variant='h3'>
+                |
+            </Typography>
+
+            <Box mr={2} ml={2}>
+                <Typography variant='h3'>
+                    <Link color='inherit' href='https://github.com/paduano/prejudicefree'> Github </Link>
+                </Typography>
+            </Box>
+
+            <Typography variant='h3'>
+                |
+            </Typography>
+
+            <Box ml={2} ml={2}>
+                <Typography  variant='h3' className={current == 'about' ? classes.accentText : ''}>
                     <Link color='inherit' href='/about'> About </Link>
                 </Typography>
             </Box>
