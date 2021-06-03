@@ -65,22 +65,22 @@ type OnboardingStep = {
 }
 
 export const ONBOARDING_STEPS_LIST: OnboardingStep[] = [
-    // // intro and select country
+    // 0 intro and select country
     {
         type: OnboardingStepTypes.SELECT_COUNTRY,
     },
 
-    // select value
+    // 1 select value
     {
         type: OnboardingStepTypes.SELECT_VALUE,
     },
 
-    // viz random
+    // 2 viz random
     {
         type: OnboardingStepTypes.VIZ_RANDOM,
     },
 
-    // one group
+    // 3 one group
     {
         type: OnboardingStepTypes.VIZ_ONE_GROUP,
     },
@@ -89,42 +89,47 @@ export const ONBOARDING_STEPS_LIST: OnboardingStep[] = [
         type: OnboardingStepTypes.ZOOM_IN,
     },
 
-    // age split
+    // 4 age split
     {
         type: OnboardingStepTypes.VIZ_AGE_SPLIT,
     },
 
+    // 5
     {
         type: OnboardingStepTypes.OTHER_COUNTRIES_AND_VALUES,
     },
 
-    // 7
+    // 6
     {
         type: OnboardingStepTypes.COMMENT_ON_FREEDOMS,
     },
 
-    // 8
+    // 7 
     {
         type: OnboardingStepTypes.TIME_TRAVEL,
     },
 
+    // 8
     {
         type: OnboardingStepTypes.THE_LADDER_OF_FREEDOM,   
     },
 
+    // 9
     {
         type: OnboardingStepTypes.OTHER_FACTORS,
     },
 
-
+    // 10
     {
         type: OnboardingStepTypes.RELIGION,
     },
 
+    // 11
     {
         type: OnboardingStepTypes.RELIGION_CONTROL_VARIABLES,
     },
 
+    // 12
     {
         type: OnboardingStepTypes.END_MESSAGE,
     },
