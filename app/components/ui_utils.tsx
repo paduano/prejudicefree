@@ -46,8 +46,8 @@ export function mousePos(evt: React.MouseEvent<HTMLElement>, parent: HTMLDivElem
     };
 }
 
-export const FadeGradient = (props: BoxProps & {orientation: 'top' | 'bottom', destinationColor: string}) => {
-    const { orientation, destinationColor, ...rest} = props;
+export const FadeGradient = (props: BoxProps & { orientation: 'top' | 'bottom', destinationColor: string }) => {
+    const { orientation, destinationColor, ...rest } = props;
 
     const shadowStyle = (orientation: 'top' | 'bottom') => {
         return {
@@ -79,11 +79,13 @@ export const Button = (props: { frame?: boolean, label: string, medium?: boolean
         setWhite(true);
     };
     const dismissHover = () => {
-        setWhite(false);
+        setTimeout(() => {
+            setWhite(false);
+        }, 300)
     }
 
     return (
-        <Box className={cls} onClick={props.onClick} {...rest} 
+        <Box className={cls} onClick={props.onClick} {...rest}
             onTouchStart={onMouseDown} onTouchEnd={dismissHover} onTouchCancel={dismissHover}
             onMouseDown={onMouseDown} onMouseUp={dismissHover} onMouseLeave={dismissHover} >
             <div className={styles.buttonInnerContainer}>
@@ -104,7 +106,7 @@ export const Button = (props: { frame?: boolean, label: string, medium?: boolean
 export function FadeInBox(props: BoxProps & { visible: boolean }) {
     const { visible, className, children, ...rest } = props;
     const cls = classNames(className, styles.fadeHidden);
-    
+
     return (
         <CSSTransition in={visible} timeout={1000} classNames={{
             enter: styles.enterFade,
@@ -117,13 +119,13 @@ export function FadeInBox(props: BoxProps & { visible: boolean }) {
     )
 }
 
-export function FadeInBoxWithDelay(props: BoxProps & {children: any, fadeInAfter?: number}) {
+export function FadeInBoxWithDelay(props: BoxProps & { children: any, fadeInAfter?: number }) {
     const { children, fadeInAfter, ...rest } = props;
     const [uiVisible, setUiVisible] = useState(false);
     useEffect(() => {
         setTimeout(() => {
             setUiVisible(true);
-        // }, fadeInAfter); // YYYY
+            // }, fadeInAfter); // YYYY
         }, fadeInAfter / 10); // YYYY
     })
 

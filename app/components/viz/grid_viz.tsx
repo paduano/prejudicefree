@@ -32,8 +32,9 @@ import { Button } from '../ui_utils';
 
 const PI_2 = 1.57079632679489661923;
 const POINT_COUNT = 5000;
-const TWEEN_TRANSITION_TIME = 1500;
+const TWEEN_TRANSITION_TIME = 1700;
 const CAMERA_ROT = 15;
+const CAMERA_IN_FRONT_ROT = PI_2 * 0.8;
 // const TWEEN_TRANSITION_TIME = 100;
 
 interface GridVizProps extends ThreeCanvasProps {
@@ -220,9 +221,15 @@ class GridVizView extends ThreeCanvas<GridVizProps, GridVizState> {
             this.updateYourselfPositionInCurrentGroup(this.state.groupLayoutInfo);
         }
 
-        if (!this.props.cameraInFront && prevProp.cameraInFront) {
-            this.introRotateCamera();
-            this.instancedMaterial.depthWrite = true;
+        // from intro to view from top 
+        if (this.props.cameraInFront != prevProp.cameraInFront) {
+            if (!this.props.cameraInFront) {
+                this.introRotateCamera();
+                this.instancedMaterial.depthWrite = true;
+            } else {
+                this.backToIntroRotateCamera();
+                this.instancedMaterial.depthWrite = false;
+            }
         }
 
         // zoom in/zoom out
@@ -377,7 +384,7 @@ class GridVizView extends ThreeCanvas<GridVizProps, GridVizState> {
         })
     }
 
-    YOURSELF_POS_FIX = { x: -9, y: -3 };
+    YOURSELF_POS_FIX = { x: -7, y: -3 };
     renderBackground() {
         const { isIntro, showYourself, selectedObservationId, primaryFilterDemographic, secondaryFilterDemographic, featureChartsEnabled } = this.props;
         const { x: youPosX, y: youPosY } = this.getAnnotationPos(this.yourselfPosition.x, this.yourselfPosition.y);
@@ -715,7 +722,7 @@ class GridVizView extends ThreeCanvas<GridVizProps, GridVizState> {
         this.yourselfMesh.position.copy(this.yourselfPosition);
 
         if (this.props.cameraInFront) {
-            this.cameraOffset.rot = PI_2 * 0.8;
+            this.cameraOffset.rot = CAMERA_IN_FRONT_ROT;
         }
 
         // outlinePass.selectedObjects = [this.yourselfMesh]; // YYY
@@ -771,6 +778,7 @@ class GridVizView extends ThreeCanvas<GridVizProps, GridVizState> {
 
     getCameraRot(dt: number) {
         const { limitedWidth, disableCameraTrack, isZoomedIn } = this.props;
+        const MAX_ROT_SPEED = 1.2;
         let xParallax = 0;
         let yParallax = 0;
 
@@ -794,7 +802,7 @@ class GridVizView extends ThreeCanvas<GridVizProps, GridVizState> {
         const finalRotY = !disableCameraTrack ? yParallax + this.cameraOffset.rot : 0;
 
         // smooth move of the camera and transform layers
-        const maxDegree = dt / 2; // speed
+        const maxDegree = dt / MAX_ROT_SPEED; // speed
         const currentRot = this.cameraPivot.rotation;
         const deltaRotX = finalRotX - currentRot.y;
         const deltaRotY = finalRotY - currentRot.x;
@@ -1015,12 +1023,17 @@ class GridVizView extends ThreeCanvas<GridVizProps, GridVizState> {
         this.introRotationTween
             .to({ rot: 0 }, 1000)
             .easing(TWEEN.Easing.Quadratic.InOut)
-            // .onUpdate(obj => {
-            //     // this.instancedGeometry.rotateX(obj.rot);
-            //     // this.yourselfMesh.rotateX(obj.rot - 0.4);
-            // })
             .start();
     }
+
+    backToIntroRotateCamera = () => {
+        this.introRotationTween = new Tween(this.cameraOffset);
+        this.introRotationTween
+            .to({ rot: CAMERA_IN_FRONT_ROT }, 1000)
+            .easing(TWEEN.Easing.Quadratic.InOut)
+            .start();
+    }
+
 
     zoomIn = () => {
         const {limitedWidth} = this.props;

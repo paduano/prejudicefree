@@ -38,9 +38,9 @@ export default function AboutPage() {
               </Typography>
             </Box>
 
-            {/* <Typography variant='h4'>
+            <Typography variant='h4'>
               The source code for this website is available <Link color="inherit" underline='always' target="_blank" href="https://github.com/paduano/prejudicefree">here</Link>.
-            </Typography> */}
+            </Typography>
 
             <Box mt={4}>
               <Box mb={2}>
@@ -51,7 +51,7 @@ export default function AboutPage() {
 
               <Typography variant='h4'>
                 I'm a UX Software Engineer with a passion for Dataviz. <br/>
-                Say hi at hi@prejudicefree.com
+                Say hi at hi@prejudicefree.com or follow me on <Link color='inherit' underline='always' target="_blank" href='https://twitter.com/null_js'>twitter</Link>.
               </Typography>
             </Box>
           </Box>
