@@ -58,32 +58,32 @@ export const StoryContents: { [id: string]: StoryContent } = {
         story: () => {
             return (
                 <Box>
-                    <FadeInBoxWithDelay fadeInAfter={500}>
+                    <Box >
                         <Typography variant='h4'>
                             Are you free to form your own beliefs?
-                    </Typography>
-                    </FadeInBoxWithDelay>
+                        </Typography>
+                    </Box>
 
-                    <FadeInBoxWithDelay fadeInAfter={4000} mt={2}>
+                    <Box  mt={2}>
                         <Typography variant='h4'>
                             Over the past 5 years, 120,000 people were interviewed around the world about their opinions and values as part of the <i>World Values Survey</i>.
                     </Typography>
-                    </FadeInBoxWithDelay>
+                    </Box>
 
-                    <FadeInBoxWithDelay fadeInAfter={8000} mt={2}>
+                    <Box mt={2}>
                         <Typography variant='h4'>
                             This website will take you through a short data-driven journey to show you how some socio-demographic factors,
                             often outside our control, might affect how people around you think.
                     </Typography>
-                    </FadeInBoxWithDelay>
+                    </Box>
 
-                    <FadeInBoxWithDelay fadeInAfter={14000}>
+                    <Box >
                         <NextHeaderPrompt>
                             <Typography variant='h4' display='inline'> Select your country{' '} </Typography>
                             <CountrySelect setPreferences ml={1} mr={1} mb={1} height={'2.7rem'} />
                             <Typography variant='h4' display='inline'>  {' '}and click next.{' '} </Typography>
                         </NextHeaderPrompt>
-                    </FadeInBoxWithDelay>
+                    </Box>
                 </Box>
             );
         },

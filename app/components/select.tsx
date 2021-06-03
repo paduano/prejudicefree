@@ -216,7 +216,7 @@ export const ValuesView = (props: {
             <Box mt={2}>
                 <Typography variant='h4'>
                     Choose a value from 1 to 10 on the scale, representing if you think {ValuesMap[uiSelectedValue]} <i>can
-                    always be justified, never be justified, or something in between?*.</i>
+                    always be justified (10), never be justified (1), or something in between?*.</i>
                 </Typography>
             </Box>
 
