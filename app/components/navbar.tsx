@@ -72,7 +72,7 @@ export function NavBar(props: { current: 'viz' | 'about', height: string }) {
                 |
             </Typography>
 
-            <Box ml={2} ml={2}>
+            <Box ml={2}>
                 <Typography  variant='h3' className={current == 'about' ? classes.accentText : ''}>
                     <Link color='inherit' href='/about'> About </Link>
                 </Typography>
