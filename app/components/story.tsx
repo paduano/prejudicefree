@@ -298,7 +298,7 @@ export const StoryContents: { [id: string]: StoryContent } = {
                     </FadeInBoxWithDelay>
                     <FadeInBox visible={currentDemo == 'age'}>
                         <Typography variant='h4'>
-                            You might be surprised to see that younger have expressed more tolerant views on {vLabel}.
+                            You might not be surprised to see that younger people have expressed more tolerant views on {vLabel}.
                             But is this trend widespread around the world? And is it present in other topics?
                         </Typography>
                     </FadeInBox>
