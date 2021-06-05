@@ -1,4 +1,4 @@
-import { Box, Typography } from "@material-ui/core";
+import { Box, Link, Typography } from "@material-ui/core";
 import React, { Fragment, useState } from "react";
 import { countryCodeToName } from "../data/countries";
 import { ageRanges, LATEST_WAVE, WAVE_TO_YEAR } from "../data/legend";
@@ -6,7 +6,7 @@ import { useAppDispatch, useAppSelector } from "../hooks";
 import { ValuesQuery, ValuesMap, ObservationDemographics, getReadableDescriptionForDemographic, getReadableDescriptionForGroupValue, groupsForDemographic, Value, ObservationDemographicsList, getReadableGroupDescriptor } from "../observation";
 import { OnboardingStepTypes } from "../onboarding";
 import { isLimitedWidthSelector, countryNameAppSelector, countryCodeAppSelector, getCountryCode, availableWavesForValueAndCountrySelector, availableWavesForValueAndCountry } from "../selectors";
-import { updateValuesQuery, nextOnboardingStep, setPrimaryFilterDemographic, setCurrentColumn, setCurrentRow, updateObservationsQuery, setWave, setSecondaryFilterDemographic, updateUserPreferences, StoreState } from "../store";
+import { updateValuesQuery, nextOnboardingStep, setPrimaryFilterDemographic, setCurrentColumn, setCurrentRow, updateObservationsQuery, setWave, setSecondaryFilterDemographic, updateUserPreferences, StoreState, skipOnboarding } from "../store";
 import { colorGradientListCSS } from "./colors";
 import { SimpleHeaderTitle, NextHeaderPrompt, FullTitle, TitleSelector } from "./header";
 import { CountrySelect, ValuesView } from "./select";
@@ -56,6 +56,7 @@ export const StoryContents: { [id: string]: StoryContent } = {
             );
         },
         story: () => {
+            const dispatch = useAppDispatch();
             return (
                 <Box>
                     <Box >
@@ -84,6 +85,20 @@ export const StoryContents: { [id: string]: StoryContent } = {
                             <Typography variant='h4' display='inline'>  {' '}and click next.{' '} </Typography>
                         </NextHeaderPrompt>
                     </Box>
+
+                    <Box mt={4}>
+
+                        <Typography variant='h4'>
+                            At any time you can click on "                    
+
+
+                            <Box mt={4} display='inline-block' ml={0.5} mr={0.5}>
+                                <Typography variant='h3'> <Link color='inherit' href='#' onClick={() => dispatch(skipOnboarding())}> ► Skip the intro </Link> </Typography>
+                            </Box>
+                            " to skip this presentation and explore the full dataset. 
+                        </Typography>
+                    </Box>
+
                 </Box>
             );
         },
@@ -399,9 +414,6 @@ export const StoryContents: { [id: string]: StoryContent } = {
                             </Typography>
                             <Box display='flex' mt={1} mb={1}>{countries}</Box>
                         </FadeInBox>
-
-
-
 
                     </FadeInBoxWithDelay>
                 </Fragment>
