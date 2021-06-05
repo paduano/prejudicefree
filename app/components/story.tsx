@@ -88,14 +88,14 @@ export const StoryContents: { [id: string]: StoryContent } = {
 
                     <Box mt={4}>
 
-                        <Typography variant='h4'>
-                            At any time you can click on "                    
+                        <Typography variant='h3'>
+                            At any time you can click on                    
 
 
                             <Box mt={4} display='inline-block' ml={0.5} mr={0.5}>
-                                <Typography variant='h3'> <Link color='inherit' href='#' onClick={() => dispatch(skipOnboarding())}> ► Skip the intro </Link> </Typography>
+                                <Typography variant='h3'>“ <Link color='inherit' href='#' onClick={() => dispatch(skipOnboarding())}> ► Skip the intro </Link> ”</Typography>
                             </Box>
-                            " to skip this presentation and explore the full dataset. 
+                             to skip this presentation and explore the full dataset. 
                         </Typography>
                     </Box>
 
@@ -1076,6 +1076,7 @@ export const StoryContents: { [id: string]: StoryContent } = {
      */
     [OnboardingStepTypes.COMPLETE_VIZ]: {
         hideNextButton: true,
+        primaryDemographic: 'age',
         header: () => {
             const currentPrimaryDemo = useAppSelector(state => {
                 return state.rawData.primaryFilterDemographic;

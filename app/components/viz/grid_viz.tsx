@@ -192,7 +192,6 @@ class GridVizView extends ThreeCanvas<GridVizProps, GridVizState> {
 
     }
 
-
     componentDidUpdate(prevProp: GridVizProps) {
         const obsChanged = this.props.observations != prevProp.observations;
         const valuesChanged = this.props.valuesQuery != prevProp.valuesQuery;
@@ -341,8 +340,11 @@ class GridVizView extends ThreeCanvas<GridVizProps, GridVizState> {
 
     private updateYourselfPositionInCurrentGroup(groupLayoutInfo: GroupLayoutInfo) {
         const { currentColumn, currentRow } = this.props;
-        let yourselfPosition = this.groupLayoutInfo.yourselfPositions[currentColumn][currentRow];
-        this.setYourselfPosition(new THREE.Vector3(yourselfPosition.x, yourselfPosition.y, 0));
+        // another hack, this check should not be necessary
+        if (this.groupLayoutInfo.yourselfPositions[currentColumn] != undefined) {
+            let yourselfPosition = this.groupLayoutInfo.yourselfPositions[currentColumn][currentRow];
+            this.setYourselfPosition(new THREE.Vector3(yourselfPosition.x, yourselfPosition.y, 0));
+        }
     }
 
     private applyDotAttributes(attributes: any, dotAttributes: DotAttributes, i: number) {

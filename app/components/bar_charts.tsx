@@ -100,6 +100,10 @@ export const BarCharts = React.memo((props: Props) => {
     const getWidth = (groupIndex: number) => getSizeTransform(groupLayoutInfo.rectWidths[groupIndex][currentRow]);
 
     const charts = demoGroups.map((_demo, i: number) => {
+        // hack to fix old props being passed when intro is skipped
+        if (groupLayoutInfo.groupPosX[i] == undefined || groupLayoutInfo.groupPosX[i][currentRow] == undefined) {
+            return null;
+        }
         const { x, y } = getPos(i);
         const length = isVertical ? getHeight(i) : getWidth(i);
         const N = groupLayoutInfo.totalObservations[i][currentRow];
