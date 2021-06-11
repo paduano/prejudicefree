@@ -32,6 +32,9 @@ export interface StoreState {
     filterStats: StatsAccumulator;
     altStatsAndQueries: AltStatsAndQuery[];
     loadingState: 'idle' | 'pending' | 'complete' | 'error'
+    timeDataAvailable: boolean;
+    lastVizDataAvailable: boolean;
+
     uiSelect: UISelect,
     primaryFilterDemographic?: ObservationDemographics,
     secondaryFilterDemographic?: ObservationDemographics,
@@ -142,6 +145,8 @@ const initialState: StoreState = {
         demographicGroup: {},
     },
     
+    timeDataAvailable: false,
+    lastVizDataAvailable: false,
 }
 
 // overrides
@@ -158,6 +163,17 @@ const initialState: StoreState = {
 //     state.altStatsAndQueries = altStatsAndQuery;
 //     console.log(`alt stats: ${altStatsAndQuery}`)
 // }
+
+const updateLoadingState = (state: StoreState) => {
+    const allDataReady = state.lastVizDataAvailable && state.timeDataAvailable;
+    if (state.loadingState == 'idle' && !allDataReady) {
+        state.loadingState = 'pending';
+    }
+
+    if (allDataReady) {
+        state.loadingState = 'complete';
+    }
+}
 
 const applyFilterCountryAndDemographicsReducer = (state: StoreState, allEntries: AllEntriesStore, filterQuery: ObservationQuery, demo1: ObservationDemographics | null, demo2: ObservationDemographics | null) => {
     if (filterQuery.country_codes == undefined || filterQuery.country_codes.length == 0) {
@@ -427,14 +443,13 @@ export const rawDataSlice = createSlice({
         },
     },
     extraReducers: (builder) => {
-        builder.addCase(fetchAllVizData.pending, (state, action) => {
-            if (state.loadingState === 'idle') {
-                state.loadingState = 'pending'
-            }
-        });
+        // builder.addCase(fetchAllVizData.pending, (state, action) => {
+        //     if (state.loadingState === 'idle') {
+        //         state.loadingState = 'pending'
+        //     }
+        // });
 
         builder.addCase(fetchAllVizData.fulfilled, (state, action) => {
-            state.loadingState = 'complete';
             state.allEntries = populateEntriesStoreWithLatestWave(state.allEntries, action.payload);
             // state.filterQuery = {country_codes: ['840'], sex: 'M'}; // ZZZ
             state.filterQuery = { country_codes: ['840'] };
@@ -447,6 +462,9 @@ export const rawDataSlice = createSlice({
                 state.secondaryFilterDemographic
             );
             applyCurrentGroupStats(state);
+
+            state.lastVizDataAvailable = true;
+            updateLoadingState(state);
         });
 
         builder.addCase(fetchAllVizData.rejected, (state, action) => {
@@ -455,6 +473,9 @@ export const rawDataSlice = createSlice({
 
         builder.addCase(fetchTimeData.fulfilled, (state, action) => {
             state.allEntries = populateEntriesStoreWithTimeData(state.allEntries, action.payload);
+
+            state.timeDataAvailable = true;
+            updateLoadingState(state);
         });
     }
 });

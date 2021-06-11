@@ -30,6 +30,7 @@ interface MVPProps {
   featureLegendEnabled: boolean,
   limitedWidth: boolean,
   viewportWidth: number,
+  selectedCountry: string,
 }
 
 interface MVPState {
@@ -64,7 +65,7 @@ export class MVP extends React.Component<MVPProps, MVPState> {
   });
 
   loadingComplete() {
-    return this.state.assetsLoaded && this.props.loadingState;
+    return this.state.assetsLoaded && this.props.loadingState && this.props.selectedCountry;
   }
 
   renderDebugFooter() {
@@ -217,6 +218,7 @@ function mapStateToProps(state: RootState, ownProps: MVPProps) {
   return {
     loadingState: state.rawData.loadingState,
     selectOverlay: state.rawData.uiSelect,
+    selectedCountry: state.rawData.filterQuery.country_codes && state.rawData.filterQuery.country_codes[0],
     featureLegendEnabled: isFeatureAvailableSelector('legend')(state),
     limitedWidth: state.rawData.isLimitedWidth,
     viewportWidth: state.rawData.viewportWidth,
